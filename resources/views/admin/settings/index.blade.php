@@ -8,14 +8,14 @@
     <!-- Header -->
     <div>
         <div class="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-            <i data-lucide="sliders" class="w-4 h-4 text-sky-600"></i>
+            <i data-lucide="sliders" class="w-4 h-4 text-retail-cyan"></i>
             <span>Konfigurasi & Parameter Bisnis (Dokumen Hal 6, 7, 9, 10)</span>
         </div>
-        <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Pengaturan Parameter Sistem</h1>
+        <h1 class="text-xl sm:text-2xl font-bold text-retail-ink tracking-tight">Pengaturan Parameter Sistem</h1>
         <p class="text-xs text-slate-500 mt-0.5">Konfigurasi batas durasi CA, ambang persetujuan Direktur, batas keterlambatan, dan rekening bank refund.</p>
     </div>
 
-    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8">
+    <div class="card-commerce p-6 sm:p-7">
         <form action="{{ route('admin.settings.update') }}" method="POST" class="space-y-6">
             @csrf
 
@@ -23,7 +23,7 @@
                 @foreach($settings as $setting)
                     <div class="py-4 first:pt-0 last:pb-0 grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
                         <div class="md:col-span-1">
-                            <label class="block text-xs font-bold text-slate-900">{{ $setting->label }}</label>
+                            <label class="block text-xs font-bold text-retail-ink">{{ $setting->label }}</label>
                             <span class="text-[10px] text-slate-400 font-mono">{{ $setting->key }}</span>
                             @if($setting->description)
                                 <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">{{ $setting->description }}</p>
@@ -33,18 +33,18 @@
                         <div class="md:col-span-2">
                             @if($setting->type === 'number')
                                 <input type="number" name="settings[{{ $setting->key }}]" value="{{ $setting->value }}" required
-                                    class="w-full px-3.5 py-2 text-sm font-bold bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:bg-white outline-none">
+                                    class="w-full input-commerce font-mono font-bold">
                             @else
                                 <input type="text" name="settings[{{ $setting->key }}]" value="{{ $setting->value }}" required
-                                    class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:bg-white outline-none">
+                                    class="w-full input-commerce font-mono">
                             @endif
                         </div>
                     </div>
                 @endforeach
             </div>
 
-            <div class="pt-6 border-t border-slate-100 flex justify-end">
-                <button type="submit" class="px-6 py-2.5 bg-slate-900 hover:bg-black text-white font-bold text-xs rounded-xl shadow transition flex items-center space-x-2">
+            <div class="pt-5 border-t border-slate-100 flex justify-end">
+                <button type="submit" class="btn-primary">
                     <i data-lucide="save" class="w-4 h-4"></i>
                     <span>Simpan Pengaturan Sistem</span>
                 </button>
