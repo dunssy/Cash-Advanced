@@ -136,6 +136,20 @@
                         </span>
                     </div>
                 </div>
+
+                @php
+                    $totalBudget = $myCa->approved_amount + $myCa->disbursed_topups_total;
+                    $percentUsed = ($totalBudget > 0) ? min(100, round(($myCa->recorded_expenses_total / $totalBudget) * 100)) : 0;
+                @endphp
+                <div class="lg:col-span-3 pt-3 border-t border-retail-surface">
+                    <div class="flex items-center justify-between text-[11px] font-mono mb-1.5">
+                        <span class="text-slate-500 font-medium">Realisasi Pengeluaran Terhadap Anggaran:</span>
+                        <span class="font-bold text-retail-ink">{{ $percentUsed }}% (Rp {{ number_format($myCa->recorded_expenses_total, 0, ',', '.') }} / Rp {{ number_format($totalBudget, 0, ',', '.') }})</span>
+                    </div>
+                    <div class="w-full bg-slate-200 h-2 rounded-[3px] overflow-hidden">
+                        <div class="bg-retail-orange h-full rounded-[3px] transform origin-left transition-transform duration-300 ease-out" style="width: {{ $percentUsed }}%"></div>
+                    </div>
+                </div>
             </div>
 
             @if($myCa->is_low_balance)
@@ -150,10 +164,10 @@
         </div>
     @endif
 
-    <!-- STAT METRIC TILES (Design.md: Card rounded 6px, border 1px #DDDDDD, Mono numbers) -->
+    <!-- STAT METRIC TILES (Design.md: Card rounded 6px, border 1px #DDDDDD, Mono numbers, 60fps Lift) -->
     <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         @if(auth()->user()->isAtasan() || auth()->user()->isDirektur())
-            <div class="card-commerce p-4 sm:p-5">
+            <div class="card-commerce card-commerce-hoverable p-4 sm:p-5">
                 <div class="flex items-center justify-between">
                     <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Approval CA</span>
                     <div class="w-8 h-8 rounded-[3px] bg-sky-50 text-retail-cyan flex items-center justify-center border border-sky-100">
@@ -164,7 +178,7 @@
                 <span class="text-[11px] text-slate-500 mt-1 block">Menunggu persetujuan Anda</span>
             </div>
 
-            <div class="card-commerce p-4 sm:p-5">
+            <div class="card-commerce card-commerce-hoverable p-4 sm:p-5">
                 <div class="flex items-center justify-between">
                     <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Top-Up Menunggu</span>
                     <div class="w-8 h-8 rounded-[3px] bg-amber-50 text-retail-orange flex items-center justify-center border border-amber-100">
@@ -177,7 +191,7 @@
         @endif
 
         @if(auth()->user()->isFinance() || auth()->user()->isDirektur())
-            <div class="card-commerce p-4 sm:p-5">
+            <div class="card-commerce card-commerce-hoverable p-4 sm:p-5">
                 <div class="flex items-center justify-between">
                     <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Verifikasi Struk</span>
                     <div class="w-8 h-8 rounded-[3px] bg-purple-50 text-purple-700 flex items-center justify-center border border-purple-100">
@@ -188,7 +202,7 @@
                 <span class="text-[11px] text-slate-500 mt-1 block">Struk menunggu validasi</span>
             </div>
 
-            <div class="card-commerce p-4 sm:p-5">
+            <div class="card-commerce card-commerce-hoverable p-4 sm:p-5">
                 <div class="flex items-center justify-between">
                     <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">CA OVERDUE</span>
                     <div class="w-8 h-8 rounded-[3px] bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
@@ -199,7 +213,7 @@
                 <span class="text-[11px] text-slate-500 mt-1 block">Lewat batas 2 bulan</span>
             </div>
 
-            <div class="card-commerce p-4 sm:p-5 col-span-2">
+            <div class="card-commerce card-commerce-hoverable p-4 sm:p-5 col-span-2">
                 <div class="flex items-center justify-between">
                     <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Dana CA Beredar (Float)</span>
                     <div class="w-8 h-8 rounded-[3px] bg-emerald-50 text-retail-green flex items-center justify-center border border-emerald-100">

@@ -71,7 +71,14 @@
                 </div>
 
                 <!-- Live Saldo Guard Alert (Dokumen hal 5) -->
-                <div x-show="isOverBalance" x-cloak class="mt-2.5 p-3.5 bg-rose-50 border border-rose-300 rounded-[6px] text-xs text-rose-900 flex items-start space-x-2.5">
+                <div x-show="isOverBalance" x-cloak 
+                    x-transition:enter="transition ease-out duration-150 transform"
+                    x-transition:enter-start="opacity-0 -translate-y-1"
+                    x-transition:enter-end="opacity-100 translate-y-0"
+                    x-transition:leave="transition ease-in duration-100 transform"
+                    x-transition:leave-start="opacity-100 translate-y-0"
+                    x-transition:leave-end="opacity-0 -translate-y-1"
+                    class="mt-2.5 p-3.5 bg-rose-50 border border-rose-300 rounded-[6px] text-xs text-rose-900 flex items-start space-x-2.5">
                     <i data-lucide="alert-octagon" class="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5"></i>
                     <div class="leading-relaxed">
                         <span class="font-bold">Saldo Tidak Cukup:</span> Nominal pengeluaran melebihi sisa kas (<strong class="font-mono">Rp {{ number_format($cashAdvance->current_balance, 0, ',', '.') }}</strong>). Sistem mengunci saldo agar tidak bernilai negatif. Gunakan opsi <strong>Talangan Pribadi (Kondisi Darurat)</strong> di bawah atau minta Top-Up ke Atasan.
@@ -144,7 +151,14 @@
                     </div>
                 </label>
 
-                <div x-show="isTalangan" x-cloak class="pt-2.5 border-t border-amber-200">
+                <div x-show="isTalangan" x-cloak 
+                    x-transition:enter="transition ease-out duration-150 transform"
+                    x-transition:enter-start="opacity-0 -translate-y-1"
+                    x-transition:enter-end="opacity-100 translate-y-0"
+                    x-transition:leave="transition ease-in duration-100 transform"
+                    x-transition:leave-start="opacity-100 translate-y-0"
+                    x-transition:leave-end="opacity-0 -translate-y-1"
+                    class="pt-2.5 border-t border-amber-200">
                     <label class="block text-xs font-bold text-amber-950 uppercase mb-1">
                         Alasan Kondisi Darurat <span class="text-rose-500">*</span>
                     </label>
@@ -165,7 +179,14 @@
                 </label>
 
                 <!-- Upload Surat Pernyataan if lost receipt -->
-                <div x-show="isLostReceipt" x-cloak class="pt-2.5 border-t border-slate-200">
+                <div x-show="isLostReceipt" x-cloak 
+                    x-transition:enter="transition ease-out duration-150 transform"
+                    x-transition:enter-start="opacity-0 -translate-y-1"
+                    x-transition:enter-end="opacity-100 translate-y-0"
+                    x-transition:leave="transition ease-in duration-100 transform"
+                    x-transition:leave-start="opacity-100 translate-y-0"
+                    x-transition:leave-end="opacity-0 -translate-y-1"
+                    class="pt-2.5 border-t border-slate-200">
                     <label class="block text-xs font-bold text-retail-ink uppercase mb-1">
                         Upload Surat Pernyataan Bermaterai / TTD (PDF / Foto) <span class="text-rose-500">*</span>
                     </label>

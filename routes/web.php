@@ -86,3 +86,22 @@ Route::middleware('auth')->group(function () {
         Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
     });
 });
+
+// Fallback to serve uploaded public storage files when symlink is not available (e.g., Windows development)
+Route::get('/storage/{path}', function (string $path) {
+    $filePath = storage_path('app/public/' . $path);
+    $basePath = realpath(storage_path('app/public'));
+    $resolvedPath = realpath($filePath);
+
+    if (!$resolvedPath || !str_starts_with($resolvedPath, $basePath) || !file_exists($resolvedPath)) {
+        abort(404);
+    }
+
+    $mimeType = mime_content_type($resolvedPath) ?: 'application/octet-stream';
+
+    return response()->file($resolvedPath, [
+        'Content-Type' => $mimeType,
+        'Cache-Control' => 'public, max-age=86400',
+    ]);
+})->where('path', '.*')->name('storage.local.file');
+

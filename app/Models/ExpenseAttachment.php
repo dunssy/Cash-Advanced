@@ -25,6 +25,10 @@ class ExpenseAttachment extends Model
 
     public function getUrlAttribute(): string
     {
-        return asset('storage/' . $this->file_path);
+        $path = ltrim($this->file_path, '/');
+        if (str_starts_with($path, 'storage/')) {
+            return asset($path);
+        }
+        return asset('storage/' . $path);
     }
 }

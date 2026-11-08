@@ -618,8 +618,22 @@
     <!-- ==================== MODALS SECTION (Design.md: Rounded 6px, Border 1px #DDDDDD, Primary #FF9900) ==================== -->
 
     <!-- Modal 1: Approve CA (Atasan / Direktur) -->
-    <div x-show="showApproveModal" x-cloak class="fixed inset-0 bg-retail-darkInk/75 z-50 flex items-center justify-center p-4">
-        <div class="card-commerce max-w-md w-full p-6 shadow-2xl">
+    <div x-show="showApproveModal" x-cloak 
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-retail-darkInk/75 z-50 flex items-center justify-center p-4">
+        <div x-show="showApproveModal"
+            x-transition:enter="transition ease-out duration-200 transform"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150 transform"
+            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+            class="card-commerce max-w-md w-full p-6 shadow-2xl">
             <h3 class="text-base font-bold text-retail-ink mb-1">Setujui Cash Advance</h3>
             <p class="text-xs font-mono text-slate-500 mb-4">{{ $cashAdvance->ca_number }} &bull; {{ $cashAdvance->project_name }}</p>
 
@@ -643,8 +657,22 @@
     </div>
 
     <!-- Modal 2: Reject CA -->
-    <div x-show="showRejectModal" x-cloak class="fixed inset-0 bg-retail-darkInk/75 z-50 flex items-center justify-center p-4">
-        <div class="card-commerce max-w-md w-full p-6 shadow-2xl">
+    <div x-show="showRejectModal" x-cloak 
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-retail-darkInk/75 z-50 flex items-center justify-center p-4">
+        <div x-show="showRejectModal"
+            x-transition:enter="transition ease-out duration-200 transform"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150 transform"
+            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+            class="card-commerce max-w-md w-full p-6 shadow-2xl">
             <h3 class="text-base font-bold text-rose-700 mb-1">Tolak Cash Advance</h3>
             <p class="text-xs text-slate-500 mb-4">Pengajuan akan dibatalkan dan gembok pemohon dibuka kembali.</p>
 
@@ -663,8 +691,22 @@
     </div>
 
     <!-- Modal 3: Disburse CA (Finance) -->
-    <div x-show="showDisburseModal" x-cloak class="fixed inset-0 bg-retail-darkInk/75 z-50 flex items-center justify-center p-4">
-        <div class="card-commerce max-w-md w-full p-6 shadow-2xl">
+    <div x-show="showDisburseModal" x-cloak 
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-retail-darkInk/75 z-50 flex items-center justify-center p-4">
+        <div x-show="showDisburseModal"
+            x-transition:enter="transition ease-out duration-200 transform"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150 transform"
+            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+            class="card-commerce max-w-md w-full p-6 shadow-2xl">
             <h3 class="text-base font-bold text-retail-ink mb-1">Catat Pencairan Dana (Finance)</h3>
             <p class="text-xs text-slate-500 mb-4">Mencairkan dana sebesar <strong class="font-mono text-retail-ink">Rp {{ number_format($cashAdvance->approved_amount, 0, ',', '.') }}</strong> ke rekening pemohon.</p>
 
@@ -693,8 +735,22 @@
     </div>
 
     <!-- Modal 4: Mark Project Completed -->
-    <div x-show="showCompleteModal" x-cloak class="fixed inset-0 bg-retail-darkInk/75 z-50 flex items-center justify-center p-4">
-        <div class="card-commerce max-w-md w-full p-6 shadow-2xl">
+    <div x-show="showCompleteModal" x-cloak 
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-retail-darkInk/75 z-50 flex items-center justify-center p-4">
+        <div x-show="showCompleteModal"
+            x-transition:enter="transition ease-out duration-200 transform"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150 transform"
+            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+            class="card-commerce max-w-md w-full p-6 shadow-2xl">
             <h3 class="text-base font-bold text-retail-ink mb-1">Tandai Proyek Selesai</h3>
             <p class="text-xs text-slate-600 mb-4 leading-relaxed">
                 Apakah seluruh pekerjaan lapangan telah tuntas? Sisa saldo saat ini: <strong class="font-mono">Rp {{ number_format($cashAdvance->current_balance, 0, ',', '.') }}</strong>.
@@ -716,8 +772,22 @@
     </div>
 
     <!-- Modal 5: Submit Refund Proof (Upload Transfer Sisa Dana) -->
-    <div x-show="showRefundModal" x-cloak class="fixed inset-0 bg-retail-darkInk/75 z-50 flex items-center justify-center p-4">
-        <div class="card-commerce max-w-md w-full p-6 shadow-2xl">
+    <div x-show="showRefundModal" x-cloak 
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-retail-darkInk/75 z-50 flex items-center justify-center p-4">
+        <div x-show="showRefundModal"
+            x-transition:enter="transition ease-out duration-200 transform"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150 transform"
+            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+            class="card-commerce max-w-md w-full p-6 shadow-2xl">
             <h3 class="text-base font-bold text-retail-ink mb-1">Upload Bukti Transfer Refund</h3>
             <p class="text-xs text-slate-500 mb-4">Kembalikan sisa saldo ke rekening PT Technodrives Indonesia.</p>
 
@@ -751,8 +821,22 @@
     </div>
 
     <!-- Modal 6: Close CA (CLOSED) -->
-    <div x-show="showCloseModal" x-cloak class="fixed inset-0 bg-retail-darkInk/75 z-50 flex items-center justify-center p-4">
-        <div class="card-commerce max-w-md w-full p-6 shadow-2xl">
+    <div x-show="showCloseModal" x-cloak 
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-retail-darkInk/75 z-50 flex items-center justify-center p-4">
+        <div x-show="showCloseModal"
+            x-transition:enter="transition ease-out duration-200 transform"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150 transform"
+            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+            class="card-commerce max-w-md w-full p-6 shadow-2xl">
             <h3 class="text-base font-bold text-retail-ink mb-1">Tutup Cash Advance (CLOSED)</h3>
             <p class="text-xs text-slate-600 mb-4 leading-relaxed">
                 Tindakan ini akan mengunci seluruh data transaksi secara permanen, menyelesaikan buku saldo proyek, dan <strong>membuka gembok pengajuan</strong> bagi karyawan. Pastikan seluruh struk telah diperiksa dan disetujui.
@@ -769,8 +853,22 @@
     </div>
 
     <!-- Modal 7: Direktur Override Gembok -->
-    <div x-show="showUnlockModal" x-cloak class="fixed inset-0 bg-retail-darkInk/75 z-50 flex items-center justify-center p-4">
-        <div class="card-commerce max-w-md w-full p-6 shadow-2xl">
+    <div x-show="showUnlockModal" x-cloak 
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-retail-darkInk/75 z-50 flex items-center justify-center p-4">
+        <div x-show="showUnlockModal"
+            x-transition:enter="transition ease-out duration-200 transform"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150 transform"
+            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+            class="card-commerce max-w-md w-full p-6 shadow-2xl">
             <h3 class="text-base font-bold text-retail-ink mb-1">Buka Gembok Pengajuan (Pengecualian Direktur)</h3>
             <p class="text-xs text-slate-500 mb-4">Hanya Direktur yang berhak memberikan izin pengecualian. Alasan akan dicatat permanen di audit log.</p>
 
@@ -789,8 +887,22 @@
     </div>
 
     <!-- Modal 8: Request Top-Up -->
-    <div x-show="showTopupModal" x-cloak class="fixed inset-0 bg-retail-darkInk/75 z-50 flex items-center justify-center p-4">
-        <div class="card-commerce max-w-md w-full p-6 shadow-2xl">
+    <div x-show="showTopupModal" x-cloak 
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-retail-darkInk/75 z-50 flex items-center justify-center p-4">
+        <div x-show="showTopupModal"
+            x-transition:enter="transition ease-out duration-200 transform"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150 transform"
+            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+            class="card-commerce max-w-md w-full p-6 shadow-2xl">
             <h3 class="text-base font-bold text-retail-ink mb-1">Pengajuan Top-Up Dana CA</h3>
             <p class="text-xs text-slate-500 mb-4">Tambahan dana akan dievaluasi oleh Atasan, Finance (dan Direktur bila nominal besar).</p>
 
@@ -813,8 +925,22 @@
     </div>
 
     <!-- Modal 9: Verify Expense (Finance / Direktur) -->
-    <div x-show="showVerifyModal" x-cloak class="fixed inset-0 bg-retail-darkInk/75 z-50 flex items-center justify-center p-4">
-        <div class="card-commerce max-w-md w-full p-6 shadow-2xl">
+    <div x-show="showVerifyModal" x-cloak 
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-retail-darkInk/75 z-50 flex items-center justify-center p-4">
+        <div x-show="showVerifyModal"
+            x-transition:enter="transition ease-out duration-200 transform"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150 transform"
+            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+            class="card-commerce max-w-md w-full p-6 shadow-2xl">
             <h3 class="text-base font-bold text-retail-ink mb-1">Verifikasi Struk Pengeluaran</h3>
             <p class="text-xs text-slate-500 mb-4" x-text="verifyExpenseDesc"></p>
 
@@ -841,8 +967,22 @@
     </div>
 
     <!-- Modal 10: Void Expense (Finance) -->
-    <div x-show="showVoidModal" x-cloak class="fixed inset-0 bg-retail-darkInk/75 z-50 flex items-center justify-center p-4">
-        <div class="card-commerce max-w-md w-full p-6 shadow-2xl">
+    <div x-show="showVoidModal" x-cloak 
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-retail-darkInk/75 z-50 flex items-center justify-center p-4">
+        <div x-show="showVoidModal"
+            x-transition:enter="transition ease-out duration-200 transform"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150 transform"
+            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+            class="card-commerce max-w-md w-full p-6 shadow-2xl">
             <h3 class="text-base font-bold text-rose-700 mb-1">VOID Transaksi Pengeluaran</h3>
             <p class="text-xs text-slate-500 mb-4" x-text="voidExpenseDesc"></p>
 

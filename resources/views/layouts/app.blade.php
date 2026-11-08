@@ -72,114 +72,176 @@
             color: #131921;
         }
 
-        /* Design.md Specification Helpers */
+        /* 60fps Compositor-Only Transitions & Design.md Architecture */
         .btn-primary {
+            position: relative;
+            isolation: isolate;
             background-color: #FF9900;
             color: #131921;
             font-weight: 600;
             border-radius: 3px;
-            padding: 10px 18px;
+            padding: 9px 16px;
             font-size: 0.875rem;
             border: 1px solid #D68100;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
-            transition: all 200ms ease-out;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            transform: translateZ(0);
+            transition: background-color 160ms ease, transform 100ms cubic-bezier(0.2, 0, 0, 1);
+            will-change: transform;
+        }
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: inherit;
+            box-shadow: 0 4px 14px rgba(255, 153, 0, 0.40);
+            opacity: 0;
+            transition: opacity 160ms ease;
+            z-index: -1;
+            pointer-events: none;
         }
         .btn-primary:hover {
             background-color: #E68A00;
-            box-shadow: 0 3px 8px rgba(255, 153, 0, 0.35);
+        }
+        .btn-primary:hover::after {
+            opacity: 1;
         }
         .btn-primary:active {
-            transform: translateY(1px);
+            transform: translateY(1px) scale(0.99);
         }
 
         .btn-secondary {
+            position: relative;
             background-color: #FFFFFF;
             color: #232F3E;
             font-weight: 600;
             border-radius: 3px;
-            padding: 10px 18px;
+            padding: 9px 16px;
             font-size: 0.875rem;
             border: 1.5px solid #DDDDDD;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
-            transition: all 200ms ease-out;
+            transform: translateZ(0);
+            transition: background-color 160ms ease, border-color 160ms ease, transform 100ms cubic-bezier(0.2, 0, 0, 1);
+            will-change: transform;
         }
         .btn-secondary:hover {
             background-color: #F3F4F6;
             border-color: #232F3E;
         }
         .btn-secondary:active {
-            transform: translateY(1px);
+            transform: translateY(1px) scale(0.99);
         }
 
         .btn-dark {
+            position: relative;
             background-color: #232F3E;
             color: #FFFFFF;
             font-weight: 600;
             border-radius: 3px;
-            padding: 10px 18px;
+            padding: 9px 16px;
             font-size: 0.875rem;
             border: 1px solid #131921;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
-            transition: all 200ms ease-out;
+            transform: translateZ(0);
+            transition: background-color 160ms ease, transform 100ms cubic-bezier(0.2, 0, 0, 1);
+            will-change: transform;
         }
         .btn-dark:hover {
             background-color: #131921;
             color: #FF9900;
         }
+        .btn-dark:active {
+            transform: translateY(1px) scale(0.99);
+        }
 
         .btn-cyan {
+            position: relative;
             background-color: #00A8E1;
             color: #FFFFFF;
             font-weight: 600;
             border-radius: 3px;
-            padding: 10px 18px;
+            padding: 9px 16px;
             font-size: 0.875rem;
             border: 1px solid #0088B8;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
-            transition: all 200ms ease-out;
+            transform: translateZ(0);
+            transition: background-color 160ms ease, transform 100ms cubic-bezier(0.2, 0, 0, 1);
+            will-change: transform;
         }
         .btn-cyan:hover {
             background-color: #0088B8;
         }
+        .btn-cyan:active {
+            transform: translateY(1px) scale(0.99);
+        }
 
         .btn-danger {
+            position: relative;
             background-color: #DC2626;
             color: #FFFFFF;
             font-weight: 600;
             border-radius: 3px;
-            padding: 10px 18px;
+            padding: 9px 16px;
             font-size: 0.875rem;
             border: 1px solid #B91C1C;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
-            transition: all 200ms ease-out;
+            transform: translateZ(0);
+            transition: background-color 160ms ease, transform 100ms cubic-bezier(0.2, 0, 0, 1);
+            will-change: transform;
         }
         .btn-danger:hover {
             background-color: #B91C1C;
         }
+        .btn-danger:active {
+            transform: translateY(1px) scale(0.99);
+        }
 
+        /* 60fps Card with Pseudo-Element Shadow Lift */
         .card-commerce {
+            position: relative;
             background-color: #FFFFFF;
             border: 1px solid #DDDDDD;
             border-radius: 6px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transform: translateZ(0);
+            transition: border-color 200ms ease, transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .card-commerce-hoverable {
+            transition: border-color 200ms ease, transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .card-commerce-hoverable::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            box-shadow: 0 10px 24px rgba(35, 47, 62, 0.09);
+            opacity: 0;
+            transition: opacity 200ms ease;
+            pointer-events: none;
+        }
+        .card-commerce-hoverable:hover {
+            border-color: #CBD5E1;
+            transform: translateY(-2px);
+        }
+        .card-commerce-hoverable:hover::after {
+            opacity: 1;
         }
 
+        /* Accessible Commerce Inputs */
         .input-commerce {
             border: 1px solid #DDDDDD;
             border-radius: 3px;
@@ -188,13 +250,14 @@
             background-color: #FFFFFF;
             color: #131921;
             outline: none;
-            transition: border-color 200ms, box-shadow 200ms;
+            transition: border-color 160ms ease, box-shadow 160ms ease;
         }
         .input-commerce:focus {
             border-color: #FF9900;
             box-shadow: 0 0 0 2px rgba(255, 153, 0, 0.35);
         }
 
+        /* Technical JetBrains Mono Badges */
         .badge-retail {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.75rem;
@@ -205,6 +268,16 @@
             display: inline-flex;
             align-items: center;
             gap: 4px;
+        }
+
+        /* Reduced Motion Respect (WCAG 2.3.3) */
+        @media (prefers-reduced-motion: reduce) {
+            *, ::before, ::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
         }
 
         @media print {
@@ -257,7 +330,14 @@
                                 <span>Laporan</span>
                                 <i data-lucide="chevron-down" class="w-3 h-3 ml-0.5"></i>
                             </button>
-                            <div x-show="open" x-cloak class="absolute left-0 mt-2 w-56 rounded-[6px] shadow-2xl bg-white text-retail-ink border border-retail-surface py-1 z-50">
+                            <div x-show="open" x-cloak 
+                                x-transition:enter="transition ease-out duration-150 transform"
+                                x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                x-transition:leave="transition ease-in duration-100 transform"
+                                x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                                x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                                class="absolute left-0 mt-2 w-56 rounded-[6px] shadow-2xl bg-white text-retail-ink border border-retail-surface py-1 z-50">
                                 <a href="{{ route('reports.rincian-ca') }}" class="block px-4 py-2.5 text-xs hover:bg-slate-50 font-medium border-b border-slate-100 flex items-center space-x-2">
                                     <i data-lucide="file-text" class="w-3.5 h-3.5 text-retail-cyan"></i>
                                     <span>1. Rincian per CA</span>
@@ -316,7 +396,14 @@
                         </button>
 
                         <!-- Notification Dropdown -->
-                        <div x-show="open" x-cloak class="absolute right-0 mt-2 w-80 sm:w-96 rounded-[6px] shadow-2xl bg-white text-retail-ink border border-retail-surface py-2 z-50 overflow-hidden">
+                        <div x-show="open" x-cloak 
+                            x-transition:enter="transition ease-out duration-150 transform"
+                            x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-100 transform"
+                            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                            class="absolute right-0 mt-2 w-80 sm:w-96 rounded-[6px] shadow-2xl bg-white text-retail-ink border border-retail-surface py-2 z-50 overflow-hidden">
                             <div class="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                                 <span class="text-xs font-bold uppercase text-slate-600 tracking-wider">Notifikasi ({{ $unreadCount }})</span>
                                 @if($unreadCount > 0)
@@ -378,7 +465,14 @@
                         </button>
 
                         <!-- User Dropdown Menu -->
-                        <div x-show="open" x-cloak class="absolute right-0 mt-2 w-64 rounded-[6px] shadow-2xl bg-white text-retail-ink border border-retail-surface py-2 z-50">
+                        <div x-show="open" x-cloak 
+                            x-transition:enter="transition ease-out duration-150 transform"
+                            x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-100 transform"
+                            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                            class="absolute right-0 mt-2 w-64 rounded-[6px] shadow-2xl bg-white text-retail-ink border border-retail-surface py-2 z-50">
                             <div class="px-4 py-2 border-b border-slate-100 bg-slate-50">
                                 <p class="text-xs font-bold text-retail-ink">{{ auth()->user()->name }}</p>
                                 <p class="text-[11px] font-mono text-slate-500 truncate">{{ auth()->user()->email }}</p>

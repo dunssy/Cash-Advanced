@@ -107,16 +107,28 @@
                 <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1.5">
                     Struk Yang Sudah Diunggah
                 </label>
-                <div class="flex items-center space-x-2">
-                    @foreach($expense->attachments as $att)
-                        <a href="{{ $att->url }}" target="_blank" class="w-12 h-12 rounded-[3px] border border-retail-surface overflow-hidden bg-slate-50 flex items-center justify-center hover:border-retail-orange transition" title="{{ $att->file_name }}">
-                            @if(in_array(strtolower($att->file_type), ['jpg', 'jpeg', 'png', 'webp']))
-                                <img src="{{ $att->url }}" alt="Struk" class="w-full h-full object-cover">
-                            @else
-                                <i data-lucide="file-text" class="w-5 h-5 text-slate-500"></i>
-                            @endif
-                        </a>
-                    @endforeach
+                <div class="flex flex-wrap items-center gap-3">
+                    @forelse($expense->attachments as $att)
+                        <div class="flex items-center space-x-2 p-1.5 bg-slate-50 border border-retail-surface rounded-[4px]">
+                            <a href="{{ $att->url }}" target="_blank" class="w-12 h-12 rounded-[3px] border border-slate-200 overflow-hidden bg-white flex items-center justify-center hover:border-retail-orange transition flex-shrink-0" title="Klik untuk buka: {{ $att->file_name }}">
+                                @if(in_array(strtolower($att->file_type), ['jpg', 'jpeg', 'png', 'webp']))
+                                    <img src="{{ $att->url }}" alt="Struk" class="w-full h-full object-cover">
+                                @else
+                                    <i data-lucide="file-text" class="w-6 h-6 text-slate-500"></i>
+                                @endif
+                            </a>
+                            <div class="pr-2">
+                                <a href="{{ $att->url }}" target="_blank" class="text-xs font-semibold text-retail-navy hover:text-retail-cyan hover:underline truncate max-w-[200px] block" title="{{ $att->file_name }}">
+                                    {{ $att->file_name }}
+                                </a>
+                                <span class="text-[10px] text-slate-400 block font-mono">
+                                    {{ round($att->file_size / 1024, 1) }} KB &bull; <span class="uppercase">{{ $att->file_type }}</span>
+                                </span>
+                            </div>
+                        </div>
+                    @empty
+                        <span class="text-xs text-slate-400 italic">Belum ada file struk terunggah untuk transaksi ini.</span>
+                    @endforelse
                 </div>
             </div>
 
