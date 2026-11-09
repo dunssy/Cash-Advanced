@@ -109,14 +109,22 @@
                 </div>
                 <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
                     <span class="block text-[10px] font-bold uppercase text-slate-500 font-sans">Sisa Saldo Kas</span>
-                    <span class="block text-sm font-extrabold text-retail-ink mt-1">
-                        Rp {{ number_format($selectedCA->current_balance, 0, ',', '.') }}
+                    <span class="block text-sm font-extrabold {{ $selectedCA->status === 'CLOSED' ? 'text-emerald-700' : 'text-retail-ink' }} mt-1">
+                        @if($selectedCA->status === 'CLOSED')
+                            Rp 0 (Lunas)
+                        @else
+                            Rp {{ number_format($selectedCA->current_balance, 0, ',', '.') }}
+                        @endif
                     </span>
                 </div>
                 <div class="p-3 bg-amber-50 rounded-xl border border-amber-300 col-span-2 sm:col-span-1">
                     <span class="block text-[10px] font-bold uppercase text-amber-900 font-sans">Hasil Settlement</span>
-                    <span class="block text-sm font-black text-amber-900 mt-1">
-                        Rp {{ number_format($selectedCA->settlement_result, 0, ',', '.') }}
+                    <span class="block text-sm font-black {{ $selectedCA->status === 'CLOSED' ? 'text-emerald-700' : 'text-amber-900' }} mt-1">
+                        @if($selectedCA->status === 'CLOSED')
+                            Rp 0 (Selesai)
+                        @else
+                            Rp {{ number_format($selectedCA->settlement_result, 0, ',', '.') }}
+                        @endif
                     </span>
                 </div>
             </div>

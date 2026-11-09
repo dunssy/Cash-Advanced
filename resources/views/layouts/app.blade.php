@@ -456,7 +456,7 @@
         }
     </style>
 </head>
-<body class="min-h-[100dvh] antialiased bg-[#F4F4F4] text-[#7A7A7A]" x-data="{ mobileNavOpen: false, sidebarCollapsed: false, laporanOpen: true }">
+<body class="min-h-[100dvh] antialiased bg-[#F4F4F4] text-[#7A7A7A]" x-data="{ mobileNavOpen: false, sidebarCollapsed: true, laporanOpen: true }">
     @php
         $unreadCount = auth()->user() ? auth()->user()->unreadNotifications()->count() : 0;
     @endphp

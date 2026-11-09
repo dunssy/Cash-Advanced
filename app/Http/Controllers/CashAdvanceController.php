@@ -264,7 +264,7 @@ class CashAdvanceController extends Controller
         $user = Auth::user();
 
         if (!$user->canDisburseCA($cashAdvance)) {
-            abort(403, 'Hanya tim Finance yang berhak mencatat pencairan dana.');
+            abort(403, 'Hanya tim Finance atau Direktur yang berhak mencatat pencairan dana.');
         }
 
         if ($cashAdvance->status !== 'PENDING_APPROVAL' || !$cashAdvance->approved_by) {

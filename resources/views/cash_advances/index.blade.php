@@ -63,7 +63,7 @@
             <div class="w-full sm:w-56 flex-shrink-0">
                 <select name="status" onchange="this.form.submit()" class="w-full input-commerce text-xs font-head font-semibold text-slate-800">
                     <option value="">Semua Status</option>
-                    <option value="PENDING_APPROVAL" {{ request('status') === 'PENDING_APPROVAL' ? 'selected' : '' }}>Menunggu Approval</option>
+                    <option value="PENDING_APPROVAL" {{ request('status') === 'PENDING_APPROVAL' ? 'selected' : '' }}>Menunggu Approval / Pencairan</option>
                     <option value="ACTIVE" {{ request('status') === 'ACTIVE' ? 'selected' : '' }}>Aktif (Berjalan)</option>
                     <option value="NEED_SETTLEMENT" {{ request('status') === 'NEED_SETTLEMENT' ? 'selected' : '' }}>Butuh Settlement</option>
                     <option value="PENDING_VERIFICATION" {{ request('status') === 'PENDING_VERIFICATION' ? 'selected' : '' }}>Verifikasi Finance</option>
@@ -96,14 +96,16 @@
                             {{ $ca->ca_number }}
                         </span>
                         <span class="badge-retail text-[10px]
-                            {{ $ca->status === 'PENDING_APPROVAL' ? 'badge-pending-approval' : '' }}
+                            {{ $ca->status === 'PENDING_APPROVAL' ? ($ca->approved_by ? 'bg-sky-50 text-sky-800 border-sky-300' : 'badge-pending-approval') : '' }}
                             {{ $ca->status === 'REJECTED' ? 'badge-rejected' : '' }}
                             {{ $ca->status === 'ACTIVE' ? 'badge-active' : '' }}
                             {{ $ca->status === 'NEED_SETTLEMENT' ? 'badge-need-settlement' : '' }}
                             {{ $ca->status === 'PENDING_VERIFICATION' ? 'badge-pending-verification' : '' }}
                             {{ $ca->status === 'CLOSED' ? 'badge-closed' : '' }}
                         ">
-                            @if($ca->status === 'PENDING_APPROVAL') Menunggu Approval @endif
+                            @if($ca->status === 'PENDING_APPROVAL')
+                                {{ $ca->approved_by ? 'Disetujui • Menunggu Pencairan' : 'Menunggu Approval' }}
+                            @endif
                             @if($ca->status === 'REJECTED') Ditolak @endif
                             @if($ca->status === 'ACTIVE') Aktif @endif
                             @if($ca->status === 'NEED_SETTLEMENT') Wajib Settlement @endif
@@ -123,8 +125,15 @@
 
                     <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
                         <span class="text-[10px] font-head text-[#7A7A7A] uppercase font-bold">Sisa Saldo Kas</span>
-                        <span class="font-head font-extrabold text-sm {{ $ca->current_balance > 0 ? 'text-[#FF3C00]' : 'text-slate-800' }}">
-                            Rp {{ number_format($ca->current_balance, 0, ',', '.') }}
+                        <span class="font-head font-extrabold text-sm {{ $ca->status === 'CLOSED' ? 'text-emerald-700' : ($ca->current_balance > 0 ? 'text-[#FF3C00]' : 'text-slate-800') }}">
+                            @if($ca->status === 'CLOSED')
+                                <span class="inline-flex items-center gap-1">
+                                    <i data-lucide="check" class="w-3.5 h-3.5 stroke-[2.5] text-emerald-600"></i>
+                                    <span>Rp 0 (Lunas)</span>
+                                </span>
+                            @else
+                                Rp {{ number_format($ca->current_balance, 0, ',', '.') }}
+                            @endif
                         </span>
                     </div>
 
@@ -134,12 +143,12 @@
                                 @if($ca->is_overdue)
                                     <span class="badge-retail bg-rose-100 text-rose-800 border-rose-300 font-bold text-[10px]">OVERDUE</span>
                                 @else
-                                    <span class="text-xs text-slate-600">Sisa: <strong class="text-slate-900 font-mono">{{ $ca->days_remaining }} hari</strong></span>
+                                    <span class="text-xs text-slate-600">Durasi: <strong class="text-slate-900 font-mono">{{ $ca->days_remaining }} hari</strong></span>
                                 @endif
                             @elseif($ca->status === 'CLOSED')
-                                <span class="text-xs text-emerald-700 font-semibold inline-flex items-center gap-1">
-                                    <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
-                                    <span>Lunas</span>
+                                <span class="text-xs text-slate-500 font-semibold inline-flex items-center gap-1">
+                                    <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                    <span>Selesai</span>
                                 </span>
                             @else
                                 <span class="text-slate-400 text-xs">-</span>
@@ -169,8 +178,8 @@
                         @endif
                         <th>Proyek</th>
                         <th class="text-right whitespace-nowrap">Sisa Saldo</th>
+                        <th class="text-center whitespace-nowrap">Durasi</th>
                         <th class="text-center whitespace-nowrap">Status</th>
-                        <th class="text-center whitespace-nowrap">Durasi / Sisa</th>
                         <th class="text-center whitespace-nowrap no-print">Aksi</th>
                     </tr>
                 </thead>
@@ -202,25 +211,17 @@
                                     <span class="block text-xs font-head text-[#7A7A7A]">{{ $ca->project_code ?: '-' }}</span>
                                 @endif
                             </td>
-                            <td class="text-right font-head font-extrabold whitespace-nowrap {{ $ca->current_balance > 0 ? 'text-[#FF3C00]' : 'text-[#7A7A7A]' }}">
-                                Rp {{ number_format($ca->current_balance, 0, ',', '.') }}
-                            </td>
-                            <td class="text-center whitespace-nowrap">
-                                <span class="badge-retail
-                                    {{ $ca->status === 'PENDING_APPROVAL' ? 'badge-pending-approval' : '' }}
-                                    {{ $ca->status === 'REJECTED' ? 'badge-rejected' : '' }}
-                                    {{ $ca->status === 'ACTIVE' ? 'badge-active' : '' }}
-                                    {{ $ca->status === 'NEED_SETTLEMENT' ? 'badge-need-settlement' : '' }}
-                                    {{ $ca->status === 'PENDING_VERIFICATION' ? 'badge-pending-verification' : '' }}
-                                    {{ $ca->status === 'CLOSED' ? 'badge-closed' : '' }}
-                                ">
-                                    @if($ca->status === 'PENDING_APPROVAL') Menunggu Approval @endif
-                                    @if($ca->status === 'REJECTED') Ditolak @endif
-                                    @if($ca->status === 'ACTIVE') Aktif @endif
-                                    @if($ca->status === 'NEED_SETTLEMENT') Wajib Settlement @endif
-                                    @if($ca->status === 'PENDING_VERIFICATION') Verifikasi Akhir @endif
-                                    @if($ca->status === 'CLOSED') Closed / Selesai @endif
-                                </span>
+                            <td class="text-right font-head font-extrabold whitespace-nowrap {{ $ca->status === 'CLOSED' || $ca->current_balance == 0 ? 'text-emerald-700' : 'text-[#FF3C00]' }}">
+                                @if($ca->status === 'CLOSED')
+                                    <span class="inline-flex items-center gap-1 text-emerald-700">
+                                        <i data-lucide="check" class="w-3.5 h-3.5 stroke-[2.5]"></i>
+                                        <span>Rp 0 (Lunas)</span>
+                                    </span>
+                                @elseif($ca->current_balance == 0 && ($ca->status === 'ACTIVE' || $ca->status === 'PENDING_VERIFICATION'))
+                                    <span class="text-slate-600 font-bold">Rp 0</span>
+                                @else
+                                    Rp {{ number_format($ca->current_balance, 0, ',', '.') }}
+                                @endif
                             </td>
                             <td class="text-center font-head whitespace-nowrap">
                                 @if($ca->status === 'ACTIVE' || $ca->status === 'NEED_SETTLEMENT')
@@ -230,10 +231,29 @@
                                         <span class="text-[#050A1E] font-semibold text-xs">{{ $ca->days_remaining }} hr</span>
                                     @endif
                                 @elseif($ca->status === 'CLOSED')
-                                    <span class="text-[#7A7A7A] text-xs">Lunas</span>
+                                    <span class="text-[#7A7A7A] text-xs">Selesai</span>
                                 @else
                                     <span class="text-[#7A7A7A] text-xs">-</span>
                                 @endif
+                            </td>
+                            <td class="text-center whitespace-nowrap">
+                                <span class="badge-retail
+                                    {{ $ca->status === 'PENDING_APPROVAL' ? ($ca->approved_by ? 'bg-sky-50 text-sky-800 border-sky-300' : 'badge-pending-approval') : '' }}
+                                    {{ $ca->status === 'REJECTED' ? 'badge-rejected' : '' }}
+                                    {{ $ca->status === 'ACTIVE' ? 'badge-active' : '' }}
+                                    {{ $ca->status === 'NEED_SETTLEMENT' ? 'badge-need-settlement' : '' }}
+                                    {{ $ca->status === 'PENDING_VERIFICATION' ? 'badge-pending-verification' : '' }}
+                                    {{ $ca->status === 'CLOSED' ? 'badge-closed' : '' }}
+                                ">
+                                    @if($ca->status === 'PENDING_APPROVAL')
+                                        {{ $ca->approved_by ? 'Disetujui • Menunggu Pencairan' : 'Menunggu Approval' }}
+                                    @endif
+                                    @if($ca->status === 'REJECTED') Ditolak @endif
+                                    @if($ca->status === 'ACTIVE') Aktif @endif
+                                    @if($ca->status === 'NEED_SETTLEMENT') Wajib Settlement @endif
+                                    @if($ca->status === 'PENDING_VERIFICATION') Verifikasi Akhir @endif
+                                    @if($ca->status === 'CLOSED') Closed / Selesai @endif
+                                </span>
                             </td>
                             <td class="text-center whitespace-nowrap no-print">
                                 <a href="{{ route('cash-advances.show', $ca) }}" class="btn-secondary py-1.5 px-4 text-xs inline-flex items-center space-x-1">

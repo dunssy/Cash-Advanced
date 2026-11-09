@@ -48,6 +48,7 @@ class DashboardController extends Controller
         if ($user->isAtasan()) {
             $stats['pending_approval_count'] = CashAdvance::whereIn('user_id', $subordinateIds)
                 ->where('status', 'PENDING_APPROVAL')
+                ->whereNull('approved_by')
                 ->count();
 
             $stats['pending_topup_count'] = TopUp::whereIn('user_id', $subordinateIds)
@@ -62,7 +63,7 @@ class DashboardController extends Controller
 
             $stats['pending_verification_count'] = Expense::where('verification_status', 'PENDING')->count();
 
-            $stats['pending_topup_count'] = TopUp::where('status', 'PENDING_FINANCE')->count();
+            $stats['pending_topup_count'] = TopUp::whereIn('status', ['PENDING_FINANCE', 'APPROVED'])->count();
 
             $stats['overdue_count'] = CashAdvance::where('status', '!=', 'CLOSED')
                 ->where('status', '!=', 'REJECTED')
@@ -77,7 +78,13 @@ class DashboardController extends Controller
             // Direktur handles approvals if applicant is Atasan or Finance
             $stats['pending_approval_count'] = CashAdvance::whereHas('user', function ($q) {
                 $q->whereIn('role', ['atasan', 'finance']);
-            })->where('status', 'PENDING_APPROVAL')->count();
+            })->where('status', 'PENDING_APPROVAL')
+              ->whereNull('approved_by')
+              ->count();
+
+            $stats['pending_disbursement_count'] = CashAdvance::where('status', 'PENDING_APPROVAL')
+                ->whereNotNull('approved_by')
+                ->count();
 
             $stats['pending_topup_count'] = TopUp::where('status', 'PENDING_DIREKTUR')->count();
 

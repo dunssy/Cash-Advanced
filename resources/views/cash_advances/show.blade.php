@@ -12,6 +12,12 @@
     showCloseModal: false,
     showUnlockModal: false,
     showTopupModal: false,
+    showTopupRejectModal: false,
+    topupRejectId: null,
+    topupRejectAmount: '',
+    showTopupDisburseModal: false,
+    topupDisburseId: null,
+    topupDisburseAmount: '',
     showVoidModal: false,
     voidExpenseId: null,
     voidExpenseDesc: '',
@@ -49,14 +55,16 @@
                         
                         <!-- Status Badge (6 Status Resmi PT Technodrives) -->
                         <span class="badge-retail text-xs font-bold uppercase tracking-wide
-                            {{ $cashAdvance->status === 'PENDING_APPROVAL' ? 'badge-pending-approval' : '' }}
+                            {{ $cashAdvance->status === 'PENDING_APPROVAL' ? ($cashAdvance->approved_by ? 'bg-sky-50 text-sky-800 border-sky-300' : 'badge-pending-approval') : '' }}
                             {{ $cashAdvance->status === 'REJECTED' ? 'badge-rejected' : '' }}
                             {{ $cashAdvance->status === 'ACTIVE' ? 'badge-active' : '' }}
                             {{ $cashAdvance->status === 'NEED_SETTLEMENT' ? 'badge-need-settlement' : '' }}
                             {{ $cashAdvance->status === 'PENDING_VERIFICATION' ? 'badge-pending-verification' : '' }}
                             {{ $cashAdvance->status === 'CLOSED' ? 'badge-closed' : '' }}
                         ">
-                            @if($cashAdvance->status === 'PENDING_APPROVAL') Menunggu Approval @endif
+                            @if($cashAdvance->status === 'PENDING_APPROVAL')
+                                {{ $cashAdvance->approved_by ? 'Disetujui • Menunggu Pencairan' : 'Menunggu Approval' }}
+                            @endif
                             @if($cashAdvance->status === 'REJECTED') Ditolak @endif
                             @if($cashAdvance->status === 'ACTIVE') Aktif (Berjalan) @endif
                             @if($cashAdvance->status === 'NEED_SETTLEMENT') Wajib Settlement @endif
@@ -215,79 +223,230 @@
         </div>
 
         <!-- WORKFLOW ACTIONS TOOLBAR (Navy #050A1E background, Solutek Brand Buttons, Mobile-Friendly) -->
-        <div class="bg-[#050A1E] px-4 sm:px-6 py-4 border-t border-[#161A2B] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-white">
+        <div class="bg-[#050A1E] px-4 sm:px-6 py-4 border-t border-[#161A2B] flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-white">
             <div class="flex items-center space-x-2">
                 <span class="text-xs font-head font-bold text-slate-300 uppercase tracking-wider">Aksi Workflow:</span>
             </div>
 
-            <div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 w-full sm:w-auto">
-                <!-- 1. PENDING_APPROVAL: Atasan / Direktur -->
+            <div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 w-full md:w-auto">
+                <!-- 1. PENDING_APPROVAL -->
                 @if($cashAdvance->status === 'PENDING_APPROVAL')
-                    @if(auth()->user()->canApproveCA($cashAdvance))
-                        <button @click="showApproveModal = true" class="btn-brand text-xs py-2.5 px-4 w-full sm:w-auto">
-                            <i data-lucide="check" class="w-4 h-4"></i>
-                            <span>Setujui Pengajuan CA</span>
-                        </button>
-                        <button @click="showRejectModal = true" class="btn-dark text-xs py-2.5 px-4 w-full sm:w-auto">
-                            <i data-lucide="x" class="w-4 h-4 text-[#FF3C00]"></i>
-                            <span>Tolak CA</span>
-                        </button>
-                    @endif
-
-                    @if($cashAdvance->approved_by && auth()->user()->canDisburseCA($cashAdvance))
-                        <button @click="showDisburseModal = true" class="btn-brand text-xs py-2.5 px-4 w-full sm:w-auto">
-                            <i data-lucide="wallet" class="w-4 h-4"></i>
-                            <span>Catat Pencairan Dana (Finance)</span>
-                        </button>
+                    @if(!$cashAdvance->approved_by)
+                        @if(auth()->user()->canApproveCA($cashAdvance))
+                            <button @click="showApproveModal = true" class="btn-brand text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center gap-1.5">
+                                <i data-lucide="check" class="w-4 h-4"></i>
+                                <span>Setujui Pengajuan CA</span>
+                            </button>
+                            <button @click="showRejectModal = true" class="btn-dark text-xs py-2 px-4 border border-[#FF3C00]/40 w-full sm:w-auto inline-flex items-center gap-1.5">
+                                <i data-lucide="x" class="w-4 h-4 text-[#FF3C00]"></i>
+                                <span>Tolak CA</span>
+                            </button>
+                        @else
+                            <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-head font-medium">
+                                <i data-lucide="clock" class="w-4 h-4 text-amber-400"></i>
+                                <span>Menunggu Approval {{ $cashAdvance->user->isAtasan() || $cashAdvance->user->isFinance() ? 'Direktur' : 'Atasan / Direktur' }}</span>
+                            </span>
+                        @endif
+                    @else
+                        @if(auth()->user()->canDisburseCA($cashAdvance))
+                            <button @click="showDisburseModal = true" class="btn-brand text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center gap-1.5 shadow-md">
+                                <i data-lucide="wallet" class="w-4 h-4"></i>
+                                <span>Catat Pencairan Dana {{ auth()->user()->isFinance() ? '(Finance)' : '(Direktur)' }}</span>
+                            </button>
+                        @endif
+                        <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-head font-medium">
+                            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+                            <span>Disetujui {{ $cashAdvance->approver->name ?? 'Direktur' }} &bull; Menunggu Pencairan {{ auth()->user()->canDisburseCA($cashAdvance) ? '(Siap Dicairkan)' : 'Finance' }}</span>
+                        </span>
                     @endif
                 @endif
 
-                <!-- 2. ACTIVE: Karyawan Action & Top-up -->
+                <!-- 2. ACTIVE -->
                 @if($cashAdvance->status === 'ACTIVE')
+                    <!-- Pemohon Actions -->
                     @if($cashAdvance->user_id === auth()->id())
-                        <a href="{{ route('expenses.create', $cashAdvance) }}" class="btn-brand text-xs py-2.5 px-4 w-full sm:w-auto">
+                        <a href="{{ route('expenses.create', $cashAdvance) }}" class="btn-brand text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center gap-1.5">
                             <i data-lucide="camera" class="w-4 h-4"></i>
-                            <span>Catat Pengeluaran (Foto Struk)</span>
+                            <span>Catat Pengeluaran</span>
                         </a>
 
-                        <button @click="showTopupModal = true" class="btn-secondary text-xs py-2.5 px-4 w-full sm:w-auto">
+                        <button @click="showTopupModal = true" class="btn-secondary text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center gap-1.5">
                             <i data-lucide="arrow-up-circle" class="w-4 h-4 text-[#FF3C00]"></i>
                             <span>Ajukan Top-Up Dana</span>
                         </button>
 
-                        <button @click="showCompleteModal = true" class="btn-success text-xs py-2.5 px-4 w-full sm:w-auto">
-                            <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                        <button @click="showCompleteModal = true" class="btn-dark text-xs py-2 px-4 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500 hover:text-white transition w-full sm:w-auto inline-flex items-center gap-1.5">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
                             <span>Tandai Proyek Selesai</span>
                         </button>
                     @endif
 
+                    <!-- TOP-UP WORKFLOW ACTIONS -->
+                    @php
+                        $pendingTopup = $cashAdvance->topUps->whereIn('status', ['PENDING_ATASAN', 'PENDING_FINANCE', 'PENDING_DIREKTUR', 'APPROVED'])->first();
+                    @endphp
+                    @if($pendingTopup)
+                        @if($pendingTopup->status === 'PENDING_ATASAN')
+                            @if((auth()->user()->isAtasan() || auth()->user()->isDirektur()) && auth()->id() !== $pendingTopup->user_id)
+                                <form action="{{ route('top-ups.approve-atasan', $pendingTopup) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="btn-brand text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center gap-1.5">
+                                        <i data-lucide="check" class="w-4 h-4"></i>
+                                        <span>Setujui Top-Up (Rp {{ number_format($pendingTopup->amount, 0, ',', '.') }})</span>
+                                    </button>
+                                </form>
+                                <button type="button" @click="showTopupRejectModal = true; topupRejectId = {{ $pendingTopup->id }}; topupRejectAmount = '{{ number_format($pendingTopup->amount, 0, ',', '.') }}'" class="btn-dark text-xs py-2 px-4 border border-[#FF3C00]/40 w-full sm:w-auto inline-flex items-center gap-1.5">
+                                    <i data-lucide="x" class="w-4 h-4 text-[#FF3C00]"></i>
+                                    <span>Tolak Top-Up</span>
+                                </button>
+                            @else
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 text-xs font-head font-medium">
+                                    <i data-lucide="clock" class="w-3.5 h-3.5 text-blue-400"></i>
+                                    <span>Top-Up Rp {{ number_format($pendingTopup->amount, 0, ',', '.') }} Menunggu Approval Atasan</span>
+                                </span>
+                            @endif
+                        @elseif($pendingTopup->status === 'PENDING_FINANCE')
+                            @if((auth()->user()->isFinance() || auth()->user()->isDirektur()) && auth()->id() !== $pendingTopup->user_id)
+                                <form action="{{ route('top-ups.approve-finance', $pendingTopup) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="btn-brand text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center gap-1.5">
+                                        <i data-lucide="check" class="w-4 h-4"></i>
+                                        <span>Setujui Top-Up Finance (Rp {{ number_format($pendingTopup->amount, 0, ',', '.') }})</span>
+                                    </button>
+                                </form>
+                                <button type="button" @click="showTopupRejectModal = true; topupRejectId = {{ $pendingTopup->id }}; topupRejectAmount = '{{ number_format($pendingTopup->amount, 0, ',', '.') }}'" class="btn-dark text-xs py-2 px-4 border border-[#FF3C00]/40 w-full sm:w-auto inline-flex items-center gap-1.5">
+                                    <i data-lucide="x" class="w-4 h-4 text-[#FF3C00]"></i>
+                                    <span>Tolak Top-Up</span>
+                                </button>
+                            @else
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-head font-medium">
+                                    <i data-lucide="clock" class="w-3.5 h-3.5 text-purple-400"></i>
+                                    <span>Top-Up Rp {{ number_format($pendingTopup->amount, 0, ',', '.') }} Menunggu Evaluasi Finance</span>
+                                </span>
+                            @endif
+                        @elseif($pendingTopup->status === 'PENDING_DIREKTUR')
+                            @if(auth()->user()->isDirektur() && auth()->id() !== $pendingTopup->user_id)
+                                <form action="{{ route('top-ups.approve-direktur', $pendingTopup) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="btn-brand text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center gap-1.5">
+                                        <i data-lucide="check" class="w-4 h-4"></i>
+                                        <span>Setujui Top-Up Direktur (Rp {{ number_format($pendingTopup->amount, 0, ',', '.') }})</span>
+                                    </button>
+                                </form>
+                                <button type="button" @click="showTopupRejectModal = true; topupRejectId = {{ $pendingTopup->id }}; topupRejectAmount = '{{ number_format($pendingTopup->amount, 0, ',', '.') }}'" class="btn-dark text-xs py-2 px-4 border border-[#FF3C00]/40 w-full sm:w-auto inline-flex items-center gap-1.5">
+                                    <i data-lucide="x" class="w-4 h-4 text-[#FF3C00]"></i>
+                                    <span>Tolak Top-Up</span>
+                                </button>
+                            @else
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-head font-medium">
+                                    <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-400"></i>
+                                    <span>Top-Up Rp {{ number_format($pendingTopup->amount, 0, ',', '.') }} Menunggu Approval Direktur</span>
+                                </span>
+                            @endif
+                        @elseif($pendingTopup->status === 'APPROVED')
+                            @if(auth()->user()->isFinance() || auth()->user()->isDirektur())
+                                <button type="button" @click="showTopupDisburseModal = true; topupDisburseId = {{ $pendingTopup->id }}; topupDisburseAmount = '{{ number_format($pendingTopup->amount, 0, ',', '.') }}'" class="btn-brand text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center gap-1.5">
+                                    <i data-lucide="wallet" class="w-4 h-4"></i>
+                                    <span>Cairkan Dana Top-Up (Rp {{ number_format($pendingTopup->amount, 0, ',', '.') }})</span>
+                                </button>
+                            @else
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-300 text-xs font-head font-medium">
+                                    <i data-lucide="wallet" class="w-3.5 h-3.5 text-sky-400"></i>
+                                    <span>Top-Up Disetujui &bull; Menunggu Pencairan Finance</span>
+                                </span>
+                            @endif
+                        @endif
+                    @endif
+
                     <!-- Direktur Exception: Unlock Gembok -->
                     @if(auth()->user()->isDirektur())
-                        <button @click="showUnlockModal = true" class="btn-dark text-xs py-2.5 px-4 border border-[#FF3C00]/40 w-full sm:w-auto">
-                            <i data-lucide="unlock" class="w-4 h-4 text-[#FF3C00]"></i>
-                            <span>Buka Gembok Pengecualian</span>
-                        </button>
+                        @if(!$cashAdvance->is_unlocked)
+                            <button @click="showUnlockModal = true" class="btn-dark text-xs py-2 px-4 border border-[#FF3C00]/40 w-full sm:w-auto inline-flex items-center gap-1.5">
+                                <i data-lucide="unlock" class="w-4 h-4 text-[#FF3C00]"></i>
+                                <span>Buka Gembok Pengecualian</span>
+                            </button>
+                        @else
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-head font-medium">
+                                <i data-lucide="unlock" class="w-3.5 h-3.5 text-emerald-400"></i>
+                                <span>Gembok Dibuka (Pengecualian Direktur)</span>
+                            </span>
+                        @endif
+                    @endif
+
+                    <!-- Struk Pending Info for Finance / Direktur -->
+                    @if(auth()->user()->canVerifyAndCloseCA($cashAdvance))
+                        @php
+                            $unverifiedCount = $cashAdvance->expenses->whereIn('verification_status', ['PENDING', 'NEEDS_REVISION'])->count();
+                        @endphp
+                        @if($unverifiedCount > 0)
+                            <a href="#daftar-pengeluaran" class="btn-dark text-xs py-2 px-3.5 border border-amber-500/40 text-amber-300 hover:bg-amber-500 hover:text-slate-900 transition inline-flex items-center gap-1.5">
+                                <i data-lucide="file-check" class="w-4 h-4 text-amber-400"></i>
+                                <span>{{ $unverifiedCount }} Struk Perlu Verifikasi</span>
+                            </a>
+                        @endif
                     @endif
                 @endif
 
-                <!-- 3. NEED_SETTLEMENT: Karyawan Upload Refund Proof -->
+                <!-- 3. NEED_SETTLEMENT -->
                 @if($cashAdvance->status === 'NEED_SETTLEMENT')
                     @if($cashAdvance->user_id === auth()->id())
-                        <button @click="showRefundModal = true" class="btn-brand text-xs py-2.5 px-5 w-full sm:w-auto">
+                        <button @click="showRefundModal = true" class="btn-brand text-xs py-2.5 px-5 w-full sm:w-auto inline-flex items-center gap-1.5">
                             <i data-lucide="upload" class="w-4 h-4"></i>
                             <span>Upload Bukti Transfer Refund Sisa Dana</span>
                         </button>
+                    @else
+                        <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-head font-medium">
+                            <i data-lucide="alert-circle" class="w-4 h-4 text-amber-400"></i>
+                            <span>Menunggu Karyawan Mentransfer Refund Sisa Kas (Rp {{ number_format($cashAdvance->current_balance, 0, ',', '.') }})</span>
+                        </span>
                     @endif
                 @endif
 
-                <!-- 4. PENDING_VERIFICATION: Finance / Direktur Closure -->
+                <!-- 4. PENDING_VERIFICATION -->
                 @if($cashAdvance->status === 'PENDING_VERIFICATION')
+                    @php
+                        $unverifiedCount = $cashAdvance->expenses->whereIn('verification_status', ['PENDING', 'NEEDS_REVISION'])->count();
+                    @endphp
                     @if(auth()->user()->canVerifyAndCloseCA($cashAdvance))
-                        <button @click="showCloseModal = true" class="btn-brand text-xs py-2.5 px-5 w-full sm:w-auto">
-                            <i data-lucide="check-check" class="w-4 h-4"></i>
-                            <span>Tutup Cash Advance (CLOSED)</span>
-                        </button>
+                        @if($unverifiedCount > 0)
+                            <a href="#daftar-pengeluaran" class="btn-dark text-xs py-2.5 px-4 border border-amber-500/50 text-amber-300 hover:bg-amber-500 hover:text-slate-900 transition inline-flex items-center gap-1.5">
+                                <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
+                                <span>Verifikasi {{ $unverifiedCount }} Struk Sebelum Tutup CA</span>
+                            </a>
+                        @else
+                            <button @click="showCloseModal = true" class="btn-brand text-xs py-2.5 px-5 w-full sm:w-auto inline-flex items-center gap-1.5">
+                                <i data-lucide="check-check" class="w-4 h-4"></i>
+                                <span>Tutup Cash Advance (CLOSED)</span>
+                            </button>
+                        @endif
                     @endif
+                    @if($cashAdvance->user_id === auth()->id())
+                        <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 text-xs font-head font-medium">
+                            <i data-lucide="clock" class="w-4 h-4 text-blue-400"></i>
+                            <span>Menunggu Verifikasi Akhir & Penutupan oleh Finance</span>
+                        </span>
+                    @elseif(!auth()->user()->canVerifyAndCloseCA($cashAdvance))
+                        <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-slate-500/10 border border-slate-500/30 text-slate-300 text-xs font-head font-medium">
+                            <i data-lucide="clock" class="w-4 h-4 text-slate-400"></i>
+                            <span>Dalam Proses Verifikasi Akhir Finance</span>
+                        </span>
+                    @endif
+                @endif
+
+                <!-- 5. CLOSED -->
+                @if($cashAdvance->status === 'CLOSED')
+                    <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-head font-bold">
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+                        <span>Cash Advance Resmi Ditutup (CLOSED) &bull; Lunas</span>
+                    </span>
+                @endif
+
+                <!-- 6. REJECTED -->
+                @if($cashAdvance->status === 'REJECTED')
+                    <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-rose-500/15 border border-rose-500/40 text-rose-300 text-xs font-head font-bold">
+                        <i data-lucide="x-circle" class="w-4 h-4 text-rose-400"></i>
+                        <span>Pengajuan Ditolak: {{ $cashAdvance->rejection_reason ?: 'Tidak disetujui' }}</span>
+                    </span>
                 @endif
             </div>
         </div>
@@ -385,47 +544,52 @@
                                 <span class="text-[10px] font-mono text-slate-400 block">Diajukan: {{ $tu->created_at->format('d/m/Y H:i') }}</span>
                             </div>
 
-                            <!-- Approval Buttons for Top-Up -->
-                            <div class="flex items-center space-x-2 flex-wrap">
+                            <!-- Approval & Action Buttons for Top-Up -->
+                            <div class="flex items-center space-x-2 flex-wrap gap-1.5">
                                 <!-- Stage 1: Atasan -->
                                 @if($tu->status === 'PENDING_ATASAN' && (auth()->user()->isAtasan() || auth()->user()->isDirektur()) && auth()->id() !== $tu->user_id)
-                                    <form action="{{ route('top-ups.approve-atasan', $tu) }}" method="POST">
+                                    <form action="{{ route('top-ups.approve-atasan', $tu) }}" method="POST" class="inline">
                                         @csrf
-                                        <button type="submit" class="btn-primary text-xs py-1 px-3">
+                                        <button type="submit" class="btn-brand text-xs py-1 px-3">
                                             Setujui (Atasan)
                                         </button>
                                     </form>
+                                    <button type="button" @click="showTopupRejectModal = true; topupRejectId = {{ $tu->id }}; topupRejectAmount = '{{ number_format($tu->amount, 0, ',', '.') }}'" class="btn-dark text-xs py-1 px-2.5 border border-[#FF3C00]/40">
+                                        Tolak
+                                    </button>
                                 @endif
 
                                 <!-- Stage 2: Finance -->
                                 @if($tu->status === 'PENDING_FINANCE' && (auth()->user()->isFinance() || auth()->user()->isDirektur()) && auth()->id() !== $tu->user_id)
-                                    <form action="{{ route('top-ups.approve-finance', $tu) }}" method="POST">
+                                    <form action="{{ route('top-ups.approve-finance', $tu) }}" method="POST" class="inline">
                                         @csrf
-                                        <button type="submit" class="btn-cyan text-xs py-1 px-3">
+                                        <button type="submit" class="btn-brand text-xs py-1 px-3">
                                             Setujui (Finance)
                                         </button>
                                     </form>
+                                    <button type="button" @click="showTopupRejectModal = true; topupRejectId = {{ $tu->id }}; topupRejectAmount = '{{ number_format($tu->amount, 0, ',', '.') }}'" class="btn-dark text-xs py-1 px-2.5 border border-[#FF3C00]/40">
+                                        Tolak
+                                    </button>
                                 @endif
 
                                 <!-- Stage 3: Direktur -->
                                 @if($tu->status === 'PENDING_DIREKTUR' && auth()->user()->isDirektur() && auth()->id() !== $tu->user_id)
-                                    <form action="{{ route('top-ups.approve-direktur', $tu) }}" method="POST">
+                                    <form action="{{ route('top-ups.approve-direktur', $tu) }}" method="POST" class="inline">
                                         @csrf
-                                        <button type="submit" class="btn-primary text-xs py-1 px-3" style="background-color: #D97706; border-color: #B45309; color: #FFFFFF;">
+                                        <button type="submit" class="btn-brand text-xs py-1 px-3">
                                             Setujui (Direktur)
                                         </button>
                                     </form>
+                                    <button type="button" @click="showTopupRejectModal = true; topupRejectId = {{ $tu->id }}; topupRejectAmount = '{{ number_format($tu->amount, 0, ',', '.') }}'" class="btn-dark text-xs py-1 px-2.5 border border-[#FF3C00]/40">
+                                        Tolak
+                                    </button>
                                 @endif
 
                                 <!-- Disburse Top-Up: Finance -->
-                                @if($tu->status === 'APPROVED' && auth()->user()->isFinance())
-                                    <form action="{{ route('top-ups.disburse', $tu) }}" method="POST" class="flex items-center space-x-1.5">
-                                        @csrf
-                                        <input type="text" name="disbursement_ref" required placeholder="No. Ref Transfer" class="input-commerce py-1 font-mono text-xs">
-                                        <button type="submit" class="btn-primary text-xs py-1 px-3 whitespace-nowrap">
-                                            Cairkan Dana
-                                        </button>
-                                    </form>
+                                @if($tu->status === 'APPROVED' && (auth()->user()->isFinance() || auth()->user()->isDirektur()))
+                                    <button type="button" @click="showTopupDisburseModal = true; topupDisburseId = {{ $tu->id }}; topupDisburseAmount = '{{ number_format($tu->amount, 0, ',', '.') }}'" class="btn-brand text-xs py-1 px-3 whitespace-nowrap">
+                                        Cairkan Dana Top-Up
+                                    </button>
                                 @endif
                             </div>
                         </div>
@@ -534,6 +698,14 @@
                                         Pernyataan
                                     </a>
                                 @endif
+                                @if(!$exp->lost_receipt_approved_by && (auth()->user()->isAtasan() || auth()->user()->isDirektur()) && auth()->id() !== $exp->user_id)
+                                    <form action="{{ route('expenses.approve-lost-receipt', $exp) }}" method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit" class="text-[10px] text-sky-700 hover:underline font-bold">
+                                            Acc Pernyataan
+                                        </button>
+                                    </form>
+                                @endif
                             @else
                                 <div class="flex items-center space-x-1.5">
                                     @forelse($exp->attachments as $att)
@@ -552,33 +724,31 @@
                         </div>
 
                         <!-- Aksi (Mobile Touch Targets >= 40px) -->
-                        @if(!auth()->user()->isAtasan())
-                            <div class="flex items-center space-x-2">
-                                @if($exp->user_id === auth()->id() && in_array($exp->verification_status, ['PENDING', 'NEEDS_REVISION']))
-                                    <a href="{{ route('expenses.edit', $exp) }}" class="btn-secondary py-1.5 px-3 text-xs" title="Edit Transaksi">
-                                        <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
-                                        <span>Edit</span>
-                                    </a>
-                                @endif
+                        <div class="flex items-center space-x-2">
+                            @if($exp->user_id === auth()->id() && in_array($exp->verification_status, ['PENDING', 'NEEDS_REVISION']) && $cashAdvance->status === 'ACTIVE')
+                                <a href="{{ route('expenses.edit', $exp) }}" class="btn-secondary py-1.5 px-3 text-xs" title="Edit Transaksi">
+                                    <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                                    <span>Edit</span>
+                                </a>
+                            @endif
 
-                                @if(auth()->user()->canVerifyAndCloseCA($cashAdvance) && $exp->verification_status !== 'VOID')
-                                    <button @click="showVerifyModal = true; verifyExpenseId = {{ $exp->id }}; verifyExpenseDesc = '{{ addslashes($exp->description) }}'" 
-                                            class="btn-cyan py-2 px-3.5 text-xs shadow-sm flex items-center gap-1.5 font-bold"
-                                            title="Verifikasi Transaksi">
-                                        <i data-lucide="check-circle" class="w-4 h-4"></i>
-                                        <span>Verifikasi</span>
-                                    </button>
-                                @endif
+                            @if(auth()->user()->canVerifyAndCloseCA($cashAdvance) && $exp->verification_status !== 'VOID')
+                                <button @click="showVerifyModal = true; verifyExpenseId = {{ $exp->id }}; verifyExpenseDesc = '{{ addslashes($exp->description) }}'" 
+                                        class="btn-cyan py-2 px-3.5 text-xs shadow-sm flex items-center gap-1.5 font-bold"
+                                        title="Verifikasi Transaksi">
+                                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                    <span>Verifikasi</span>
+                                </button>
+                            @endif
 
-                                @if((auth()->user()->isFinance() || auth()->user()->isDirektur()) && $exp->verification_status !== 'VOID')
-                                    <button @click="showVoidModal = true; voidExpenseId = {{ $exp->id }}; voidExpenseDesc = '{{ addslashes($exp->description) }}'" 
-                                            class="p-2 text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-200 transition" 
-                                            title="VOID Transaksi">
-                                        <i data-lucide="ban" class="w-4 h-4"></i>
-                                    </button>
-                                @endif
-                            </div>
-                        @endif
+                            @if((auth()->user()->isFinance() || auth()->user()->isDirektur()) && $exp->verification_status !== 'VOID')
+                                <button @click="showVoidModal = true; voidExpenseId = {{ $exp->id }}; voidExpenseDesc = '{{ addslashes($exp->description) }}'" 
+                                        class="p-2 text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-200 transition" 
+                                        title="VOID Transaksi">
+                                    <i data-lucide="ban" class="w-4 h-4"></i>
+                                </button>
+                            @endif
+                        </div>
                     </div>
                 </div>
             @empty
@@ -600,9 +770,7 @@
                         <th class="text-right">Nominal</th>
                         <th class="text-center">Struk / Bukti</th>
                         <th class="text-center">Status Verifikasi</th>
-                        @if(!auth()->user()->isAtasan())
-                            <th class="text-center">Aksi / Tindakan</th>
-                        @endif
+                        <th class="text-center">Aksi / Tindakan</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -717,39 +885,37 @@
                             </td>
 
                             <!-- Aksi -->
-                            @if(!auth()->user()->isAtasan())
-                                <td class="px-4 py-3 text-center whitespace-nowrap">
-                                    <div class="flex items-center justify-center space-x-1.5">
-                                        <!-- Edit for Karyawan before Valid/Void -->
-                                        @if($exp->user_id === auth()->id() && in_array($exp->verification_status, ['PENDING', 'NEEDS_REVISION']))
-                                            <a href="{{ route('expenses.edit', $exp) }}" class="p-1.5 text-retail-ink hover:text-retail-orange transition" title="Edit Transaksi">
-                                                <i data-lucide="pencil" class="w-4 h-4"></i>
-                                            </a>
-                                        @endif
+                            <td class="px-4 py-3 text-center whitespace-nowrap">
+                                <div class="flex items-center justify-center space-x-1.5">
+                                    <!-- Edit for Karyawan before Valid/Void -->
+                                    @if($exp->user_id === auth()->id() && in_array($exp->verification_status, ['PENDING', 'NEEDS_REVISION']) && $cashAdvance->status === 'ACTIVE')
+                                        <a href="{{ route('expenses.edit', $exp) }}" class="p-1.5 text-retail-ink hover:text-retail-orange transition" title="Edit Transaksi">
+                                            <i data-lucide="pencil" class="w-4 h-4"></i>
+                                        </a>
+                                    @endif
 
-                                        <!-- Verifikasi Finance / Direktur -->
-                                        @if(auth()->user()->canVerifyAndCloseCA($cashAdvance) && $exp->verification_status !== 'VOID')
-                                            <button @click="showVerifyModal = true; verifyExpenseId = {{ $exp->id }}; verifyExpenseDesc = '{{ addslashes($exp->description) }}'" 
-                                                    class="btn-cyan py-1.5 px-3 text-xs shadow-sm flex items-center gap-1.5"
-                                                    title="Verifikasi Transaksi">
-                                                <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
-                                                <span>Verifikasi</span>
-                                            </button>
-                                        @endif
+                                    <!-- Verifikasi Finance / Direktur -->
+                                    @if(auth()->user()->canVerifyAndCloseCA($cashAdvance) && $exp->verification_status !== 'VOID')
+                                        <button @click="showVerifyModal = true; verifyExpenseId = {{ $exp->id }}; verifyExpenseDesc = '{{ addslashes($exp->description) }}'" 
+                                                class="btn-cyan py-1.5 px-3 text-xs shadow-sm flex items-center gap-1.5"
+                                                title="Verifikasi Transaksi">
+                                            <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                                            <span>Verifikasi</span>
+                                        </button>
+                                    @endif
 
-                                        <!-- Void by Finance -->
-                                        @if((auth()->user()->isFinance() || auth()->user()->isDirektur()) && $exp->verification_status !== 'VOID')
-                                            <button @click="showVoidModal = true; voidExpenseId = {{ $exp->id }}; voidExpenseDesc = '{{ addslashes($exp->description) }}'" class="p-1.5 text-rose-600 hover:text-rose-800 transition" title="VOID Transaksi">
-                                                <i data-lucide="ban" class="w-4 h-4"></i>
-                                            </button>
-                                        @endif
-                                    </div>
-                                </td>
-                            @endif
+                                    <!-- Void by Finance -->
+                                    @if((auth()->user()->isFinance() || auth()->user()->isDirektur()) && $exp->verification_status !== 'VOID')
+                                        <button @click="showVoidModal = true; voidExpenseId = {{ $exp->id }}; voidExpenseDesc = '{{ addslashes($exp->description) }}'" class="p-1.5 text-rose-600 hover:text-rose-800 transition" title="VOID Transaksi">
+                                            <i data-lucide="ban" class="w-4 h-4"></i>
+                                        </button>
+                                    @endif
+                                </div>
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ auth()->user()->isAtasan() ? 6 : 7 }}" class="py-10 text-center text-slate-400 text-xs">
+                            <td colspan="7" class="py-10 text-center text-slate-400 text-xs">
                                 <i data-lucide="receipt" class="w-6 h-6 mx-auto text-slate-300 mb-1.5"></i>
                                 Belum ada pengeluaran tercatat untuk Cash Advance ini.
                             </td>
@@ -852,7 +1018,7 @@
             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
             x-transition:leave-end="opacity-0 scale-95 translate-y-2"
             class="card-commerce max-w-md w-full p-6 shadow-2xl">
-            <h3 class="text-base font-bold text-retail-ink mb-1">Catat Pencairan Dana (Finance)</h3>
+            <h3 class="text-base font-bold text-retail-ink mb-1">Catat Pencairan Dana</h3>
             <p class="text-xs text-slate-500 mb-4">Mencairkan dana sebesar <strong class="font-mono text-retail-ink">Rp {{ number_format($cashAdvance->approved_amount, 0, ',', '.') }}</strong> ke rekening pemohon.</p>
 
             <form action="{{ route('cash-advances.disburse', $cashAdvance) }}" method="POST" class="space-y-4">
@@ -1143,6 +1309,78 @@
                 <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
                     <button type="button" @click="showVoidModal = false" class="btn-secondary py-1.5 px-3 text-xs">Batal</button>
                     <button type="submit" class="btn-danger text-xs py-1.5 px-3.5">Konfirmasi VOID</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 11: Tolak Pengajuan Top-Up (Atasan / Finance / Direktur) -->
+    <div x-show="showTopupRejectModal" x-cloak 
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-[#050A1E]/75 z-50 flex items-center justify-center p-4">
+        <div x-show="showTopupRejectModal"
+            x-transition:enter="transition ease-out duration-200 transform"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150 transform"
+            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+            class="card-commerce max-w-md w-full p-6 shadow-2xl">
+            <h3 class="text-base font-bold text-rose-700 mb-1">Tolak Pengajuan Top-Up</h3>
+            <p class="text-xs text-slate-500 mb-4" x-text="'Top-Up Sebesar ' + topupRejectAmount"></p>
+
+            <form :action="'/top-ups/' + topupRejectId + '/reject'" method="POST" class="space-y-4">
+                @csrf
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 uppercase mb-1">Alasan Penolakan <span class="text-rose-500">*</span></label>
+                    <textarea name="rejection_reason" rows="3" required class="w-full input-commerce text-xs" placeholder="Tuliskan alasan penolakan top-up ini..."></textarea>
+                </div>
+                <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+                    <button type="button" @click="showTopupRejectModal = false" class="btn-secondary py-1.5 px-3 text-xs">Batal</button>
+                    <button type="submit" class="btn-danger text-xs py-1.5 px-3.5">Konfirmasi Tolak Top-Up</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 12: Pencairan Dana Top-Up (Finance / Direktur) -->
+    <div x-show="showTopupDisburseModal" x-cloak 
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-[#050A1E]/75 z-50 flex items-center justify-center p-4">
+        <div x-show="showTopupDisburseModal"
+            x-transition:enter="transition ease-out duration-200 transform"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150 transform"
+            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+            class="card-commerce max-w-md w-full p-6 shadow-2xl">
+            <h3 class="text-base font-bold text-slate-900 mb-1">Pencairan Dana Top-Up</h3>
+            <p class="text-xs text-slate-500 mb-4" x-text="'Konfirmasi pencairan transfer top-up sebesar ' + topupDisburseAmount"></p>
+
+            <form :action="'/top-ups/' + topupDisburseId + '/disburse'" method="POST" class="space-y-4">
+                @csrf
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 uppercase mb-1">Nomor Referensi Bank / Transfer <span class="text-rose-500">*</span></label>
+                    <input type="text" name="disbursement_ref" required class="w-full input-commerce text-xs" placeholder="Contoh: TRF-BCA-88921">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 uppercase mb-1">Catatan Pencairan (Opsional)</label>
+                    <textarea name="disbursement_notes" rows="2" class="w-full input-commerce text-xs" placeholder="Catatan bukti transfer atau rekening tujuan..."></textarea>
+                </div>
+                <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+                    <button type="button" @click="showTopupDisburseModal = false" class="btn-secondary py-1.5 px-3 text-xs">Batal</button>
+                    <button type="submit" class="btn-brand text-xs py-1.5 px-3.5">Konfirmasi Pencairan Top-Up</button>
                 </div>
             </form>
         </div>

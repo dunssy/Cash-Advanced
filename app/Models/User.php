@@ -160,13 +160,18 @@ class User extends Authenticatable
         return $this->isFinance() || $this->isDirektur();
     }
 
-    // Who can record disbursement (Finance only, unless applicant is Finance, but even then Finance role handles bank disbursement)
+    // Who can record disbursement (Finance & Direktur)
     public function canDisburseCA(CashAdvance $ca): bool
     {
+        // Pengguna tidak bisa mencairkan CA miliknya sendiri
+        if ($this->id === $ca->user_id) {
+            return false;
+        }
+
         if ($this->isSuperAdmin()) {
             return false;
         }
 
-        return $this->isFinance();
+        return $this->isFinance() || $this->isDirektur();
     }
 }

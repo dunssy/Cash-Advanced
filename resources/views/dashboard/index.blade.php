@@ -141,9 +141,8 @@
     <!-- STAT METRIC TILES (Kartu Fitur: Latar #F4F4F4 / Putih, Radius 15px, Border #E1E1E1) -->
     @php
         $isAtasanOnly = auth()->user()->isAtasan() && !auth()->user()->isDirektur();
-        $isFinanceOnly = auth()->user()->isFinance() && !auth()->user()->isDirektur();
     @endphp
-    <div class="grid grid-cols-1 sm:grid-cols-2 {{ $isAtasanOnly ? 'lg:grid-cols-2' : ($isFinanceOnly ? 'lg:grid-cols-2' : 'lg:grid-cols-4') }} gap-4 sm:gap-5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 {{ $isAtasanOnly ? 'lg:grid-cols-2' : 'lg:grid-cols-4' }} gap-4 sm:gap-5">
         @if(auth()->user()->isAtasan() || auth()->user()->isDirektur())
             <a href="{{ route('cash-advances.index', ['status' => 'PENDING_APPROVAL']) }}" class="card-commerce card-commerce-hoverable p-6 group transition duration-200 block border border-cardborder hover:border-[#FF3C00] hover:shadow-md">
                 <div class="flex items-center justify-between">
@@ -186,31 +185,89 @@
             </a>
         @endif
 
+        @if(auth()->user()->isFinance())
+            <a href="{{ route('cash-advances.index', ['status' => 'PENDING_APPROVAL']) }}" class="card-commerce card-commerce-hoverable p-6 group transition duration-200 block border border-cardborder hover:border-[#FF3C00] hover:shadow-md">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-head font-bold text-[#050A1E] uppercase tracking-wider block">Pencairan CA</span>
+                        <span class="text-xs text-[#7A7A7A] mt-0.5 block font-body">CA disetujui siap dicairkan</span>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm">
+                        <i data-lucide="wallet" class="w-6 h-6"></i>
+                    </div>
+                </div>
+                <div class="flex items-baseline justify-between mt-4">
+                    <div class="text-3xl sm:text-4xl font-head font-extrabold text-[#050A1E] group-hover:text-[#FF3C00] transition">
+                        {{ $stats['pending_disbursement_count'] }}
+                    </div>
+                    <span class="inline-flex items-center text-xs font-head font-bold text-[#FF3C00] group-hover:underline">
+                        Cairkan Dana <i data-lucide="arrow-right" class="w-3.5 h-3.5 ml-1"></i>
+                    </span>
+                </div>
+            </a>
+
+            <a href="{{ route('cash-advances.index') }}" class="card-commerce card-commerce-hoverable p-6 group transition duration-200 block border border-cardborder hover:border-[#FF3C00] hover:shadow-md">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-head font-bold text-[#050A1E] uppercase tracking-wider block">Top-Up Menunggu</span>
+                        <span class="text-xs text-[#7A7A7A] mt-0.5 block font-body">Approval / pencairan top-up</span>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-orange-50 text-[#FF3C00] border border-[#FF3C00]/20 flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm">
+                        <i data-lucide="arrow-up-circle" class="w-6 h-6"></i>
+                    </div>
+                </div>
+                <div class="flex items-baseline justify-between mt-4">
+                    <div class="text-3xl sm:text-4xl font-head font-extrabold text-[#050A1E] group-hover:text-[#FF3C00] transition">
+                        {{ $stats['pending_topup_count'] }}
+                    </div>
+                    <span class="inline-flex items-center text-xs font-head font-bold text-[#FF3C00] group-hover:underline">
+                        Lihat Pengajuan <i data-lucide="arrow-right" class="w-3.5 h-3.5 ml-1"></i>
+                    </span>
+                </div>
+            </a>
+        @endif
+
         @if(auth()->user()->isFinance() || auth()->user()->isDirektur())
-            <div class="card-commerce card-commerce-hoverable p-5">
+            <a href="{{ route('cash-advances.index', ['status' => 'ACTIVE']) }}" class="card-commerce card-commerce-hoverable p-6 group transition duration-200 block border border-cardborder hover:border-[#FF3C00] hover:shadow-md">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-head font-bold text-[#050A1E] uppercase tracking-wider">Verifikasi Struk</span>
-                    <div class="w-10 h-10 rounded-full bg-[#161A2B] text-white flex items-center justify-center">
-                        <i data-lucide="receipt" class="w-5 h-5"></i>
+                    <div>
+                        <span class="text-xs font-head font-bold text-[#050A1E] uppercase tracking-wider block">Verifikasi Struk</span>
+                        <span class="text-xs text-[#7A7A7A] mt-0.5 block font-body">Struk menunggu validasi</span>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-[#161A2B] text-white flex items-center justify-center group-hover:scale-105 transition-transform shadow-sm">
+                        <i data-lucide="receipt" class="w-6 h-6 text-sky-400"></i>
                     </div>
                 </div>
-                <div class="text-3xl font-head font-extrabold text-[#050A1E] mt-3">{{ $stats['pending_verification_count'] ?? 0 }}</div>
-                <span class="text-xs text-[#7A7A7A] mt-1 block font-body">Struk menunggu validasi</span>
-            </div>
+                <div class="flex items-baseline justify-between mt-4">
+                    <div class="text-3xl sm:text-4xl font-head font-extrabold text-[#050A1E] group-hover:text-[#FF3C00] transition">
+                        {{ $stats['pending_verification_count'] ?? 0 }}
+                    </div>
+                    <span class="inline-flex items-center text-xs font-head font-bold text-[#FF3C00] group-hover:underline">
+                        Periksa Struk <i data-lucide="arrow-right" class="w-3.5 h-3.5 ml-1"></i>
+                    </span>
+                </div>
+            </a>
 
-            <div class="card-commerce card-commerce-hoverable p-5">
+            <div class="card-commerce card-commerce-hoverable p-6 border border-cardborder">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-head font-bold text-[#050A1E] uppercase tracking-wider">CA OVERDUE</span>
-                    <div class="w-10 h-10 rounded-full bg-orange-50 text-[#FF3C00] flex items-center justify-center">
-                        <i data-lucide="alert-octagon" class="w-5 h-5"></i>
+                    <div>
+                        <span class="text-xs font-head font-bold text-[#050A1E] uppercase tracking-wider block">CA Overdue</span>
+                        <span class="text-xs text-[#7A7A7A] mt-0.5 block font-body">Lewat batas 2 bulan</span>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-rose-50 text-[#FF3C00] border border-[#FF3C00]/20 flex items-center justify-center shadow-sm">
+                        <i data-lucide="alert-octagon" class="w-6 h-6"></i>
                     </div>
                 </div>
-                <div class="text-3xl font-head font-extrabold text-[#FF3C00] mt-3">{{ $stats['overdue_count'] }}</div>
-                <span class="text-xs text-[#7A7A7A] mt-1 block font-body">Lewat batas 2 bulan</span>
+                <div class="flex items-baseline justify-between mt-4">
+                    <div class="text-3xl sm:text-4xl font-head font-extrabold text-[#FF3C00]">
+                        {{ $stats['overdue_count'] }}
+                    </div>
+                    <span class="text-xs text-rose-600 font-medium">Perlu Tindakan</span>
+                </div>
             </div>
 
-            <div class="card-commerce card-commerce-hoverable p-5 col-span-1 sm:col-span-2 {{ auth()->user()->isDirektur() ? 'lg:col-span-4' : 'lg:col-span-2' }}">
-                <div class="flex items-center justify-between">
+            <div class="card-commerce card-commerce-hoverable p-6 col-span-1 sm:col-span-2 lg:col-span-4 border border-cardborder">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                         <span class="text-xs font-head font-bold text-[#050A1E] uppercase tracking-wider block">Total Dana CA Beredar (Float)</span>
                         <div class="text-2xl sm:text-3xl font-head font-extrabold text-[#050A1E] mt-2">Rp {{ number_format($stats['total_active_float'], 0, ',', '.') }}</div>

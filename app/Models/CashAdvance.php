@@ -143,16 +143,32 @@ class CashAdvance extends Model
 
     public function getCurrentBalanceAttribute(): float
     {
+        // Jika CA sudah resmi ditutup (CLOSED) oleh Finance, sisa saldo kas dipegang karyawan adalah 0 (Lunas)
+        if ($this->status === 'CLOSED') {
+            return 0.0;
+        }
+
         $initial = (float) ($this->approved_amount ?? $this->requested_amount ?? 0);
         $topups = $this->disbursed_topups_total;
         $expenses = $this->recorded_expenses_total;
 
-        return max(0, $initial + $topups - $expenses);
+        $balance = max(0, $initial + $topups - $expenses);
+
+        // Jika ada sisa saldo tapi sudah dikembalikan dan dikonfirmasi oleh finance (closed)
+        if ($this->settlement_refund_amount > 0 && ($this->status === 'CLOSED' || $this->closed_at !== null)) {
+            return 0.0;
+        }
+
+        return $balance;
     }
 
     // Hasil settlement = Saldo - Talangan disetujui (Dokumen hal 6)
     public function getSettlementResultAttribute(): float
     {
+        if ($this->status === 'CLOSED') {
+            return 0.0;
+        }
+
         return $this->current_balance - $this->approved_talangan_total;
     }
 
