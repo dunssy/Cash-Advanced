@@ -5,6 +5,8 @@
 @section('content')
 <div class="space-y-6">
 
+    @include('reports._report_nav')
+
     <!-- Header & Action (Design.md) -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 no-print">
         <div>
@@ -41,7 +43,7 @@
 
         <!-- Metric Summary -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 font-mono">
-            <div class="bg-slate-50 p-3.5 rounded-[6px] border border-retail-surface">
+            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                 <span class="text-[10px] text-slate-500 uppercase font-bold font-sans block">Total Kas Menggantung</span>
                 <span class="text-base sm:text-lg font-bold text-retail-ink block mt-1">
                     Rp {{ number_format($outstandingCAs->sum->current_balance, 0, ',', '.') }}
@@ -49,7 +51,7 @@
                 <span class="text-[10px] text-slate-400 block mt-0.5 font-sans">Saldo aktif di tangan karyawan</span>
             </div>
 
-            <div class="bg-slate-50 p-3.5 rounded-[6px] border border-retail-surface">
+            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                 <span class="text-[10px] text-amber-900 uppercase font-bold font-sans block">Menunggu Refund Sisa (Need Settlement)</span>
                 <span class="text-base sm:text-lg font-bold text-amber-800 block mt-1">
                     {{ $outstandingCAs->where('status', 'NEED_SETTLEMENT')->count() }} Proyek
@@ -57,7 +59,7 @@
                 <span class="text-[10px] text-slate-400 block mt-0.5 font-sans">Proyek tuntas / wajib transfer sisa</span>
             </div>
 
-            <div class="bg-slate-50 p-3.5 rounded-[6px] border border-retail-surface">
+            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                 <span class="text-[10px] text-rose-800 uppercase font-bold font-sans block">Status Lewat Waktu (OVERDUE)</span>
                 <span class="text-base sm:text-lg font-bold text-rose-600 block mt-1">
                     {{ $outstandingCAs->filter->is_overdue->count() }} CA
@@ -67,8 +69,8 @@
         </div>
 
         <!-- Table -->
-        <div class="border border-retail-surface rounded-[6px] overflow-hidden">
-            <table class="w-full text-left text-xs font-mono">
+        <div class="border border-slate-200 rounded-xl overflow-hidden table-responsive">
+            <table class="w-full text-left text-xs font-mono min-w-[700px]">
                 <thead class="bg-slate-50 text-slate-700 font-bold uppercase border-b border-retail-surface font-sans">
                     <tr>
                         <th class="px-3 py-2.5">No. CA</th>
@@ -106,9 +108,9 @@
                             </td>
                             <td class="px-3 py-2.5 text-center whitespace-nowrap">
                                 @if($ca->is_overdue)
-                                    <span class="badge-retail bg-rose-100 text-rose-700 border-rose-300 font-bold">OVERDUE</span>
+                                    <span class="badge-rejected font-bold">OVERDUE</span>
                                 @else
-                                    <span class="badge-retail bg-emerald-50 text-emerald-800 border-emerald-300">Aman</span>
+                                    <span class="badge-closed font-semibold">Aman</span>
                                 @endif
                             </td>
                             <td class="px-3 py-2.5 text-right whitespace-nowrap">

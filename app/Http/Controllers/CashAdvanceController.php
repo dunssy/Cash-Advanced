@@ -19,11 +19,6 @@ class CashAdvanceController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->isSuperAdmin()) {
-            return redirect()->route('admin.users.index')
-                ->with('info', 'Super Admin bertugas mengelola pengguna dan konfigurasi sistem.');
-        }
-
         $query = CashAdvance::with(['user', 'approver', 'disburser', 'expenses', 'topUps'])
             ->orderByDesc('created_at');
 
@@ -37,7 +32,7 @@ class CashAdvanceController extends Controller
                   ->orWhereIn('user_id', $subordinateIds);
             });
         }
-        // Finance & Direktur see all CAs
+        // Finance, Direktur & Super Admin (Admin IT) can view all CAs across the entire company
 
         // Filters
         if ($request->filled('status')) {
@@ -63,7 +58,7 @@ class CashAdvanceController extends Controller
             });
         }
 
-        $cashAdvances = $query->paginate(15)->withQueryString();
+        $cashAdvances = $query->paginate(5)->withQueryString();
 
         return view('cash_advances.index', compact('cashAdvances'));
     }

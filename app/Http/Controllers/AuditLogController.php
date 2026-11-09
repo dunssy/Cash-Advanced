@@ -36,7 +36,7 @@ class AuditLogController extends Controller
             });
         }
 
-        $logs = $query->paginate(20)->withQueryString();
+        $logs = $query->paginate(5)->withQueryString();
         $actions = AuditLog::select('action')->distinct()->pluck('action');
 
         return view('audit_logs.index', compact('logs', 'actions'));

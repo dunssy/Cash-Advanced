@@ -43,25 +43,30 @@
                 <!-- CA Information -->
                 <div class="space-y-3 max-w-2xl">
                     <div class="flex items-center space-x-2 flex-wrap gap-2">
-                        <span class="badge-retail bg-slate-100 text-retail-ink border-retail-surface font-mono font-bold text-xs">
+                        <span class="badge-retail bg-[#161A2B] text-white border border-slate-700 font-head font-bold text-xs">
                             {{ $cashAdvance->ca_number }}
                         </span>
                         
-                        <!-- Status Badge -->
+                        <!-- Status Badge (6 Status Resmi PT Technodrives) -->
                         <span class="badge-retail text-xs font-bold uppercase tracking-wide
-                            {{ $cashAdvance->status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : '' }}
-                            {{ $cashAdvance->status === 'PENDING_APPROVAL' ? 'bg-sky-50 text-sky-800 border-sky-300' : '' }}
-                            {{ $cashAdvance->status === 'NEED_SETTLEMENT' ? 'bg-amber-50 text-amber-900 border-amber-300' : '' }}
-                            {{ $cashAdvance->status === 'PENDING_VERIFICATION' ? 'bg-purple-50 text-purple-800 border-purple-300' : '' }}
-                            {{ $cashAdvance->status === 'CLOSED' ? 'bg-slate-100 text-slate-700 border-slate-300' : '' }}
-                            {{ $cashAdvance->status === 'REJECTED' ? 'bg-rose-50 text-rose-800 border-rose-300' : '' }}
+                            {{ $cashAdvance->status === 'PENDING_APPROVAL' ? 'badge-pending-approval' : '' }}
+                            {{ $cashAdvance->status === 'REJECTED' ? 'badge-rejected' : '' }}
+                            {{ $cashAdvance->status === 'ACTIVE' ? 'badge-active' : '' }}
+                            {{ $cashAdvance->status === 'NEED_SETTLEMENT' ? 'badge-need-settlement' : '' }}
+                            {{ $cashAdvance->status === 'PENDING_VERIFICATION' ? 'badge-pending-verification' : '' }}
+                            {{ $cashAdvance->status === 'CLOSED' ? 'badge-closed' : '' }}
                         ">
-                            Status: {{ $cashAdvance->status }}
+                            @if($cashAdvance->status === 'PENDING_APPROVAL') Menunggu Approval @endif
+                            @if($cashAdvance->status === 'REJECTED') Ditolak @endif
+                            @if($cashAdvance->status === 'ACTIVE') Aktif (Berjalan) @endif
+                            @if($cashAdvance->status === 'NEED_SETTLEMENT') Wajib Settlement @endif
+                            @if($cashAdvance->status === 'PENDING_VERIFICATION') Verifikasi Akhir @endif
+                            @if($cashAdvance->status === 'CLOSED') Closed / Selesai @endif
                         </span>
 
                         @if($cashAdvance->is_unlocked)
-                            <span class="badge-retail bg-amber-50 text-amber-900 border-amber-300 font-bold">
-                                <i data-lucide="unlock" class="w-3 h-3 text-retail-orange"></i>
+                            <span class="badge-retail bg-orange-50 text-[#FF3C00] border border-[#FF3C00]/40 font-bold">
+                                <i data-lucide="unlock" class="w-3.5 h-3.5 text-[#FF3C00]"></i>
                                 <span>Gembok Di-override Direktur</span>
                             </span>
                         @endif
@@ -100,7 +105,7 @@
                 </div>
 
                 <!-- Countdown & Overdue Widget -->
-                <div class="bg-slate-50 border border-retail-surface rounded-[6px] p-4 text-center min-w-[240px]">
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center min-w-[240px]">
                     <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Masa Berlaku CA (Max 2 Bulan)</span>
                     
                     @if($cashAdvance->status === 'ACTIVE' || $cashAdvance->status === 'NEED_SETTLEMENT')
@@ -142,9 +147,18 @@
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                    <!-- 4. Sisa Saldo Tersedia (Hero Stat di Mobile) -->
+                    <div class="bg-white p-3.5 sm:p-4 rounded-xl border-2 border-[#FF3C00] shadow-sm col-span-2 sm:col-span-1 sm:order-4">
+                        <span class="block text-[10px] font-bold uppercase text-[#FF3C00] font-head">Sisa Saldo Kas Aktif</span>
+                        <span class="block text-xl sm:text-lg font-mono font-black text-[#050A1E] mt-0.5">
+                            Rp {{ number_format($cashAdvance->current_balance, 0, ',', '.') }}
+                        </span>
+                        <span class="text-[10px] text-slate-500 block mt-0.5 font-head">Wajib Rp 0 untuk CLOSED</span>
+                    </div>
+
                     <!-- 1. CA Awal -->
-                    <div class="bg-slate-50 p-3.5 rounded-[6px] border border-retail-surface">
-                        <span class="block text-[10px] font-bold uppercase text-slate-500">CA Disetujui</span>
+                    <div class="bg-slate-50 p-3 sm:p-3.5 rounded-xl border border-slate-200 sm:order-1">
+                        <span class="block text-[10px] font-bold uppercase text-slate-500 font-head">CA Disetujui</span>
                         <span class="block text-sm sm:text-base font-mono font-bold text-slate-900 mt-1">
                             Rp {{ number_format($cashAdvance->approved_amount ?: $cashAdvance->requested_amount, 0, ',', '.') }}
                         </span>
@@ -152,8 +166,8 @@
                     </div>
 
                     <!-- 2. Top-Up Cair -->
-                    <div class="bg-slate-50 p-3.5 rounded-[6px] border border-retail-surface">
-                        <span class="block text-[10px] font-bold uppercase text-slate-500">Top-Up Cair (+)</span>
+                    <div class="bg-slate-50 p-3 sm:p-3.5 rounded-xl border border-slate-200 sm:order-2">
+                        <span class="block text-[10px] font-bold uppercase text-slate-500 font-head">Top-Up Cair (+)</span>
                         <span class="block text-sm sm:text-base font-mono font-bold text-emerald-700 mt-1">
                             +Rp {{ number_format($cashAdvance->disbursed_topups_total, 0, ',', '.') }}
                         </span>
@@ -161,26 +175,17 @@
                     </div>
 
                     <!-- 3. Pengeluaran Tercatat -->
-                    <div class="bg-slate-50 p-3.5 rounded-[6px] border border-retail-surface">
-                        <span class="block text-[10px] font-bold uppercase text-slate-500">Pengeluaran Tercatat (-)</span>
+                    <div class="bg-slate-50 p-3 sm:p-3.5 rounded-xl border border-slate-200 sm:order-3">
+                        <span class="block text-[10px] font-bold uppercase text-slate-500 font-head">Pengeluaran Tercatat (-)</span>
                         <span class="block text-sm sm:text-base font-mono font-bold text-rose-700 mt-1">
                             -Rp {{ number_format($cashAdvance->recorded_expenses_total, 0, ',', '.') }}
                         </span>
                         <span class="text-[10px] font-mono text-slate-400 block mt-0.5">Valid: Rp {{ number_format($cashAdvance->valid_expenses_total, 0, ',', '.') }}</span>
                     </div>
 
-                    <!-- 4. Sisa Saldo Tersedia -->
-                    <div class="bg-white p-3.5 rounded-[6px] border-2 border-retail-orange shadow-sm">
-                        <span class="block text-[10px] font-bold uppercase text-retail-orange">Sisa Saldo Kas Aktif</span>
-                        <span class="block text-base sm:text-lg font-mono font-black text-retail-ink mt-0.5">
-                            Rp {{ number_format($cashAdvance->current_balance, 0, ',', '.') }}
-                        </span>
-                        <span class="text-[10px] text-slate-500 block mt-0.5">Wajib Rp 0 untuk CLOSED</span>
-                    </div>
-
                     <!-- 5. Talangan & Hasil Settlement -->
-                    <div class="bg-slate-50 p-3.5 rounded-[6px] border border-retail-surface col-span-2 sm:col-span-1">
-                        <span class="block text-[10px] font-bold uppercase text-slate-500">Talangan Pribadi</span>
+                    <div class="bg-slate-50 p-3 sm:p-3.5 rounded-xl border border-slate-200 sm:order-5">
+                        <span class="block text-[10px] font-bold uppercase text-slate-500 font-head">Talangan Pribadi</span>
                         <span class="block text-sm sm:text-base font-mono font-bold text-amber-800 mt-1">
                             Rp {{ number_format($cashAdvance->talangan_total, 0, ',', '.') }}
                         </span>
@@ -191,9 +196,9 @@
                 </div>
 
                 <!-- Settlement Interpretation (Design.md: Clear message) -->
-                <div class="mt-3 text-xs bg-slate-50 p-3 rounded-[6px] border border-retail-surface flex items-center justify-between flex-wrap gap-2">
+                <div class="mt-3 text-xs bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-center justify-between flex-wrap gap-2">
                     <div class="flex items-center space-x-2 text-slate-700">
-                        <i data-lucide="info" class="w-4 h-4 text-retail-cyan flex-shrink-0"></i>
+                        <i data-lucide="info" class="w-4 h-4 text-[#2E3087] flex-shrink-0"></i>
                         <span>
                             <strong>Kondisi Settlement:</strong>
                             @if($cashAdvance->settlement_result > 0)
@@ -209,29 +214,29 @@
             </div>
         </div>
 
-        <!-- WORKFLOW ACTIONS TOOLBAR -->
-        <div class="bg-retail-ink px-6 py-3.5 border-t border-retail-darkInk flex flex-wrap items-center justify-between gap-3 text-white">
+        <!-- WORKFLOW ACTIONS TOOLBAR (Navy #050A1E background, Solutek Brand Buttons, Mobile-Friendly) -->
+        <div class="bg-[#050A1E] px-4 sm:px-6 py-4 border-t border-[#161A2B] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-white">
             <div class="flex items-center space-x-2">
-                <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Aksi Tersedia:</span>
+                <span class="text-xs font-head font-bold text-slate-300 uppercase tracking-wider">Aksi Workflow:</span>
             </div>
 
-            <div class="flex flex-wrap items-center gap-2">
+            <div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 w-full sm:w-auto">
                 <!-- 1. PENDING_APPROVAL: Atasan / Direktur -->
                 @if($cashAdvance->status === 'PENDING_APPROVAL')
                     @if(auth()->user()->canApproveCA($cashAdvance))
-                        <button @click="showApproveModal = true" class="btn-primary text-xs py-1.5 px-3">
-                            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                        <button @click="showApproveModal = true" class="btn-brand text-xs py-2.5 px-4 w-full sm:w-auto">
+                            <i data-lucide="check" class="w-4 h-4"></i>
                             <span>Setujui Pengajuan CA</span>
                         </button>
-                        <button @click="showRejectModal = true" class="btn-danger text-xs py-1.5 px-3">
-                            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                        <button @click="showRejectModal = true" class="btn-dark text-xs py-2.5 px-4 w-full sm:w-auto">
+                            <i data-lucide="x" class="w-4 h-4 text-[#FF3C00]"></i>
                             <span>Tolak CA</span>
                         </button>
                     @endif
 
                     @if($cashAdvance->approved_by && auth()->user()->canDisburseCA($cashAdvance))
-                        <button @click="showDisburseModal = true" class="btn-cyan text-xs py-1.5 px-3">
-                            <i data-lucide="wallet" class="w-3.5 h-3.5"></i>
+                        <button @click="showDisburseModal = true" class="btn-brand text-xs py-2.5 px-4 w-full sm:w-auto">
+                            <i data-lucide="wallet" class="w-4 h-4"></i>
                             <span>Catat Pencairan Dana (Finance)</span>
                         </button>
                     @endif
@@ -240,26 +245,26 @@
                 <!-- 2. ACTIVE: Karyawan Action & Top-up -->
                 @if($cashAdvance->status === 'ACTIVE')
                     @if($cashAdvance->user_id === auth()->id())
-                        <a href="{{ route('expenses.create', $cashAdvance) }}" class="btn-primary text-xs py-1.5 px-3">
-                            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                        <a href="{{ route('expenses.create', $cashAdvance) }}" class="btn-brand text-xs py-2.5 px-4 w-full sm:w-auto">
+                            <i data-lucide="camera" class="w-4 h-4"></i>
                             <span>Catat Pengeluaran (Foto Struk)</span>
                         </a>
 
-                        <button @click="showTopupModal = true" class="btn-secondary text-xs py-1.5 px-3 bg-white text-retail-ink">
-                            <i data-lucide="arrow-up-circle" class="w-3.5 h-3.5 text-retail-orange"></i>
+                        <button @click="showTopupModal = true" class="btn-secondary text-xs py-2.5 px-4 w-full sm:w-auto">
+                            <i data-lucide="arrow-up-circle" class="w-4 h-4 text-[#FF3C00]"></i>
                             <span>Ajukan Top-Up Dana</span>
                         </button>
 
-                        <button @click="showCompleteModal = true" class="btn-dark text-xs py-1.5 px-3 bg-retail-darkInk border-slate-600">
-                            <i data-lucide="flag" class="w-3.5 h-3.5"></i>
+                        <button @click="showCompleteModal = true" class="btn-success text-xs py-2.5 px-4 w-full sm:w-auto">
+                            <i data-lucide="check-circle-2" class="w-4 h-4"></i>
                             <span>Tandai Proyek Selesai</span>
                         </button>
                     @endif
 
                     <!-- Direktur Exception: Unlock Gembok -->
                     @if(auth()->user()->isDirektur())
-                        <button @click="showUnlockModal = true" class="btn-primary text-xs py-1.5 px-3" style="background-color: #D97706; border-color: #B45309; color: #FFFFFF;">
-                            <i data-lucide="unlock" class="w-3.5 h-3.5"></i>
+                        <button @click="showUnlockModal = true" class="btn-dark text-xs py-2.5 px-4 border border-[#FF3C00]/40 w-full sm:w-auto">
+                            <i data-lucide="unlock" class="w-4 h-4 text-[#FF3C00]"></i>
                             <span>Buka Gembok Pengecualian</span>
                         </button>
                     @endif
@@ -268,8 +273,8 @@
                 <!-- 3. NEED_SETTLEMENT: Karyawan Upload Refund Proof -->
                 @if($cashAdvance->status === 'NEED_SETTLEMENT')
                     @if($cashAdvance->user_id === auth()->id())
-                        <button @click="showRefundModal = true" class="btn-primary text-xs py-1.5 px-3.5 shadow-lift">
-                            <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                        <button @click="showRefundModal = true" class="btn-brand text-xs py-2.5 px-5 w-full sm:w-auto">
+                            <i data-lucide="upload" class="w-4 h-4"></i>
                             <span>Upload Bukti Transfer Refund Sisa Dana</span>
                         </button>
                     @endif
@@ -278,8 +283,8 @@
                 <!-- 4. PENDING_VERIFICATION: Finance / Direktur Closure -->
                 @if($cashAdvance->status === 'PENDING_VERIFICATION')
                     @if(auth()->user()->canVerifyAndCloseCA($cashAdvance))
-                        <button @click="showCloseModal = true" class="btn-primary text-xs py-1.5 px-4 shadow-lift" style="background-color: #7E22CE; border-color: #6B21A8; color: #FFFFFF;">
-                            <i data-lucide="check-check" class="w-3.5 h-3.5"></i>
+                        <button @click="showCloseModal = true" class="btn-brand text-xs py-2.5 px-5 w-full sm:w-auto">
+                            <i data-lucide="check-check" class="w-4 h-4"></i>
                             <span>Tutup Cash Advance (CLOSED)</span>
                         </button>
                     @endif
@@ -290,9 +295,9 @@
 
     <!-- SETTLEMENT NOTICE BANNER IF NEED_SETTLEMENT -->
     @if($cashAdvance->status === 'NEED_SETTLEMENT')
-        <div class="bg-amber-50 border border-amber-300 rounded-[6px] p-5 shadow-card">
+        <div class="bg-amber-50 border border-amber-300 rounded-xl p-5 shadow-sm">
             <div class="flex items-start space-x-3.5">
-                <div class="w-10 h-10 rounded-[3px] bg-amber-200 border border-amber-300 text-amber-900 flex items-center justify-center flex-shrink-0">
+                <div class="w-10 h-10 rounded-lg bg-amber-200 border border-amber-300 text-amber-900 flex items-center justify-center flex-shrink-0">
                     <i data-lucide="receipt-refund" class="w-5 h-5"></i>
                 </div>
                 <div class="space-y-2 flex-grow">
@@ -300,7 +305,7 @@
                     <p class="text-xs text-amber-900 leading-relaxed">
                         Proyek telah selesai atau masa aktif telah habis dengan sisa saldo kas sebesar <strong class="font-mono">Rp {{ number_format($cashAdvance->current_balance, 0, ',', '.') }}</strong>. Sesuai aturan tata kelola, Anda wajib mentransfer sisa kas ke rekening kantor dan mengunggah bukti transfer dalam waktu <strong>3 hari kerja</strong>.
                     </p>
-                    <div class="p-3 bg-white rounded-[3px] border border-amber-200 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                    <div class="p-3 bg-white rounded-lg border border-amber-200 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                         <div>
                             <span class="text-slate-400 block text-[10px] font-bold uppercase">Bank Kantor:</span>
                             <span class="font-bold text-slate-800">{{ \App\Models\SystemSetting::get('company_bank_name', 'BCA') }}</span>
@@ -321,9 +326,9 @@
 
     <!-- REFUND PROOF INFO IF UPLOADED -->
     @if($cashAdvance->settlement_refund_proof)
-        <div class="bg-purple-50 border border-purple-200 rounded-[6px] p-4 flex items-center justify-between flex-wrap gap-4">
+        <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 flex items-center justify-between flex-wrap gap-4">
             <div class="flex items-center space-x-3">
-                <div class="w-9 h-9 rounded-[3px] bg-purple-100 text-purple-700 flex items-center justify-center flex-shrink-0 border border-purple-200">
+                <div class="w-9 h-9 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center flex-shrink-0 border border-purple-200">
                     <i data-lucide="file-check" class="w-5 h-5"></i>
                 </div>
                 <div>
@@ -351,18 +356,12 @@
                     <i data-lucide="arrow-up-circle" class="w-4 h-4 text-retail-orange"></i>
                     <span>Riwayat Pengajuan Top-Up (Tambah Dana)</span>
                 </h3>
-                @if($cashAdvance->status === 'ACTIVE' && $cashAdvance->user_id === auth()->id())
-                    <button @click="showTopupModal = true" class="text-xs font-bold text-retail-cyan hover:underline inline-flex items-center space-x-1">
-                        <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                        <span>Ajukan Top-Up</span>
-                    </button>
-                @endif
             </div>
 
             @if($cashAdvance->topUps->isEmpty())
                 <p class="text-xs text-slate-400 italic">Belum ada permintaan top-up dana untuk CA ini.</p>
             @else
-                <div class="divide-y divide-slate-100 border border-retail-surface rounded-[6px] overflow-hidden">
+                <div class="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden">
                     @foreach($cashAdvance->topUps as $tu)
                         <div class="p-3.5 bg-slate-50/50 hover:bg-slate-50 transition flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-xs">
                             <div class="space-y-1">
@@ -438,7 +437,7 @@
 
     <!-- EXPENSES LIST SECTION (Design.md: Card commerce, 1px border #DDDDDD) -->
     <div class="card-commerce overflow-hidden">
-        <div class="p-5 border-b border-retail-surface flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-slate-50">
+        <div class="p-5 border-b border-retail-surface bg-slate-50">
             <div>
                 <h3 class="text-xs font-bold uppercase tracking-wider text-retail-ink flex items-center space-x-2">
                     <i data-lucide="receipt" class="w-4 h-4 text-retail-cyan"></i>
@@ -446,29 +445,167 @@
                 </h3>
                 <p class="text-xs text-slate-500 mt-0.5">Saldo kas langsung terpotong saat transaksi dicatat, diverifikasi oleh Finance.</p>
             </div>
-
-            @if($cashAdvance->status === 'ACTIVE' && $cashAdvance->user_id === auth()->id())
-                <a href="{{ route('expenses.create', $cashAdvance) }}" class="btn-primary text-xs py-1.5 px-3">
-                    <i data-lucide="camera" class="w-3.5 h-3.5"></i>
-                    <span>+ Catat Pengeluaran Baru</span>
-                </a>
-            @endif
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-                <thead class="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider border-b border-retail-surface">
+        <!-- Mobile Card List View (md:hidden - Tidak perlu geser horizontal) -->
+        <div class="md:hidden divide-y divide-slate-100">
+            @forelse($cashAdvance->expenses as $exp)
+                <div class="p-4 space-y-3 {{ $exp->verification_status === 'VOID' ? 'opacity-40 bg-slate-50 line-through' : 'bg-white' }}">
+                    <!-- Baris 1: Tanggal, Kategori & Status Verifikasi -->
+                    <div class="flex items-start justify-between gap-2">
+                        <div>
+                            <div class="flex items-center space-x-1.5">
+                                <span class="font-mono font-bold text-xs text-slate-900">{{ $exp->transaction_date->format('d/m/Y') }}</span>
+                                @if($exp->is_late)
+                                    <span class="badge-retail bg-rose-50 text-rose-700 border-rose-300 text-[9px] py-0.5 px-2 font-bold">
+                                        TERLAMBAT
+                                    </span>
+                                @else
+                                    <span class="text-[10px] text-emerald-700 font-semibold font-head">&bull; Tepat Waktu</span>
+                                @endif
+                            </div>
+                            <span class="inline-block mt-1 text-[10px] font-head font-medium text-slate-700 bg-slate-100 rounded-md px-2 py-0.5 border border-slate-200">
+                                {{ $exp->category_label }}
+                            </span>
+                        </div>
+
+                        <!-- Status Badge -->
+                        <div class="text-right flex-shrink-0">
+                            <span class="badge-retail text-[10px] uppercase font-bold
+                                {{ $exp->verification_status === 'VALID' ? 'bg-[#16A34A] text-white shadow-sm' : '' }}
+                                {{ $exp->verification_status === 'PENDING' ? 'bg-[#FFC704] text-[#050A1E]' : '' }}
+                                {{ $exp->verification_status === 'NEEDS_REVISION' ? 'bg-white border-2 border-[#FF3C00] text-[#FF3C00]' : '' }}
+                                {{ $exp->verification_status === 'REJECTED' ? 'bg-[#DC2626] text-white shadow-sm' : '' }}
+                                {{ $exp->verification_status === 'VOID' ? 'bg-[#F4F4F4] text-[#7A7A7A] border border-[#E1E1E1] line-through' : '' }}
+                            ">
+                                {{ $exp->verification_status === 'NEEDS_REVISION' ? 'PERLU REVISI' : $exp->verification_status }}
+                            </span>
+                            @if($exp->verification_notes)
+                                <span class="block text-[10px] text-slate-500 italic mt-0.5 max-w-[140px] truncate" title="{{ $exp->verification_notes }}">
+                                    "{{ $exp->verification_notes }}"
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Baris 2: Keterangan & Nominal -->
+                    <div class="flex items-baseline justify-between gap-3 pt-1 border-t border-slate-50">
+                        <div class="min-w-0 flex-1">
+                            <h4 class="font-head font-bold text-sm text-slate-900 leading-snug">{{ $exp->description }}</h4>
+                            <p class="text-xs text-slate-500 flex items-center space-x-1 mt-0.5 font-body">
+                                <i data-lucide="store" class="w-3.5 h-3.5 text-slate-400"></i>
+                                <span class="truncate">{{ $exp->vendor_name }}</span>
+                                @if($exp->vendor_tax_number)
+                                    <span class="font-mono text-slate-400">({{ $exp->vendor_tax_number }})</span>
+                                @endif
+                            </p>
+                            @if($exp->notes)
+                                <p class="text-[10px] text-slate-400 italic mt-0.5">"{{ $exp->notes }}"</p>
+                            @endif
+                            @if($exp->is_talangan)
+                                <span class="inline-block text-[9px] font-head font-semibold text-amber-900 bg-amber-50 border border-amber-300 rounded px-2 py-0.5 mt-1">
+                                    TALANGAN: {{ $exp->talangan_emergency_reason }}
+                                </span>
+                            @endif
+                        </div>
+
+                        <!-- Nominal -->
+                        <div class="text-right flex-shrink-0">
+                            <span class="font-mono font-bold text-base {{ $exp->is_talangan ? 'text-amber-800' : 'text-slate-900' }}">
+                                Rp {{ number_format($exp->amount, 0, ',', '.') }}
+                            </span>
+                            @if($exp->is_talangan)
+                                <span class="block text-[9px] text-amber-700 font-mono">(Talangan Pribadi)</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Baris 3: Struk Bukti & Tombol Aksi -->
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-100 flex-wrap gap-2">
+                        <!-- Struk Thumbnail / Link -->
+                        <div class="flex items-center space-x-2">
+                            <span class="text-[10px] font-head font-bold uppercase text-slate-400">Bukti:</span>
+                            @if($exp->is_lost_receipt)
+                                <span class="badge-retail bg-amber-50 text-amber-900 border-amber-300 text-[10px] py-0.5 px-2">
+                                    Tanpa Struk Fisik
+                                </span>
+                                @if($exp->lost_receipt_statement_file)
+                                    <a href="{{ asset('storage/' . $exp->lost_receipt_statement_file) }}" target="_blank" class="text-[10px] text-[#FF3C00] hover:underline font-bold font-head">
+                                        Pernyataan
+                                    </a>
+                                @endif
+                            @else
+                                <div class="flex items-center space-x-1.5">
+                                    @forelse($exp->attachments as $att)
+                                        <a href="{{ $att->url }}" target="_blank" class="h-9 w-9 rounded-lg border border-slate-200 overflow-hidden hover:border-[#FF3C00] transition flex items-center justify-center bg-slate-50 flex-shrink-0" title="{{ $att->file_name }}">
+                                            @if(in_array(strtolower($att->file_type), ['jpg', 'jpeg', 'png', 'webp']))
+                                                <img src="{{ $att->url }}" alt="Struk" class="w-full h-full object-cover">
+                                            @else
+                                                <i data-lucide="file-text" class="w-4 h-4 text-slate-500"></i>
+                                            @endif
+                                        </a>
+                                    @empty
+                                        <span class="text-slate-400 text-xs font-mono">-</span>
+                                    @endforelse
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- Aksi (Mobile Touch Targets >= 40px) -->
+                        @if(!auth()->user()->isAtasan())
+                            <div class="flex items-center space-x-2">
+                                @if($exp->user_id === auth()->id() && in_array($exp->verification_status, ['PENDING', 'NEEDS_REVISION']))
+                                    <a href="{{ route('expenses.edit', $exp) }}" class="btn-secondary py-1.5 px-3 text-xs" title="Edit Transaksi">
+                                        <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                                        <span>Edit</span>
+                                    </a>
+                                @endif
+
+                                @if(auth()->user()->canVerifyAndCloseCA($cashAdvance) && $exp->verification_status !== 'VOID')
+                                    <button @click="showVerifyModal = true; verifyExpenseId = {{ $exp->id }}; verifyExpenseDesc = '{{ addslashes($exp->description) }}'" 
+                                            class="btn-cyan py-2 px-3.5 text-xs shadow-sm flex items-center gap-1.5 font-bold"
+                                            title="Verifikasi Transaksi">
+                                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                        <span>Verifikasi</span>
+                                    </button>
+                                @endif
+
+                                @if((auth()->user()->isFinance() || auth()->user()->isDirektur()) && $exp->verification_status !== 'VOID')
+                                    <button @click="showVoidModal = true; voidExpenseId = {{ $exp->id }}; voidExpenseDesc = '{{ addslashes($exp->description) }}'" 
+                                            class="p-2 text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-200 transition" 
+                                            title="VOID Transaksi">
+                                        <i data-lucide="ban" class="w-4 h-4"></i>
+                                    </button>
+                                @endif
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @empty
+                <div class="py-10 text-center text-slate-400 text-xs font-body">
+                    <i data-lucide="receipt" class="w-7 h-7 mx-auto text-slate-300 mb-2"></i>
+                    Belum ada pengeluaran tercatat untuk Cash Advance ini.
+                </div>
+            @endforelse
+        </div>
+
+        <!-- Desktop Table View (hidden md:block) -->
+        <div class="hidden md:block table-responsive">
+            <table class="w-full text-left text-sm table-technodrives whitespace-nowrap">
+                <thead>
                     <tr>
-                        <th class="px-4 py-3">Tanggal</th>
-                        <th class="px-4 py-3">Keterangan & Vendor</th>
-                        <th class="px-4 py-3">Kategori</th>
-                        <th class="px-4 py-3 text-right">Nominal</th>
-                        <th class="px-4 py-3 text-center">Struk / Bukti</th>
-                        <th class="px-4 py-3 text-center">Status Verifikasi</th>
-                        <th class="px-4 py-3 text-center">Aksi / Tindakan</th>
+                        <th>Tanggal</th>
+                        <th>Keterangan & Vendor</th>
+                        <th>Kategori</th>
+                        <th class="text-right">Nominal</th>
+                        <th class="text-center">Struk / Bukti</th>
+                        <th class="text-center">Status Verifikasi</th>
+                        @if(!auth()->user()->isAtasan())
+                            <th class="text-center">Aksi / Tindakan</th>
+                        @endif
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
+                <tbody>
                     @forelse($cashAdvance->expenses as $exp)
                         <tr class="hover:bg-slate-50/80 transition {{ $exp->verification_status === 'VOID' ? 'opacity-40 bg-slate-50 line-through' : '' }}">
                             <!-- Tanggal -->
@@ -544,9 +681,12 @@
                                 @else
                                     <div class="flex items-center justify-center space-x-1.5">
                                         @forelse($exp->attachments as $att)
-                                            <a href="{{ $att->url }}" target="_blank" class="w-8 h-8 rounded-[3px] border border-retail-surface overflow-hidden hover:border-retail-orange transition flex items-center justify-center bg-slate-50" title="{{ $att->file_name }}">
+                                            <a href="{{ $att->url }}" target="_blank" class="w-8 h-8 rounded-lg border border-slate-200 overflow-hidden hover:border-retail-orange transition flex items-center justify-center bg-slate-50 flex-shrink-0" title="{{ $att->file_name }}">
                                                 @if(in_array(strtolower($att->file_type), ['jpg', 'jpeg', 'png', 'webp']))
-                                                    <img src="{{ $att->url }}" alt="Struk" class="w-full h-full object-cover">
+                                                    <img src="{{ $att->url }}" alt="Struk" class="w-full h-full object-cover" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden')">
+                                                    <div class="hidden w-full h-full bg-slate-100 flex items-center justify-center text-slate-400">
+                                                        <i data-lucide="image" class="w-3.5 h-3.5"></i>
+                                                    </div>
                                                 @else
                                                     <i data-lucide="file-text" class="w-4 h-4 text-slate-500"></i>
                                                 @endif
@@ -561,11 +701,11 @@
                             <!-- Status Verifikasi -->
                             <td class="px-4 py-3 text-center whitespace-nowrap">
                                 <span class="badge-retail text-[10px] uppercase font-bold
-                                    {{ $exp->verification_status === 'VALID' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : '' }}
-                                    {{ $exp->verification_status === 'PENDING' ? 'bg-sky-50 text-sky-800 border-sky-300' : '' }}
-                                    {{ $exp->verification_status === 'NEEDS_REVISION' ? 'bg-amber-50 text-amber-900 border-amber-300' : '' }}
-                                    {{ $exp->verification_status === 'REJECTED' ? 'bg-rose-50 text-rose-800 border-rose-300' : '' }}
-                                    {{ $exp->verification_status === 'VOID' ? 'bg-slate-100 text-slate-600 border-slate-300 line-through' : '' }}
+                                    {{ $exp->verification_status === 'VALID' ? 'bg-[#16A34A] text-white shadow-sm' : '' }}
+                                    {{ $exp->verification_status === 'PENDING' ? 'bg-[#FFC704] text-[#050A1E]' : '' }}
+                                    {{ $exp->verification_status === 'NEEDS_REVISION' ? 'bg-white border-2 border-[#FF3C00] text-[#FF3C00]' : '' }}
+                                    {{ $exp->verification_status === 'REJECTED' ? 'bg-[#DC2626] text-white shadow-sm' : '' }}
+                                    {{ $exp->verification_status === 'VOID' ? 'bg-[#F4F4F4] text-[#7A7A7A] border border-[#E1E1E1] line-through' : '' }}
                                 ">
                                     {{ $exp->verification_status === 'NEEDS_REVISION' ? 'PERLU REVISI' : $exp->verification_status }}
                                 </span>
@@ -577,34 +717,39 @@
                             </td>
 
                             <!-- Aksi -->
-                            <td class="px-4 py-3 text-center whitespace-nowrap">
-                                <div class="flex items-center justify-center space-x-1.5">
-                                    <!-- Edit for Karyawan before Valid/Void -->
-                                    @if($exp->user_id === auth()->id() && in_array($exp->verification_status, ['PENDING', 'NEEDS_REVISION']))
-                                        <a href="{{ route('expenses.edit', $exp) }}" class="p-1.5 text-retail-ink hover:text-retail-orange transition" title="Edit Transaksi">
-                                            <i data-lucide="pencil" class="w-4 h-4"></i>
-                                        </a>
-                                    @endif
+                            @if(!auth()->user()->isAtasan())
+                                <td class="px-4 py-3 text-center whitespace-nowrap">
+                                    <div class="flex items-center justify-center space-x-1.5">
+                                        <!-- Edit for Karyawan before Valid/Void -->
+                                        @if($exp->user_id === auth()->id() && in_array($exp->verification_status, ['PENDING', 'NEEDS_REVISION']))
+                                            <a href="{{ route('expenses.edit', $exp) }}" class="p-1.5 text-retail-ink hover:text-retail-orange transition" title="Edit Transaksi">
+                                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                                            </a>
+                                        @endif
 
-                                    <!-- Verifikasi Finance / Direktur -->
-                                    @if(auth()->user()->canVerifyAndCloseCA($cashAdvance) && $exp->verification_status !== 'VOID')
-                                        <button @click="showVerifyModal = true; verifyExpenseId = {{ $exp->id }}; verifyExpenseDesc = '{{ addslashes($exp->description) }}'" class="btn-cyan py-1 px-2 text-[10px]">
-                                            Verifikasi
-                                        </button>
-                                    @endif
+                                        <!-- Verifikasi Finance / Direktur -->
+                                        @if(auth()->user()->canVerifyAndCloseCA($cashAdvance) && $exp->verification_status !== 'VOID')
+                                            <button @click="showVerifyModal = true; verifyExpenseId = {{ $exp->id }}; verifyExpenseDesc = '{{ addslashes($exp->description) }}'" 
+                                                    class="btn-cyan py-1.5 px-3 text-xs shadow-sm flex items-center gap-1.5"
+                                                    title="Verifikasi Transaksi">
+                                                <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                                                <span>Verifikasi</span>
+                                            </button>
+                                        @endif
 
-                                    <!-- Void by Finance -->
-                                    @if((auth()->user()->isFinance() || auth()->user()->isDirektur()) && $exp->verification_status !== 'VOID')
-                                        <button @click="showVoidModal = true; voidExpenseId = {{ $exp->id }}; voidExpenseDesc = '{{ addslashes($exp->description) }}'" class="p-1.5 text-rose-600 hover:text-rose-800 transition" title="VOID Transaksi">
-                                            <i data-lucide="ban" class="w-4 h-4"></i>
-                                        </button>
-                                    @endif
-                                </div>
-                            </td>
+                                        <!-- Void by Finance -->
+                                        @if((auth()->user()->isFinance() || auth()->user()->isDirektur()) && $exp->verification_status !== 'VOID')
+                                            <button @click="showVoidModal = true; voidExpenseId = {{ $exp->id }}; voidExpenseDesc = '{{ addslashes($exp->description) }}'" class="p-1.5 text-rose-600 hover:text-rose-800 transition" title="VOID Transaksi">
+                                                <i data-lucide="ban" class="w-4 h-4"></i>
+                                            </button>
+                                        @endif
+                                    </div>
+                                </td>
+                            @endif
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="py-10 text-center text-slate-400 text-xs">
+                            <td colspan="{{ auth()->user()->isAtasan() ? 6 : 7 }}" class="py-10 text-center text-slate-400 text-xs">
                                 <i data-lucide="receipt" class="w-6 h-6 mx-auto text-slate-300 mb-1.5"></i>
                                 Belum ada pengeluaran tercatat untuk Cash Advance ini.
                             </td>
@@ -641,7 +786,7 @@
                 @csrf
                 <div>
                     <label class="block text-xs font-bold text-retail-ink uppercase mb-1">Nominal Disetujui (Rp) <span class="text-rose-500">*</span></label>
-                    <input type="number" name="approved_amount" value="{{ old('approved_amount', (int)$cashAdvance->requested_amount) }}" required min="1000" step="any"
+                    <input type="number" name="approved_amount" value="{{ old('approved_amount', (int)$cashAdvance->requested_amount) }}" required min="1000" step="1"
                         class="w-full input-commerce font-mono font-bold text-slate-900">
                 </div>
                 <div>
@@ -765,7 +910,10 @@
                 @csrf
                 <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
                     <button type="button" @click="showCompleteModal = false" class="btn-secondary py-1.5 px-3 text-xs">Batal</button>
-                    <button type="submit" class="btn-primary text-xs py-1.5 px-3.5">Ya, Selesaikan Proyek</button>
+                    <button type="submit" class="btn-success text-xs py-1.5 px-3.5">
+                        <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                        <span>Ya, Selesaikan Proyek</span>
+                    </button>
                 </div>
             </form>
         </div>
@@ -806,7 +954,7 @@
                 <div>
                     <label class="block text-xs font-bold text-retail-ink uppercase mb-1">Foto / File Bukti Transfer (JPG, PNG, PDF) <span class="text-rose-500">*</span></label>
                     <input type="file" name="settlement_refund_proof" required accept="image/*,application/pdf"
-                        class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-[3px] file:border-0 file:text-xs file:font-bold file:bg-slate-200 file:text-retail-ink hover:file:bg-slate-300">
+                        class="w-full text-xs text-slate-500 file:mr-3 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-200 file:text-retail-ink hover:file:bg-slate-300 cursor-pointer">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-retail-ink uppercase mb-1">Catatan</label>
@@ -910,7 +1058,7 @@
                 @csrf
                 <div>
                     <label class="block text-xs font-bold text-retail-ink uppercase mb-1">Nominal Tambahan (Rp) <span class="text-rose-500">*</span></label>
-                    <input type="number" name="amount" required min="1000" step="any" class="w-full input-commerce font-mono font-bold text-slate-900" placeholder="2000000">
+                    <input type="number" name="amount" required min="1000" step="1" class="w-full input-commerce font-mono font-bold text-slate-900" placeholder="2000000">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-retail-ink uppercase mb-1">Alasan Kebutuhan Dana <span class="text-rose-500">*</span></label>

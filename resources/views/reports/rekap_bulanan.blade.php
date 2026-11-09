@@ -5,6 +5,8 @@
 @section('content')
 <div class="space-y-6">
 
+    @include('reports._report_nav')
+
     <!-- Header & Action -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 no-print">
         <div>
@@ -70,25 +72,25 @@
 
         <!-- Metric Summary -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 font-mono">
-            <div class="bg-slate-50 p-3.5 rounded-[6px] border border-retail-surface">
+            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                 <span class="text-[10px] text-slate-500 uppercase font-bold font-sans block">Total Dana Dicairkan</span>
                 <span class="text-sm sm:text-base font-bold text-slate-900 block mt-1">Rp {{ number_format($totalDana, 0, ',', '.') }}</span>
                 <span class="text-[10px] text-slate-400 block mt-0.5">CA: {{ number_format($totalCAInitial, 0, ',', '.') }}</span>
             </div>
 
-            <div class="bg-slate-50 p-3.5 rounded-[6px] border border-retail-surface">
+            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                 <span class="text-[10px] text-slate-500 uppercase font-bold font-sans block">Biaya Valid (Pajak)</span>
                 <span class="text-sm sm:text-base font-bold text-emerald-700 block mt-1">Rp {{ number_format($totalValidExpense, 0, ',', '.') }}</span>
                 <span class="text-[10px] text-slate-400 block mt-0.5">Struk lengkap & sah</span>
             </div>
 
-            <div class="bg-slate-50 p-3.5 rounded-[6px] border border-retail-surface">
+            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                 <span class="text-[10px] text-slate-500 uppercase font-bold font-sans block">Total Sisa Dana Di-Refund</span>
                 <span class="text-sm sm:text-base font-bold text-purple-700 block mt-1">Rp {{ number_format($totalRefund, 0, ',', '.') }}</span>
                 <span class="text-[10px] text-slate-400 block mt-0.5">Masuk rekening kantor</span>
             </div>
 
-            <div class="bg-slate-50 p-3.5 rounded-[6px] border border-retail-surface">
+            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
                 <span class="text-[10px] text-slate-500 uppercase font-bold font-sans block">Outstanding / Belum Selesai</span>
                 <span class="text-sm sm:text-base font-bold text-amber-800 block mt-1">{{ $cas->whereNotIn('status', ['CLOSED', 'REJECTED'])->count() }} Dokumen</span>
                 <span class="text-[10px] text-slate-400 block mt-0.5 font-sans">Sedang berjalan</span>
@@ -100,8 +102,8 @@
             <h4 class="text-xs font-bold uppercase tracking-wider text-retail-ink mb-2">
                 Rincian Biaya Riil per Kategori (Untuk Pembukuan & Pelaporan SPT Masa)
             </h4>
-            <div class="border border-retail-surface rounded-[6px] overflow-hidden">
-                <table class="w-full text-left text-xs font-mono">
+            <div class="border border-slate-200 rounded-xl overflow-hidden table-responsive">
+                <table class="w-full text-left text-xs font-mono min-w-[650px]">
                     <thead class="bg-slate-50 text-slate-700 font-bold uppercase border-b border-retail-surface font-sans">
                         <tr>
                             <th class="px-3.5 py-2.5">Kategori Beban</th>
@@ -164,8 +166,8 @@
         <!-- Daftar CA Periode Ini -->
         <div>
             <h4 class="text-xs font-bold uppercase tracking-wider text-retail-ink mb-2">Daftar CA Bulan Terpilih</h4>
-            <div class="border border-retail-surface rounded-[6px] overflow-hidden">
-                <table class="w-full text-left text-xs font-mono">
+            <div class="border border-slate-200 rounded-xl overflow-hidden table-responsive">
+                <table class="w-full text-left text-xs font-mono min-w-[700px]">
                     <thead class="bg-slate-50 text-slate-700 font-bold uppercase border-b border-retail-surface font-sans">
                         <tr>
                             <th class="px-3 py-2.5">No. CA</th>

@@ -5,6 +5,8 @@
 @section('content')
 <div class="space-y-6">
 
+    @include('reports._report_nav')
+
     <!-- Header & Action (Design.md) -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 no-print">
         <div>
@@ -61,7 +63,7 @@
             </div>
 
             <!-- Project & Personnel Details -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-[6px] border border-retail-surface text-xs mb-6 font-mono">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs mb-6 font-mono">
                 <div>
                     <span class="text-slate-400 block text-[10px] uppercase font-bold font-sans">Nama Karyawan</span>
                     <span class="font-bold text-slate-900 text-sm font-sans">{{ $selectedCA->user->name }}</span>
@@ -87,31 +89,31 @@
 
             <!-- Summary Table of Balances -->
             <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center mb-6 font-mono">
-                <div class="p-3 bg-slate-50 rounded-[3px] border border-retail-surface">
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
                     <span class="block text-[10px] font-bold uppercase text-slate-500 font-sans">CA Disetujui</span>
                     <span class="block text-sm font-bold text-slate-800 mt-1">
                         Rp {{ number_format($selectedCA->approved_amount ?: $selectedCA->requested_amount, 0, ',', '.') }}
                     </span>
                 </div>
-                <div class="p-3 bg-slate-50 rounded-[3px] border border-retail-surface">
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
                     <span class="block text-[10px] font-bold uppercase text-slate-500 font-sans">Top-Up (+)</span>
                     <span class="block text-sm font-bold text-emerald-700 mt-1">
                         +Rp {{ number_format($selectedCA->disbursed_topups_total, 0, ',', '.') }}
                     </span>
                 </div>
-                <div class="p-3 bg-slate-50 rounded-[3px] border border-retail-surface">
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
                     <span class="block text-[10px] font-bold uppercase text-slate-500 font-sans">Pengeluaran (-)</span>
                     <span class="block text-sm font-bold text-rose-700 mt-1">
                         -Rp {{ number_format($selectedCA->recorded_expenses_total, 0, ',', '.') }}
                     </span>
                 </div>
-                <div class="p-3 bg-slate-50 rounded-[3px] border border-retail-surface">
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
                     <span class="block text-[10px] font-bold uppercase text-slate-500 font-sans">Sisa Saldo Kas</span>
                     <span class="block text-sm font-extrabold text-retail-ink mt-1">
                         Rp {{ number_format($selectedCA->current_balance, 0, ',', '.') }}
                     </span>
                 </div>
-                <div class="p-3 bg-amber-50 rounded-[3px] border border-amber-300 col-span-2 sm:col-span-1">
+                <div class="p-3 bg-amber-50 rounded-xl border border-amber-300 col-span-2 sm:col-span-1">
                     <span class="block text-[10px] font-bold uppercase text-amber-900 font-sans">Hasil Settlement</span>
                     <span class="block text-sm font-black text-amber-900 mt-1">
                         Rp {{ number_format($selectedCA->settlement_result, 0, ',', '.') }}
@@ -120,8 +122,8 @@
             </div>
 
             <!-- Detailed Expenses Table -->
-            <div class="border border-retail-surface rounded-[6px] overflow-hidden mb-6">
-                <table class="w-full text-left text-xs">
+            <div class="border border-slate-200 rounded-xl overflow-hidden mb-6 table-responsive">
+                <table class="w-full text-left text-xs min-w-[700px]">
                     <thead class="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider border-b border-retail-surface">
                         <tr>
                             <th class="px-3 py-2.5">No</th>
@@ -155,11 +157,11 @@
                                 </td>
                                 <td class="px-3 py-2 text-center whitespace-nowrap">
                                     <span class="badge-retail text-[9px] uppercase font-bold
-                                        {{ $exp->verification_status === 'VALID' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : '' }}
-                                        {{ $exp->verification_status === 'PENDING' ? 'bg-sky-50 text-sky-800 border-sky-300' : '' }}
-                                        {{ $exp->verification_status === 'NEEDS_REVISION' ? 'bg-amber-50 text-amber-900 border-amber-300' : '' }}
-                                        {{ $exp->verification_status === 'REJECTED' ? 'bg-rose-50 text-rose-800 border-rose-300' : '' }}
-                                        {{ $exp->verification_status === 'VOID' ? 'bg-slate-100 text-slate-700 border-slate-300' : '' }}
+                                        {{ $exp->verification_status === 'VALID' ? 'bg-[#16A34A] text-white shadow-sm' : '' }}
+                                        {{ $exp->verification_status === 'PENDING' ? 'bg-[#FFC704] text-[#050A1E]' : '' }}
+                                        {{ $exp->verification_status === 'NEEDS_REVISION' ? 'bg-white border-2 border-[#FF3C00] text-[#FF3C00]' : '' }}
+                                        {{ $exp->verification_status === 'REJECTED' ? 'bg-[#DC2626] text-white shadow-sm' : '' }}
+                                        {{ $exp->verification_status === 'VOID' ? 'bg-[#F4F4F4] text-[#7A7A7A] border border-[#E1E1E1] line-through' : '' }}
                                     ">
                                         {{ $exp->verification_status }}
                                     </span>

@@ -6,42 +6,49 @@
 <div class="max-w-2xl mx-auto py-8">
     <div class="card-commerce text-center p-7 sm:p-9">
         <!-- Lock Icon -->
-        <div class="w-16 h-16 mx-auto rounded-[6px] bg-amber-50 border border-amber-300 flex items-center justify-center text-retail-orange mb-5">
+        <div class="w-16 h-16 mx-auto rounded-full bg-orange-50 border border-[#FF3C00]/30 flex items-center justify-center text-[#FF3C00] mb-5 shadow-sm">
             <i data-lucide="lock" class="w-8 h-8"></i>
         </div>
 
-        <h1 class="text-xl sm:text-2xl font-bold text-retail-ink tracking-tight">Pengajuan Baru Digembok Sistem</h1>
-        <p class="text-slate-600 text-xs sm:text-sm mt-2 max-w-lg mx-auto leading-relaxed">
+        <h1 class="text-xl sm:text-2xl font-head font-bold text-[#050A1E] tracking-tight">Pengajuan Baru Digembok Sistem</h1>
+        <p class="text-bodygrey text-xs sm:text-sm mt-2 max-w-lg mx-auto leading-relaxed">
             Sesuai <strong>Prinsip Tata Kelola PT Technodrives</strong>: setiap karyawan tidak dapat membuat pengajuan Cash Advance baru sebelum CA sebelumnya tuntas dan berstatus <strong>CLOSED</strong>.
         </p>
 
         @if($lockingCA)
-            <div class="mt-6 p-4 sm:p-5 bg-slate-50 border border-retail-surface rounded-[6px] text-left space-y-3">
-                <div class="flex items-center justify-between border-b border-retail-surface pb-2">
-                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Cash Advance Yang Mengunci:</span>
-                    <span class="badge-retail
-                        {{ $lockingCA->status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : '' }}
-                        {{ $lockingCA->status === 'PENDING_APPROVAL' ? 'bg-sky-50 text-sky-800 border-sky-300' : '' }}
-                        {{ $lockingCA->status === 'NEED_SETTLEMENT' ? 'bg-amber-50 text-amber-900 border-amber-300' : '' }}
-                        {{ $lockingCA->status === 'PENDING_VERIFICATION' ? 'bg-purple-50 text-purple-800 border-purple-300' : '' }}
+            <div class="mt-6 p-4 sm:p-5 bg-[#F4F4F4] border border-cardborder rounded-[15px] text-left space-y-3">
+                <div class="flex items-center justify-between border-b border-cardborder pb-2.5 gap-2">
+                    <span class="text-[11px] font-head font-bold text-bodygrey uppercase tracking-wider">CA Pengunci:</span>
+                    <span class="badge-retail text-[11px]
+                        {{ $lockingCA->status === 'ACTIVE' ? 'badge-active' : '' }}
+                        {{ $lockingCA->status === 'PENDING_APPROVAL' ? 'badge-pending-approval' : '' }}
+                        {{ $lockingCA->status === 'NEED_SETTLEMENT' ? 'badge-need-settlement' : '' }}
+                        {{ $lockingCA->status === 'PENDING_VERIFICATION' ? 'badge-pending-verification' : '' }}
+                        {{ $lockingCA->status === 'CLOSED' ? 'badge-closed' : '' }}
+                        {{ $lockingCA->status === 'REJECTED' ? 'badge-rejected' : '' }}
                     ">
-                        Status: {{ $lockingCA->status }}
+                        @if($lockingCA->status === 'ACTIVE') Aktif (Berjalan) @endif
+                        @if($lockingCA->status === 'PENDING_APPROVAL') Menunggu Approval @endif
+                        @if($lockingCA->status === 'NEED_SETTLEMENT') Wajib Settlement @endif
+                        @if($lockingCA->status === 'PENDING_VERIFICATION') Verifikasi Akhir @endif
+                        @if($lockingCA->status === 'CLOSED') Closed / Selesai @endif
+                        @if($lockingCA->status === 'REJECTED') Ditolak @endif
                     </span>
                 </div>
 
                 <div>
-                    <h3 class="text-sm font-bold text-retail-ink font-mono">{{ $lockingCA->ca_number }} &bull; <span class="font-sans font-bold text-slate-800">{{ $lockingCA->project_name }}</span></h3>
-                    <p class="text-xs text-slate-600 mt-1 leading-relaxed">{{ $lockingCA->purpose }}</p>
+                    <h3 class="text-sm font-head font-bold text-[#050A1E]">{{ $lockingCA->ca_number }} &bull; <span class="font-sans font-bold text-slate-800">{{ $lockingCA->project_name }}</span></h3>
+                    <p class="text-xs text-bodygrey mt-1 leading-relaxed">{{ $lockingCA->purpose }}</p>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3 text-xs pt-2.5 border-t border-retail-surface">
+                <div class="grid grid-cols-2 gap-3 text-xs pt-2.5 border-t border-cardborder">
                     <div>
-                        <span class="text-slate-400 block text-[10px] font-bold uppercase">Sisa Saldo Kas:</span>
-                        <span class="font-mono font-bold text-retail-ink text-sm">Rp {{ number_format($lockingCA->current_balance, 0, ',', '.') }}</span>
+                        <span class="text-bodygrey block text-[10px] font-head font-bold uppercase">Sisa Saldo Kas:</span>
+                        <span class="font-head font-bold text-[#050A1E] text-sm">Rp {{ number_format($lockingCA->current_balance, 0, ',', '.') }}</span>
                     </div>
                     <div>
-                        <span class="text-slate-400 block text-[10px] font-bold uppercase">Masa Berlaku / Sisa:</span>
-                        <span class="font-mono font-bold {{ $lockingCA->is_overdue ? 'text-rose-600' : 'text-slate-800' }} text-sm">
+                        <span class="text-bodygrey block text-[10px] font-head font-bold uppercase">Masa Berlaku / Sisa:</span>
+                        <span class="font-head font-bold {{ $lockingCA->is_overdue ? 'text-[#FF3C00]' : 'text-[#050A1E]' }} text-sm">
                             {{ $lockingCA->is_overdue ? 'OVERDUE' : ($lockingCA->days_remaining . ' Hari Tersisa') }}
                         </span>
                     </div>

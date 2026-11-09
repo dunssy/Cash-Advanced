@@ -95,4 +95,19 @@ class Expense extends Model
             default => ucfirst($this->category),
         };
     }
+
+    public function getLostReceiptStatementUrlAttribute(): ?string
+    {
+        if (!$this->lost_receipt_statement_file) {
+            return null;
+        }
+        $path = ltrim($this->lost_receipt_statement_file, '/');
+        if (str_starts_with($path, 'public/')) {
+            $path = substr($path, 7);
+        }
+        if (str_starts_with($path, 'storage/')) {
+            $path = substr($path, 8);
+        }
+        return asset('storage/' . $path);
+    }
 }

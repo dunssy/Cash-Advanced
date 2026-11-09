@@ -5,6 +5,8 @@
 @section('content')
 <div class="space-y-6">
 
+    @include('reports._report_nav')
+
     <!-- Header & Action -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 no-print">
         <div>
@@ -40,8 +42,8 @@
         </div>
 
         <!-- Table -->
-        <div class="border border-retail-surface rounded-[6px] overflow-hidden">
-            <table class="w-full text-left text-xs font-mono">
+        <div class="border border-slate-200 rounded-xl overflow-hidden table-responsive">
+            <table class="w-full text-left text-xs font-mono min-w-[700px]">
                 <thead class="bg-slate-50 text-slate-700 font-bold uppercase border-b border-retail-surface font-sans">
                     <tr>
                         <th class="px-3.5 py-2.5">Nama Karyawan</th>
@@ -110,7 +112,7 @@
             </table>
         </div>
 
-        <div class="mt-6 p-4 bg-slate-50 rounded-[6px] border border-retail-surface text-xs text-slate-600 space-y-1">
+        <div class="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 space-y-1">
             <span class="font-bold text-retail-ink block text-[11px] uppercase tracking-wide">Keterangan Indikator Kepatuhan:</span>
             <ul class="list-disc list-inside text-[11px] text-slate-500 space-y-0.5">
                 <li><strong>Telat Catat Struk:</strong> Transaksi dicatat lebih dari 1 hari kalender sejak transaksi terjadi (label TERLAMBAT).</li>
