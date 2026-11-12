@@ -1,0 +1,204 @@
+/* =========================================================================
+   PT TECHNODRIVES - CASH ADVANCE & SETTLEMENT SYSTEM
+   LOAD LOADER & PRELOADER STYLESHEET (TERPISAH DARI BLADE)
+   ========================================================================= */
+
+/* Loader Fullscreen Overlay */
+.app-loader-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(5, 10, 30, 0.96);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.app-loader-overlay.loader-hidden {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+/* Card Box Container */
+.app-loader-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+    max-width: 24rem;
+    width: 100%;
+    margin-left: 1rem;
+    margin-right: 1rem;
+    animation: loader-scale-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes loader-scale-in {
+    0% { transform: scale(0.92); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Logo Box & Glowing Pulsing Halo */
+.app-loader-logo-wrap {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.app-loader-halo {
+    position: absolute;
+    inset: -0.75rem;
+    border-radius: 1rem;
+    background-color: #FF3C00;
+    opacity: 0.35;
+    filter: blur(20px);
+    animation: loader-pulse-ring 2.2s infinite ease-in-out;
+}
+
+.app-loader-logo-box {
+    position: relative;
+    background-color: #FFFFFF;
+    padding: 0.875rem 1.25rem;
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.app-loader-logo-img {
+    height: 2.5rem;
+    width: auto;
+    object-fit: contain;
+}
+
+/* Modern Dual Ring Spinner (Brand Orange & Yellow Accent) */
+.app-loader-spinner-wrap {
+    position: relative;
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 1.25rem;
+}
+
+.app-loader-spinner-outer {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 9999px;
+    border: 3px solid rgba(255, 255, 255, 0.12);
+    border-top-color: #FF3C00;
+    border-right-color: #FF3C00;
+    animation: loader-spin 0.9s linear infinite;
+}
+
+.app-loader-spinner-inner {
+    position: absolute;
+    top: 0.375rem;
+    left: 0.375rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 9999px;
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    border-bottom-color: #FFC704;
+    border-left-color: #FFC704;
+    animation: loader-spin-reverse 0.75s linear infinite;
+}
+
+@keyframes loader-spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes loader-spin-reverse {
+    to { transform: rotate(-360deg); }
+}
+
+/* Badge (Success Login / Role Status) */
+.app-loader-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    background-color: #161A2B;
+    border: 1px solid rgba(255, 60, 0, 0.35);
+    color: #FF3C00;
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: 'Poppins', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.625rem;
+}
+
+/* Titles and Subtext */
+.app-loader-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 1.125rem;
+    color: #FFFFFF;
+    letter-spacing: 0.025em;
+    margin: 0 0 0.35rem 0;
+}
+
+.app-loader-subtext {
+    font-family: 'Fira Sans', system-ui, sans-serif;
+    font-size: 0.8125rem;
+    color: #CBD5E1;
+    margin: 0 0 1.25rem 0;
+    line-height: 1.5;
+}
+
+.app-loader-role-highlight {
+    color: #FFC704;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Indeterminate Progress Bar */
+.app-loader-progress-track {
+    width: 13rem;
+    height: 0.375rem;
+    background-color: rgba(255, 255, 255, 0.12);
+    border-radius: 9999px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.app-loader-progress-bar {
+    height: 100%;
+    width: 50%;
+    background: linear-gradient(90deg, #FF3C00 0%, #FFC704 50%, #FF3C00 100%);
+    border-radius: 9999px;
+    animation: loader-slide 1.35s infinite cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* Footer Tagline */
+.app-loader-tagline {
+    font-size: 0.625rem;
+    font-family: 'Fira Sans', monospace;
+    color: #64748B;
+    margin-top: 1rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+/* Keyframe Animations */
+@keyframes loader-slide {
+    0% { transform: translateX(-100%); }
+    50% { transform: translateX(30%); }
+    100% { transform: translateX(200%); }
+}
+
+@keyframes loader-pulse-ring {
+    0% { transform: scale(0.95); opacity: 0.7; }
+    50% { transform: scale(1.1); opacity: 0.35; }
+    100% { transform: scale(0.95); opacity: 0.7; }
+}

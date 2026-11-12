@@ -45,7 +45,8 @@ class AuthController extends Controller
             AuditLog::record('LOGIN', $user, "User {$user->name} ({$user->role}) berhasil login.");
 
             return redirect()->intended(route('dashboard'))
-                ->with('success', "Selamat datang kembali, {$user->name}!");
+                ->with('success', "Selamat datang kembali, {$user->name}!")
+                ->with('login_loader', true);
         }
 
         return back()->withErrors([
@@ -66,7 +67,8 @@ class AuthController extends Controller
         AuditLog::record('QUICK_LOGIN', $user, "Quick switch login sebagai {$user->name} ({$user->role}).");
 
         return redirect()->route('dashboard')
-            ->with('success', "Berhasil masuk sebagai {$user->name} ({$user->role}).");
+            ->with('success', "Berhasil masuk sebagai {$user->name} ({$user->role}).")
+            ->with('login_loader', true);
     }
 
     public function logout(Request $request)

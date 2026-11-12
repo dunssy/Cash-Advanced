@@ -1,0 +1,58 @@
+/* =========================================================================
+   PT TECHNODRIVES - CASH ADVANCE SYSTEM
+   LOGIN PAGE STYLESHEET
+   ========================================================================= */
+
+body {
+    font-family: 'Fira Sans', system-ui, sans-serif;
+    background: linear-gradient(135deg, #050A1E 0%, #161A2B 65%, rgba(255, 60, 0, 0.22) 100%);
+    min-height: 100vh;
+}
+
+.font-heading {
+    font-family: 'Poppins', sans-serif;
+}
+
+.btn-brand {
+    background-color: #FF3B00;
+    color: #FFFFFF;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border-radius: 30px;
+    padding: 13px 24px;
+    border: 1px solid transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 14px rgba(255, 60, 0, 0.25);
+}
+
+.btn-brand:hover {
+    background-color: #050A1E;
+    color: #FFFFFF;
+    border-color: rgba(255, 60, 0, 0.4);
+    box-shadow: 0 6px 18px rgba(5, 10, 30, 0.35);
+    transform: translateY(-1px);
+}
+
+.input-brand {
+    height: 50px;
+    border-radius: 15px;
+    border: 1px solid rgba(122, 122, 122, 0.35);
+    padding: 0 16px 0 44px;
+    font-size: 14px;
+    background-color: #FFFFFF;
+    color: #050A1E;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-brand:focus {
+    border-color: #FF3D00;
+    box-shadow: 0 0 0 3px rgba(255, 61, 0, 0.18);
+}
