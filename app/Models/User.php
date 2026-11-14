@@ -17,6 +17,7 @@ class User extends Authenticatable
         'role',
         'manager_id',
         'department',
+        'avatar',
         'phone',
         'bank_name',
         'bank_account_number',
@@ -61,6 +62,35 @@ class User extends Authenticatable
     public function unreadNotifications()
     {
         return $this->hasMany(SystemNotification::class)->where('is_read', false)->orderByDesc('created_at');
+    }
+
+    /**
+     * Mendapatkan URL gambar avatar/foto profil pengguna.
+     * Mengembalikan URL file lokal atau URL eksternal (Unsplash), atau null jika belum diatur.
+     */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (empty($this->avatar)) {
+            return null;
+        }
+
+        if (str_starts_with($this->avatar, 'http://') || str_starts_with($this->avatar, 'https://')) {
+            return $this->avatar;
+        }
+
+        return asset('storage/' . ltrim($this->avatar, '/'));
+    }
+
+    /**
+     * Mendapatkan 2 huruf inisial nama pengguna sebagai avatar fallback.
+     */
+    public function getInitialsAttribute(): string
+    {
+        $words = explode(' ', trim($this->name));
+        if (count($words) >= 2) {
+            return strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
+        }
+        return strtoupper(substr($this->name, 0, 2));
     }
 
     // Role check helpers

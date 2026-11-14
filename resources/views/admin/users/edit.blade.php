@@ -14,9 +14,35 @@
     </div>
 
     <div class="card-commerce p-6 sm:p-7">
-        <form action="{{ route('admin.users.update', $user) }}" method="POST" class="space-y-4">
+        <form action="{{ route('admin.users.update', $user) }}" method="POST" enctype="multipart/form-data" class="space-y-4" x-data="{ avatarPreview: '{{ $user->avatar_url }}' }">
             @csrf
             @method('PUT')
+
+            <!-- Avatar Field -->
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/80 flex flex-col sm:flex-row items-center sm:items-start gap-4">
+                <div class="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-slate-300 bg-[#161A2B] shadow-sm flex-shrink-0">
+                    <template x-if="avatarPreview">
+                        <img :src="avatarPreview" alt="{{ $user->name }}" class="w-full h-full object-cover">
+                    </template>
+                    <template x-if="!avatarPreview">
+                        <div class="w-full h-full bg-[#FF3C00] text-white flex items-center justify-center font-head font-bold text-xl uppercase">
+                            {{ $user->initials }}
+                        </div>
+                    </template>
+                </div>
+                <div class="flex-1 space-y-2 w-full">
+                    <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider">Foto Profil (Avatar)</label>
+                    <input type="file" name="avatar" accept="image/*"
+                        @change="const file = $event.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => avatarPreview = e.target.result; reader.readAsDataURL(file); }"
+                        class="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#161A2B] file:text-white hover:file:bg-[#FF3C00] file:cursor-pointer border border-slate-200 rounded-lg p-1 bg-white">
+                    @if($user->avatar)
+                        <label class="inline-flex items-center space-x-2 text-xs text-rose-600 font-semibold cursor-pointer">
+                            <input type="checkbox" name="remove_avatar" value="1" @change="if ($event.target.checked) avatarPreview = null" class="rounded text-rose-600">
+                            <span>Hapus foto profil saat ini</span>
+                        </label>
+                    @endif
+                </div>
+            </div>
 
             <div>
                 <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1">Nama Lengkap <span class="text-rose-500">*</span></label>

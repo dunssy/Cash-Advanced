@@ -56,12 +56,19 @@
             </div>
 
             <!-- Current User Profile in Sidebar (Expanded & Collapsed) -->
-            <div class="p-3 mx-3 my-2.5 bg-[#161A2B] rounded-xl border border-white/5 flex items-center space-x-3" x-show="!sidebarCollapsed" x-transition>
-                <div class="w-9 h-9 rounded-full bg-[#FF3C00] text-white flex items-center justify-center font-head font-bold text-xs uppercase shadow-sm flex-shrink-0">
-                    {{ substr(auth()->user()->name, 0, 2) }}
-                </div>
+            <a href="{{ route('profile.edit') }}" class="p-3 mx-3 my-2.5 bg-[#161A2B] hover:bg-[#1f243b] rounded-xl border border-white/5 flex items-center space-x-3 transition group cursor-pointer" x-show="!sidebarCollapsed" x-transition title="Klik untuk edit profil & biodata">
+                @if(auth()->user()->avatar_url)
+                    <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" class="w-9 h-9 rounded-full object-cover shadow-sm flex-shrink-0 border border-white/20">
+                @else
+                    <div class="w-9 h-9 rounded-full bg-[#FF3C00] text-white flex items-center justify-center font-head font-bold text-xs uppercase shadow-sm flex-shrink-0">
+                        {{ auth()->user()->initials }}
+                    </div>
+                @endif
                 <div class="min-w-0 flex-1">
-                    <div class="font-head font-bold text-xs text-white truncate">{{ auth()->user()->name }}</div>
+                    <div class="font-head font-bold text-xs text-white truncate group-hover:text-[#FF3C00] transition flex items-center justify-between">
+                        <span class="truncate">{{ auth()->user()->name }}</span>
+                        <i data-lucide="user-cog" class="w-3.5 h-3.5 text-slate-400 group-hover:text-[#FF3C00] flex-shrink-0 ml-1"></i>
+                    </div>
                     <div class="flex items-center space-x-1 mt-0.5">
                         <span class="text-[9px] font-head uppercase font-bold px-2 py-0.5 rounded-full
                             {{ auth()->user()->role === 'direktur' ? 'bg-[#FFC704] text-[#050A1E]' : '' }}
@@ -73,13 +80,19 @@
                         <span class="text-[9px] text-slate-400 truncate">{{ auth()->user()->department ?: 'Staff' }}</span>
                     </div>
                 </div>
-            </div>
+            </a>
 
             <!-- Collapsed User Avatar -->
             <div class="py-2.5 flex justify-center" x-show="sidebarCollapsed" x-transition>
-                <div class="w-9 h-9 rounded-full bg-[#FF3C00] text-white flex items-center justify-center font-head font-bold text-xs uppercase shadow-sm" title="{{ auth()->user()->name }} ({{ auth()->user()->role }})">
-                    {{ substr(auth()->user()->name, 0, 2) }}
-                </div>
+                <a href="{{ route('profile.edit') }}" title="Pengaturan Profil: {{ auth()->user()->name }} ({{ auth()->user()->role }})" class="cursor-pointer">
+                    @if(auth()->user()->avatar_url)
+                        <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" class="w-9 h-9 rounded-full object-cover shadow-sm border border-white/20 hover:scale-105 transition">
+                    @else
+                        <div class="w-9 h-9 rounded-full bg-[#FF3C00] text-white flex items-center justify-center font-head font-bold text-xs uppercase shadow-sm hover:scale-105 transition">
+                            {{ auth()->user()->initials }}
+                        </div>
+                    @endif
+                </a>
             </div>
 
             <!-- Scrollable Navigation Items -->
@@ -420,10 +433,14 @@
 
                     <!-- User Profile & Role Pill -->
                     <div class="relative" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
-                        <button @click="open = !open" type="button" class="flex items-center space-x-2 p-1.5 rounded-xl hover:bg-white/10 transition focus:outline-none border border-transparent hover:border-slate-700">
-                            <div class="w-8 h-8 rounded-full bg-[#FF3C00] text-white flex items-center justify-center font-head font-bold text-xs uppercase shadow-sm">
-                                {{ substr(auth()->user()->name, 0, 2) }}
-                            </div>
+                        <button @click="open = !open" type="button" class="flex items-center space-x-2 p-1.5 rounded-xl hover:bg-white/10 transition focus:outline-none border border-transparent hover:border-slate-700 cursor-pointer">
+                            @if(auth()->user()->avatar_url)
+                                <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" class="w-8 h-8 rounded-full object-cover shadow-sm border border-white/20 flex-shrink-0">
+                            @else
+                                <div class="w-8 h-8 rounded-full bg-[#FF3C00] text-white flex items-center justify-center font-head font-bold text-xs uppercase shadow-sm flex-shrink-0">
+                                    {{ auth()->user()->initials }}
+                                </div>
+                            @endif
                             <div class="hidden sm:block text-left text-xs leading-tight">
                                 <span class="font-bold text-white block truncate max-w-[120px] font-head">{{ auth()->user()->name }}</span>
                                 <span class="text-[10px] font-head uppercase font-bold tracking-wider px-2 py-0.5 rounded-full inline-block
@@ -448,17 +465,42 @@
                             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                             x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
                             class="absolute right-0 mt-2 w-72 sm:w-80 rounded-[15px] shadow-2xl bg-white text-[#050A1E] border border-cardborder border-t-[3px] border-t-[#FF3C00] py-2 z-50">
-                            <div class="px-4 py-2.5 border-b border-slate-100 bg-[#F4F4F4]">
-                                <p class="text-xs font-bold text-[#050A1E] font-head">{{ auth()->user()->name }}</p>
-                                <p class="text-[11px] font-mono text-[#7A7A7A] truncate">{{ auth()->user()->email }}</p>
-                                <p class="text-[10px] text-bodygrey mt-0.5">Departemen: {{ auth()->user()->department ?: '-' }}</p>
+                            
+                            <!-- User Info Header -->
+                            <div class="px-4 py-3 border-b border-slate-100 bg-[#F4F4F4] flex items-center space-x-3">
+                                @if(auth()->user()->avatar_url)
+                                    <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" class="w-10 h-10 rounded-full object-cover border border-cardborder shadow-sm flex-shrink-0">
+                                @else
+                                    <div class="w-10 h-10 rounded-full bg-[#FF3C00] text-white flex items-center justify-center font-head font-bold text-sm uppercase shadow-sm flex-shrink-0">
+                                        {{ auth()->user()->initials }}
+                                    </div>
+                                @endif
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-xs font-bold text-[#050A1E] font-head truncate">{{ auth()->user()->name }}</p>
+                                    <p class="text-[11px] font-mono text-[#7A7A7A] truncate">{{ auth()->user()->email }}</p>
+                                    <span class="text-[9px] font-head uppercase font-bold tracking-wider px-2 py-0.5 rounded-full inline-block mt-0.5
+                                        {{ auth()->user()->role === 'direktur' ? 'bg-[#FFC704] text-[#050A1E]' : '' }}
+                                        {{ auth()->user()->role === 'finance' ? 'bg-[#161A2B] text-white' : '' }}
+                                        {{ auth()->user()->role === 'atasan' ? 'bg-[#050A1E] text-white' : '' }}
+                                        {{ auth()->user()->role === 'karyawan' ? 'bg-[#F4F4F4] text-[#050A1E] border border-cardborder' : '' }}
+                                        {{ auth()->user()->role === 'super_admin' ? 'bg-[#FF3C00] text-white' : '' }}
+                                    ">{{ auth()->user()->role }}</span>
+                                </div>
+                            </div>
+
+                            <!-- User Profile Setting Link (Edit Biodata & Foto) -->
+                            <div class="px-2 py-1.5 border-b border-slate-100">
+                                <a href="{{ route('profile.edit') }}" class="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs font-bold font-head text-[#050A1E] hover:bg-[#FF3C00] hover:text-white transition group">
+                                    <i data-lucide="user-cog" class="w-4 h-4 text-[#FF3C00] group-hover:text-white transition"></i>
+                                    <span>Pengaturan Profil (Biodata & Foto)</span>
+                                </a>
                             </div>
 
                             <!-- Role Switcher Quick Actions for Demo (1-Click Buttons) -->
                             <div class="px-3 py-2.5 bg-[#F4F4F4]/50 border-b border-slate-100">
                                 <div class="flex items-center justify-between mb-2">
                                     <span class="text-[10px] font-bold text-[#050A1E] uppercase tracking-wider flex items-center space-x-1 font-head">
-                                        <i data-lucide="user-cog" class="w-3 h-3 text-[#FF3C00]"></i>
+                                        <i data-lucide="users" class="w-3 h-3 text-[#FF3C00]"></i>
                                         <span>Ganti Akun Cepat (Demo):</span>
                                     </span>
                                     <span class="text-[9px] font-head text-[#FF3C00] font-bold bg-white px-2 py-0.5 rounded-full border border-[#FF3C00]/30">1-Klik</span>
@@ -471,15 +513,19 @@
                                                 <input type="hidden" name="user_id" value="{{ $u->id }}">
                                                 <button type="submit" class="w-full text-left p-2 rounded-xl border border-cardborder bg-white hover:border-[#FF3C00] hover:bg-[#F4F4F4] transition flex items-center justify-between group cursor-pointer">
                                                     <div class="flex items-center space-x-2 min-w-0">
-                                                        <span class="w-6 h-6 rounded-lg text-[10px] font-head font-bold flex items-center justify-center flex-shrink-0
-                                                            {{ $u->role === 'direktur' ? 'bg-[#050A1E] text-[#FFC704]' : '' }}
-                                                            {{ $u->role === 'finance' ? 'bg-[#161A2B] text-white' : '' }}
-                                                            {{ $u->role === 'atasan' ? 'bg-[#050A1E] text-white' : '' }}
-                                                            {{ $u->role === 'karyawan' ? 'bg-[#F4F4F4] text-[#050A1E] border border-cardborder' : '' }}
-                                                            {{ $u->role === 'super_admin' ? 'bg-[#FF3C00] text-white' : '' }}
-                                                        ">
-                                                            {{ strtoupper(substr($u->name, 0, 1)) }}
-                                                        </span>
+                                                        @if($u->avatar_url)
+                                                            <img src="{{ $u->avatar_url }}" alt="{{ $u->name }}" class="w-6 h-6 rounded-lg object-cover flex-shrink-0 border border-slate-200">
+                                                        @else
+                                                            <span class="w-6 h-6 rounded-lg text-[10px] font-head font-bold flex items-center justify-center flex-shrink-0
+                                                                {{ $u->role === 'direktur' ? 'bg-[#050A1E] text-[#FFC704]' : '' }}
+                                                                {{ $u->role === 'finance' ? 'bg-[#161A2B] text-white' : '' }}
+                                                                {{ $u->role === 'atasan' ? 'bg-[#050A1E] text-white' : '' }}
+                                                                {{ $u->role === 'karyawan' ? 'bg-[#F4F4F4] text-[#050A1E] border border-cardborder' : '' }}
+                                                                {{ $u->role === 'super_admin' ? 'bg-[#FF3C00] text-white' : '' }}
+                                                            ">
+                                                                {{ strtoupper(substr($u->name, 0, 1)) }}
+                                                            </span>
+                                                        @endif
                                                         <div class="min-w-0">
                                                             <p class="text-xs font-bold text-[#050A1E] truncate group-hover:text-[#FF3C00] transition leading-tight font-head">{{ $u->name }}</p>
                                                             <span class="text-[10px] text-bodygrey block truncate font-body">{{ $u->department ?: $u->email }}</span>
@@ -557,12 +603,19 @@
                     </div>
 
                     <!-- Current User Profile in Drawer -->
-                    <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-full bg-[#FF3C00] text-white flex items-center justify-center font-head font-bold text-xs uppercase shadow-sm flex-shrink-0">
-                            {{ substr(auth()->user()->name, 0, 2) }}
-                        </div>
+                    <a href="{{ route('profile.edit') }}" @click="mobileNavOpen = false" class="p-4 bg-slate-50 hover:bg-slate-100 border-b border-slate-200 flex items-center space-x-3 transition group cursor-pointer" title="Edit Profil & Biodata">
+                        @if(auth()->user()->avatar_url)
+                            <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" class="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-sm flex-shrink-0">
+                        @else
+                            <div class="w-10 h-10 rounded-full bg-[#FF3C00] text-white flex items-center justify-center font-head font-bold text-xs uppercase shadow-sm flex-shrink-0">
+                                {{ auth()->user()->initials }}
+                            </div>
+                        @endif
                         <div class="min-w-0 flex-1">
-                            <div class="font-head font-bold text-sm text-[#050A1E] truncate">{{ auth()->user()->name }}</div>
+                            <div class="font-head font-bold text-sm text-[#050A1E] group-hover:text-[#FF3C00] transition flex items-center justify-between">
+                                <span class="truncate">{{ auth()->user()->name }}</span>
+                                <i data-lucide="user-cog" class="w-3.5 h-3.5 text-slate-400 group-hover:text-[#FF3C00] flex-shrink-0 ml-1"></i>
+                            </div>
                             <div class="flex items-center space-x-1.5 mt-0.5">
                                 <span class="badge-retail text-[10px] uppercase font-bold
                                     {{ auth()->user()->role === 'direktur' ? 'bg-[#FFC704] text-[#050A1E]' : '' }}
@@ -576,7 +629,7 @@
                                 <span class="text-[10px] text-[#7A7A7A] truncate font-body">{{ auth()->user()->department ?: 'Staff' }}</span>
                             </div>
                         </div>
-                    </div>
+                    </a>
 
                     <!-- Drawer Navigation Links -->
                     <nav class="p-3 space-y-1 text-sm font-semibold font-body">
@@ -784,26 +837,30 @@
                 </a>
             </div>
         @elseif(auth()->user()->isAtasan())
-            <!-- Role Atasan (3-Tab Bar: Beranda, CA Tim, Laporan) -->
-            <div class="flex items-center justify-around max-w-sm mx-auto">
-                <a href="{{ route('dashboard') }}" class="flex flex-col items-center py-1 px-4 rounded-xl transition {{ request()->routeIs('dashboard') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
+            <!-- Role Atasan (4-Tab Bar: Beranda, CA Tim, Laporan, Profil) -->
+            <div class="grid grid-cols-4 items-center max-w-sm mx-auto text-center">
+                <a href="{{ route('dashboard') }}" class="flex flex-col items-center py-1 px-1 rounded-xl transition {{ request()->routeIs('dashboard') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
                     <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                     <span class="text-[10px] mt-0.5 font-head font-medium">Beranda</span>
                 </a>
-                <a href="{{ route('cash-advances.index') }}" class="flex flex-col items-center py-1 px-4 rounded-xl transition {{ request()->routeIs('cash-advances.*') && !request()->routeIs('cash-advances.create') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
+                <a href="{{ route('cash-advances.index') }}" class="flex flex-col items-center py-1 px-1 rounded-xl transition {{ request()->routeIs('cash-advances.*') && !request()->routeIs('cash-advances.create') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
                     <i data-lucide="receipt" class="w-5 h-5"></i>
                     <span class="text-[10px] mt-0.5 font-head font-medium">CA Tim</span>
                 </a>
-                <a href="{{ route('reports.rincian-ca') }}" class="flex flex-col items-center py-1 px-4 rounded-xl transition {{ request()->routeIs('reports.*') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
+                <a href="{{ route('reports.rincian-ca') }}" class="flex flex-col items-center py-1 px-1 rounded-xl transition {{ request()->routeIs('reports.*') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
                     <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
                     <span class="text-[10px] mt-0.5 font-head font-medium">Laporan</span>
                 </a>
+                <a href="{{ route('profile.edit') }}" class="flex flex-col items-center py-1 px-1 rounded-xl transition {{ request()->routeIs('profile.*') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
+                    <i data-lucide="user-cog" class="w-5 h-5"></i>
+                    <span class="text-[10px] mt-0.5 font-head font-medium">Profil</span>
+                </a>
             </div>
         @else
-            <!-- Role Karyawan (3-Tab Bar: Beranda, + Ajukan, CA Saya) -->
-            <div class="flex items-center justify-around max-w-sm mx-auto">
+            <!-- Role Karyawan (4-Tab Bar: Beranda, + Ajukan, CA Saya, Profil) -->
+            <div class="grid grid-cols-4 items-center max-w-sm mx-auto text-center">
                 <!-- Tab 1: Beranda -->
-                <a href="{{ route('dashboard') }}" class="flex flex-col items-center py-1 px-4 rounded-xl transition {{ request()->routeIs('dashboard') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
+                <a href="{{ route('dashboard') }}" class="flex flex-col items-center py-1 px-1 rounded-xl transition {{ request()->routeIs('dashboard') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
                     <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                     <span class="text-[10px] mt-0.5 font-head font-medium">Beranda</span>
                 </a>
@@ -817,9 +874,15 @@
                 </a>
 
                 <!-- Tab 3: CA Saya -->
-                <a href="{{ route('cash-advances.index') }}" class="flex flex-col items-center py-1 px-4 rounded-xl transition {{ request()->routeIs('cash-advances.*') && !request()->routeIs('cash-advances.create') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
+                <a href="{{ route('cash-advances.index') }}" class="flex flex-col items-center py-1 px-1 rounded-xl transition {{ request()->routeIs('cash-advances.*') && !request()->routeIs('cash-advances.create') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
                     <i data-lucide="receipt" class="w-5 h-5"></i>
                     <span class="text-[10px] mt-0.5 font-head font-medium">CA Saya</span>
+                </a>
+
+                <!-- Tab 4: Profil -->
+                <a href="{{ route('profile.edit') }}" class="flex flex-col items-center py-1 px-1 rounded-xl transition {{ request()->routeIs('profile.*') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
+                    <i data-lucide="user-cog" class="w-5 h-5"></i>
+                    <span class="text-[10px] mt-0.5 font-head font-medium">Profil</span>
                 </a>
             </div>
         @endif

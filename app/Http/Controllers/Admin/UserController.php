@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 /**
@@ -117,6 +118,7 @@ class UserController extends Controller
             'bank_name' => ['nullable', 'string', 'max:50'],
             'bank_account_number' => ['nullable', 'string', 'max:50'],
             'bank_account_holder' => ['nullable', 'string', 'max:100'],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
         ],
         // Pesan kesalahan kustom berbahasa Indonesia saat validasi gagal
         [
@@ -134,7 +136,14 @@ class UserController extends Controller
             'bank_name.max' => 'Nama bank maksimal 50 karakter.',
             'bank_account_number.max' => 'Nomor rekening bank maksimal 50 karakter.',
             'bank_account_holder.max' => 'Nama pemilik rekening bank maksimal 100 karakter.',
+            'avatar.image' => 'File avatar harus berupa gambar.',
+            'avatar.max' => 'Ukuran avatar maksimal 5MB.',
         ]);
+
+        $avatarPath = null;
+        if ($request->hasFile('avatar')) {
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+        }
 
         // 3. Simpan entitas User baru ke basis data dengan enkripsi password (Bcrypt/Argon2)
         $user = User::create([
@@ -144,6 +153,7 @@ class UserController extends Controller
             'role' => $validated['role'],
             'manager_id' => $validated['manager_id'] ?: null,
             'department' => $validated['department'],
+            'avatar' => $avatarPath,
             'phone' => $validated['phone'],
             'bank_name' => $validated['bank_name'],
             'bank_account_number' => $validated['bank_account_number'],
@@ -218,6 +228,8 @@ class UserController extends Controller
             'bank_account_number' => ['nullable', 'string', 'max:50'],
             'bank_account_holder' => ['nullable', 'string', 'max:100'],
             'is_active' => ['nullable', 'boolean'],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
+            'remove_avatar' => ['nullable', 'boolean'],
         ],
         [
             'name.required' => 'Nama wajib diisi.',
@@ -233,6 +245,8 @@ class UserController extends Controller
             'bank_name.max' => 'Nama bank maksimal 50 karakter.',
             'bank_account_number.max' => 'Nomor rekening bank maksimal 50 karakter.',
             'bank_account_holder.max' => 'Nama pemilik rekening bank maksimal 100 karakter.',
+            'avatar.image' => 'File avatar harus berupa gambar.',
+            'avatar.max' => 'Ukuran avatar maksimal 5MB.',
         ]);
 
         // 3. Simpan data sebelum diperbarui untuk perbandingan jejak audit
@@ -252,7 +266,22 @@ class UserController extends Controller
             'is_active' => $request->boolean('is_active'),
         ];
 
-        // 5. Perbarui password hanya jika formulir password baru diisi
+        // 5. Penanganan foto avatar
+        if ($request->boolean('remove_avatar')) {
+            if ($user->avatar && !str_starts_with($user->avatar, 'http')) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+            $data['avatar'] = null;
+        }
+
+        if ($request->hasFile('avatar')) {
+            if ($user->avatar && !str_starts_with($user->avatar, 'http')) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+            $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
+        }
+
+        // 6. Perbarui password hanya jika formulir password baru diisi
         if (!empty($validated['password'])) {
             $data['password'] = Hash::make($validated['password']);
         }

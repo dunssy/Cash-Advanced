@@ -41,8 +41,19 @@
                     @forelse($users as $u)
                         <tr class="hover:bg-slate-50/80 transition">
                             <td class="px-4 py-3 whitespace-nowrap">
-                                <span class="font-bold text-slate-900 block">{{ $u->name }}</span>
-                                <span class="text-[11px] text-slate-500 font-mono">{{ $u->email }}</span>
+                                <div class="flex items-center space-x-3">
+                                    @if($u->avatar_url)
+                                        <img src="{{ $u->avatar_url }}" alt="{{ $u->name }}" class="w-9 h-9 rounded-full object-cover border border-slate-200 flex-shrink-0 shadow-sm">
+                                    @else
+                                        <div class="w-9 h-9 rounded-full bg-[#FF3C00] text-white flex items-center justify-center font-head font-bold text-xs uppercase flex-shrink-0 shadow-sm">
+                                            {{ $u->initials }}
+                                        </div>
+                                    @endif
+                                    <div class="min-w-0">
+                                        <span class="font-bold text-slate-900 block">{{ $u->name }}</span>
+                                        <span class="text-[11px] text-slate-500 font-mono">{{ $u->email }}</span>
+                                    </div>
+                                </div>
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap">
                                 <span class="badge-retail text-[10px] uppercase font-bold
