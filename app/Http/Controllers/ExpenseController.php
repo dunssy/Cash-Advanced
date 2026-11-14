@@ -10,42 +10,99 @@ use App\Models\ExpenseHistory;
 use App\Models\SystemNotification;
 use App\Models\SystemSetting;
 use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
 
+/**
+ * Class ExpenseController
+ *
+ * Mengelola pencatatan transaksi pengeluaran riil, pengunggahan struk digital,
+ * penanganan kasus struk hilang (lost receipt), pengeluaran talangan pribadi,
+ * deteksi duplikasi, hingga pembatalan (VOID) transaksi pada sistem Cash Advance PT Technodrive.
+ *
+ * Ketentuan Bisnis Kritis:
+ * 1. Kunci Input Saldo: Nominal pengeluaran dilarang melebihi sisa saldo kas aktif (kecuali Talangan).
+ * 2. SLA Pencatatan: Transaksi wajib dicatat maksimal H+1 dari tanggal kejadian; jika terlambat,
+ *    sistem otomatis menandai flag 'is_late' sebagai bahan evaluasi kedisiplinan karyawan.
+ * 3. Integritas Struk: Setiap bukti transaksi dihitung hash SHA-256 miliknya untuk menjamin integritas file.
+ * 4. Struk Hilang: Wajib mengunggah surat pernyataan bermaterai dan memperoleh persetujuan Atasan.
+ * 5. Audit Trail & Immutability: Transaksi yang sudah diverifikasi VALID tidak boleh diedit; koreksi
+ *    hanya dapat dilakukan oleh tim Finance melalui mekanisme VOID dengan alasan tercatat.
+ *
+ * @package App\Http\Controllers
+ */
 class ExpenseController extends Controller
 {
-    public function create(CashAdvance $cashAdvance)
+    /**
+     * Menampilkan formulir pencatatan transaksi pengeluaran baru.
+     *
+     * Alur kerja:
+     * 1. Memeriksa kepemilikan CA (hanya pemegang dana yang berhak mencatat pengeluaran).
+     * 2. Memastikan status CA adalah ACTIVE.
+     * 3. Menampilkan view form pencatatan pengeluaran beserta info sisa saldo berjalan.
+     *
+     * @param  \App\Models\CashAdvance  $cashAdvance Model Cash Advance yang sedang aktif.
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+     */
+    public function create(CashAdvance $cashAdvance): View|RedirectResponse
     {
         $user = Auth::user();
 
+        // 1. Otorisasi kepemilikan
         if ($cashAdvance->user_id !== $user->id) {
-            abort(403, 'Hanya pemilik Cash Advance yang dapat mencatat pengeluaran.');
+            abort(403, 'Akses ditolak: Hanya pemilik Cash Advance yang dapat mencatat pengeluaran.');
         }
 
+        // 2. Validasi status CA
         if ($cashAdvance->status !== 'ACTIVE') {
             return redirect()->route('cash-advances.show', $cashAdvance)
-                ->with('error', 'Pengeluaran hanya dapat dicatat saat CA berstatus ACTIVE.');
+                ->with('error', 'Pengeluaran hanya dapat dicatat saat status Cash Advance adalah ACTIVE.');
         }
 
+        // 3. Tampilkan antarmuka pencatatan pengeluaran
         return view('expenses.create', compact('cashAdvance'));
     }
 
-    public function store(Request $request, CashAdvance $cashAdvance)
+    /**
+     * Menyimpan transaksi pengeluaran baru ke dalam basis data.
+     *
+     * Alur kerja komprehensif:
+     * 1. Memvalidasi batasan tanggal (tidak boleh di masa depan & tidak boleh sebelum pencairan dana CA).
+     * 2. Menjalankan Aturan Kunci Saldo: Pengeluaran normal tidak boleh melebihi sisa saldo aktif.
+     * 3. Menjalankan Aturan Talangan: Jika saldo habis namun mendesak, wajib mencantumkan alasan darurat.
+     * 4. Menjalankan Aturan Struk Hilang: Wajib mengunggah surat pernyataan bermaterai/tanda tangan.
+     * 5. Menjalankan Aturan Keterlambatan: Pencatatan > 1 hari dari tanggal transaksi ditandai TERLAMBAT.
+     * 6. Menjalankan Deteksi Duplikasi: Memeriksa apakah ada transaksi serupa (nominal, tanggal, vendor).
+     * 7. Menyimpan entitas Expense dengan status verifikasi awal 'PENDING'.
+     * 8. Menyimpan lampiran file bukti struk dengan kalkulasi hash SHA-256.
+     * 9. Mencatat aktivitas ke Audit Log.
+     * 10. Memeriksa ambang batas peringatan saldo menipis (< 20%) dan menerbitkan notifikasi jika terpicu.
+     *
+     * @param  \Illuminate\Http\Request  $request Objek HTTP Request yang memuat data pengeluaran dan lampiran.
+     * @param  \App\Models\CashAdvance  $cashAdvance Model Cash Advance terkait.
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function store(Request $request, CashAdvance $cashAdvance): RedirectResponse
     {
         $user = Auth::user();
 
+        // 1. Otorisasi kepemilikan
         if ($cashAdvance->user_id !== $user->id) {
             abort(403, 'Akses ditolak.');
         }
 
+        // 2. Validasi status keaktifan CA
         if ($cashAdvance->status !== 'ACTIVE') {
-            return back()->with('error', 'Status CA tidak aktif.');
+            return back()->with('error', 'Status Cash Advance tidak aktif.');
         }
 
+        // Batas minimal tanggal transaksi: Tidak boleh mendahului tanggal pencairan dana CA
         $minDate = $cashAdvance->disbursed_at ? $cashAdvance->disbursed_at->format('Y-m-d') : '2020-01-01';
 
+        // 3. Aturan validasi formulir pengeluaran
         $rules = [
             'transaction_date' => ['required', 'date', 'before_or_equal:today', "after_or_equal:{$minDate}"],
             'description' => ['required', 'string', 'max:255'],
@@ -76,8 +133,8 @@ class ExpenseController extends Controller
         $amount = (float) $validated['amount'];
         $currentBalance = $cashAdvance->current_balance;
 
-        // Kunci input saldo (Dokumen hal 5):
-        // Pengeluaran yang membuat saldo di bawah Rp0 ditolak: "Saldo tidak cukup. Ajukan top-up."
+        // 4. KUNCI INPUT SALDO (SOP Dokumen hal 5)
+        // Pengeluaran yang membuat saldo di bawah Rp 0 dilarang sistem kecuali dinyatakan sebagai Talangan
         if (!$isTalangan) {
             if ($amount > $currentBalance) {
                 return back()->withInput()->withErrors([
@@ -85,7 +142,7 @@ class ExpenseController extends Controller
                 ]);
             }
         } else {
-            // Talangan wajib menyertakan alasan darurat
+            // Transaksi Talangan pribadi wajib melampirkan alasan kondisi darurat
             if (empty($validated['talangan_emergency_reason'])) {
                 return back()->withInput()->withErrors([
                     'talangan_emergency_reason' => 'Alasan kondisi darurat wajib diisi untuk transaksi Talangan pribadi.',
@@ -93,6 +150,7 @@ class ExpenseController extends Controller
             }
         }
 
+        // 5. Penanganan bukti struk fisik vs surat pernyataan kehilangan struk
         $isLostReceipt = $request->boolean('is_lost_receipt');
         $lostReceiptPath = null;
 
@@ -111,12 +169,12 @@ class ExpenseController extends Controller
             }
         }
 
-        // Perekaman dibatasi maksimal 1 hari setelah transaksi. Lewat itu ditandai TERLAMBAT di dashboard (Dokumen hal 7)
+        // 6. SLA Perekaman Real-Time: Dibatasi maksimal 1 hari setelah transaksi (Dokumen hal 7)
         $txDate = Carbon::parse($validated['transaction_date'])->startOfDay();
         $daysDiff = $txDate->diffInDays(Carbon::now()->startOfDay(), false);
         $isLate = ($daysDiff > 1);
 
-        // Peringatan Duplikat (Dokumen hal 7)
+        // 7. Deteksi Dini Transaksi Duplikat (Peringatan Sistem Dokumen hal 7)
         $potentialDuplicate = Expense::where('cash_advance_id', $cashAdvance->id)
             ->where('transaction_date', $validated['transaction_date'])
             ->where('amount', $amount)
@@ -124,6 +182,7 @@ class ExpenseController extends Controller
             ->whereNotIn('verification_status', ['REJECTED', 'VOID'])
             ->exists();
 
+        // 8. Buat record transaksi pengeluaran baru
         $expense = Expense::create([
             'cash_advance_id' => $cashAdvance->id,
             'user_id' => $user->id,
@@ -142,7 +201,7 @@ class ExpenseController extends Controller
             'verification_status' => 'PENDING',
         ]);
 
-        // Upload and process receipt files
+        // 9. Simpan file lampiran struk beserta hash SHA-256 untuk audit keamanan berkas
         if ($request->hasFile('receipts')) {
             foreach ($request->file('receipts') as $file) {
                 $hash = hash_file('sha256', $file->getRealPath());
@@ -159,9 +218,16 @@ class ExpenseController extends Controller
             }
         }
 
-        AuditLog::record('EXPENSE_CREATED', $expense, "Pengeluaran Rp " . number_format($expense->amount, 0, ',', '.') . " ({$expense->description}) dicatat pada CA {$cashAdvance->ca_number}." . ($isLate ? ' [TERLAMBAT]' : ''), null, $expense->toArray());
+        // 10. Catat rekaman transaksi ke dalam Audit Log
+        AuditLog::record(
+            'EXPENSE_CREATED',
+            $expense,
+            "Pengeluaran Rp " . number_format($expense->amount, 0, ',', '.') . " ({$expense->description}) dicatat pada CA {$cashAdvance->ca_number}." . ($isLate ? ' [TERLAMBAT]' : ''),
+            null,
+            $expense->toArray()
+        );
 
-        // Check if remaining balance triggers < 20% warning
+        // 11. Cek ambang batas peringatan saldo menipis (< 20%)
         $cashAdvance->refresh();
         if ($cashAdvance->is_low_balance) {
             SystemNotification::send(
@@ -173,6 +239,7 @@ class ExpenseController extends Controller
             );
         }
 
+        // 12. Susun pesan umpan balik interaktif untuk antarmuka pengguna
         $msg = "Pengeluaran Rp " . number_format($expense->amount, 0, ',', '.') . " berhasil dicatat.";
         if ($isLate) {
             $msg .= " (Catatan: Transaksi ditandai TERLAMBAT karena dicatat lebih dari 1 hari setelah kejadian).";
@@ -184,15 +251,25 @@ class ExpenseController extends Controller
         return redirect()->route('cash-advances.show', $cashAdvance)->with('success', $msg);
     }
 
-    public function edit(Expense $expense)
+    /**
+     * Menampilkan formulir edit transaksi pengeluaran.
+     *
+     * Karyawan hanya diperbolehkan merevisi transaksi selama status verifikasinya
+     * belum 'VALID' dan belum 'VOID' (misal berstatus PENDING atau NEEDS_REVISION).
+     *
+     * @param  \App\Models\Expense  $expense Model transaksi pengeluaran yang ingin diedit.
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+     */
+    public function edit(Expense $expense): View|RedirectResponse
     {
         $user = Auth::user();
 
+        // 1. Otorisasi kepemilikan transaksi
         if ($expense->user_id !== $user->id) {
             abort(403, 'Akses ditolak.');
         }
 
-        // Karyawan hanya bisa mengubah transaksi sebelum diverifikasi (Dokumen hal 7)
+        // 2. Proteksi Immutability: Transaksi VALID atau VOID dilarang diubah oleh karyawan (Dokumen hal 7)
         if (in_array($expense->verification_status, ['VALID', 'VOID'])) {
             return redirect()->route('cash-advances.show', $expense->cash_advance_id)
                 ->with('error', 'Transaksi yang sudah VALID atau VOID tidak dapat diubah lagi.');
@@ -203,14 +280,31 @@ class ExpenseController extends Controller
         return view('expenses.edit', compact('expense', 'cashAdvance'));
     }
 
-    public function update(Request $request, Expense $expense)
+    /**
+     * Memperbarui data transaksi pengeluaran yang sudah dicatat sebelumnya.
+     *
+     * Alur kerja:
+     * 1. Memeriksa otorisasi pemilik dan status belum terkunci (bukan VALID/VOID).
+     * 2. Memvalidasi data input pembaruan.
+     * 3. Menyimpan snapshot perubahan lama vs baru ke dalam ExpenseHistory (immutable audit trail).
+     * 4. Memperbarui record Expense dan mereset status verifikasi menjadi 'PENDING' untuk audit ulang.
+     * 5. Mengunggah lampiran struk tambahan jika dilampirkan.
+     * 6. Merekam ke Audit Log.
+     *
+     * @param  \Illuminate\Http\Request  $request Objek HTTP Request yang memuat revisi data transaksi.
+     * @param  \App\Models\Expense  $expense Model transaksi pengeluaran yang direvisi.
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function update(Request $request, Expense $expense): RedirectResponse
     {
         $user = Auth::user();
 
+        // 1. Otorisasi pemilik
         if ($expense->user_id !== $user->id) {
             abort(403, 'Akses ditolak.');
         }
 
+        // 2. Cegah modifikasi transaksi yang sudah tervalidasi
         if (in_array($expense->verification_status, ['VALID', 'VOID'])) {
             return back()->with('error', 'Transaksi sudah tidak dapat diubah.');
         }
@@ -218,6 +312,7 @@ class ExpenseController extends Controller
         $cashAdvance = $expense->cashAdvance;
         $minDate = $cashAdvance->disbursed_at ? $cashAdvance->disbursed_at->format('Y-m-d') : '2020-01-01';
 
+        // 3. Validasi masukan pembaruan
         $validated = $request->validate([
             'transaction_date' => ['required', 'date', 'before_or_equal:today', "after_or_equal:{$minDate}"],
             'description' => ['required', 'string', 'max:255'],
@@ -232,7 +327,7 @@ class ExpenseController extends Controller
 
         $oldValues = $expense->toArray();
 
-        // Save history of changes (Dokumen hal 7: "riwayat perubahan tersimpan")
+        // 4. Rekam jejak perubahan ke tabel ExpenseHistory (SOP Dokumen hal 7: "riwayat perubahan tersimpan")
         ExpenseHistory::create([
             'expense_id' => $expense->id,
             'user_id' => $user->id,
@@ -243,6 +338,7 @@ class ExpenseController extends Controller
             'created_at' => now(),
         ]);
 
+        // 5. Perbarui data transaksi dan kembalikan status ke PENDING untuk verifikasi ulang tim Finance
         $expense->update([
             'transaction_date' => $validated['transaction_date'],
             'description' => $validated['description'],
@@ -251,9 +347,10 @@ class ExpenseController extends Controller
             'vendor_name' => $validated['vendor_name'],
             'vendor_tax_number' => $validated['vendor_tax_number'] ?? null,
             'notes' => $validated['notes'] ?? null,
-            'verification_status' => 'PENDING', // Reset to PENDING if was NEEDS_REVISION
+            'verification_status' => 'PENDING', // Reset ke PENDING jika sebelumnya NEEDS_REVISION
         ]);
 
+        // 6. Unggah struk baru jika ada penambahan bukti berkas
         if ($request->hasFile('receipts')) {
             foreach ($request->file('receipts') as $file) {
                 $hash = hash_file('sha256', $file->getRealPath());
@@ -270,29 +367,50 @@ class ExpenseController extends Controller
             }
         }
 
-        AuditLog::record('EXPENSE_UPDATED', $expense, "Transaksi #{$expense->id} diperbarui oleh {$user->name}.", $oldValues, $expense->toArray());
+        // 7. Catat pembaruan ke Audit Log
+        AuditLog::record(
+            'EXPENSE_UPDATED',
+            $expense,
+            "Transaksi #{$expense->id} diperbarui oleh {$user->name}.",
+            $oldValues,
+            $expense->toArray()
+        );
 
         return redirect()->route('cash-advances.show', $cashAdvance)
             ->with('success', 'Transaksi pengeluaran berhasil diperbarui dan diajukan ulang untuk verifikasi.');
     }
 
-    public function voidExpense(Request $request, Expense $expense)
+    /**
+     * Membatalkan transaksi pengeluaran melalui mekanisme VOID oleh Finance/Direktur.
+     *
+     * Mekanisme VOID digunakan jika terjadi kesalahan fatal pada transaksi yang telah tercatat.
+     * Sesuai ketentuan SOP, koreksi hanya boleh dilakukan via VOID disertai alasan jelas.
+     * Dana yang di-VOID akan secara otomatis dipulihkan kembali ke saldo kas aktif sistem.
+     *
+     * @param  \Illuminate\Http\Request  $request Objek HTTP Request yang memuat alasan pembatalan (void_reason).
+     * @param  \App\Models\Expense  $expense Model transaksi pengeluaran yang akan di-VOID.
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function voidExpense(Request $request, Expense $expense): RedirectResponse
     {
         $user = Auth::user();
 
-        // Koreksi lewat void oleh Finance dengan alasan (Dokumen hal 1, 7)
+        // 1. Otorisasi peran perbendaharaan: Hanya Finance atau Direktur yang berhak melakukan VOID
         if (!$user->isFinance() && !$user->isDirektur()) {
-            abort(403, 'Hanya Finance atau Direktur yang berhak melakukan VOID transaksi.');
+            abort(403, 'Akses ditolak: Hanya Finance atau Direktur yang berhak melakukan VOID transaksi.');
         }
 
+        // 2. Validasi kewajiban penyertaan alasan VOID
         $validated = $request->validate([
             'void_reason' => ['required', 'string', 'min:5'],
         ], [
             'void_reason.required' => 'Alasan VOID wajib diisi.',
+            'void_reason.min' => 'Alasan VOID minimal 5 karakter.',
         ]);
 
         $oldValues = $expense->toArray();
 
+        // 3. Perbarui status transaksi menjadi VOID
         $expense->update([
             'verification_status' => 'VOID',
             'void_by' => $user->id,
@@ -300,8 +418,16 @@ class ExpenseController extends Controller
             'void_reason' => $validated['void_reason'],
         ]);
 
-        AuditLog::record('EXPENSE_VOIDED', $expense, "Transaksi #{$expense->id} di-VOID oleh {$user->name}. Alasan: {$validated['void_reason']}", $oldValues, $expense->toArray());
+        // 4. Catat peristiwa VOID ke Audit Log
+        AuditLog::record(
+            'EXPENSE_VOIDED',
+            $expense,
+            "Transaksi #{$expense->id} di-VOID oleh {$user->name}. Alasan: {$validated['void_reason']}",
+            $oldValues,
+            $expense->toArray()
+        );
 
+        // 5. Beri tahu pemilik transaksi bahwa pengeluarannya telah dibatalkan
         SystemNotification::send(
             $expense->user_id,
             'Transaksi Telah Di-VOID',
@@ -313,21 +439,38 @@ class ExpenseController extends Controller
         return back()->with('success', "Transaksi berhasil di-VOID. Saldo sistem telah dikembalikan.");
     }
 
-    public function approveLostReceipt(Request $request, Expense $expense)
+    /**
+     * Menyetujui surat pernyataan kehilangan struk fisik oleh Atasan/Direktur.
+     *
+     * Sesuai ketentuan SOP, jika struk fisik hilang dan diganti dengan surat pernyataan,
+     * transaksi tersebut wajib mendapatkan persetujuan manajerial (Atasan/Direktur)
+     * sebelum dapat dinilai keabsahannya oleh tim Finance.
+     *
+     * @param  \Illuminate\Http\Request  $request Objek HTTP Request.
+     * @param  \App\Models\Expense  $expense Model transaksi pengeluaran dengan struk hilang.
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function approveLostReceipt(Request $request, Expense $expense): RedirectResponse
     {
         $user = Auth::user();
 
-        // Struk hilang: persetujuan atasan (Dokumen hal 7)
+        // 1. Otorisasi manajerial
         if (!$user->isAtasan() && !$user->isDirektur()) {
-            abort(403, 'Hanya Atasan atau Direktur yang dapat menyetujui surat pernyataan kehilangan struk.');
+            abort(403, 'Akses ditolak: Hanya Atasan atau Direktur yang dapat menyetujui surat pernyataan kehilangan struk.');
         }
 
+        // 2. Simpan persetujuan kehilangan struk
         $expense->update([
             'lost_receipt_approved_by' => $user->id,
             'lost_receipt_approved_at' => now(),
         ]);
 
-        AuditLog::record('LOST_RECEIPT_APPROVED', $expense, "Surat pernyataan kehilangan struk transaksi #{$expense->id} disetujui oleh {$user->name}.");
+        // 3. Catat ke Audit Log
+        AuditLog::record(
+            'LOST_RECEIPT_APPROVED',
+            $expense,
+            "Surat pernyataan kehilangan struk transaksi #{$expense->id} disetujui oleh {$user->name}."
+        );
 
         return back()->with('success', 'Surat pernyataan kehilangan struk telah disetujui atasan. Transaksi siap dinilai oleh Finance.');
     }
