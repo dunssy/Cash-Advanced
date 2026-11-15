@@ -28,16 +28,16 @@
     activeReceiptUrl: null
 }">
 
-    <!-- Top Navigation Breadcrumb -->
-    <div class="flex items-center justify-between">
-        <a href="{{ route('cash-advances.index') }}" class="text-xs font-semibold text-slate-500 hover:text-retail-ink inline-flex items-center space-x-1">
-            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+    <!-- Top Navigation Breadcrumb & Actions (Responsive & Anti-Overlap) -->
+    <div class="flex flex-wrap items-center justify-between gap-2.5 pb-1">
+        <a href="{{ route('cash-advances.index') }}" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-retail-ink hover:bg-slate-100 transition active:scale-95">
+            <i data-lucide="arrow-left" class="w-4 h-4 text-slate-500"></i>
             <span>Kembali ke Daftar CA</span>
         </a>
-        <div class="flex items-center space-x-2">
-            <a href="{{ route('reports.rincian-ca', ['ca_id' => $cashAdvance->id]) }}" class="btn-secondary py-1.5 px-3 text-xs">
+        <div class="flex items-center gap-2">
+            <a href="{{ route('reports.rincian-ca', ['ca_id' => $cashAdvance->id]) }}" class="btn-secondary py-1.5 px-3 text-xs inline-flex items-center gap-1.5 rounded-lg shadow-2xs active:scale-95 transition">
                 <i data-lucide="printer" class="w-3.5 h-3.5 text-slate-500"></i>
-                <span>Cetak / Laporan Rincian</span>
+                <span>Cetak Laporan</span>
             </a>
         </div>
     </div>
@@ -222,264 +222,340 @@
             </div>
         </div>
 
-        <!-- WORKFLOW ACTIONS TOOLBAR (Navy #050A1E background, Solutek Brand Buttons, Mobile-Friendly) -->
-        <div class="bg-[#050A1E] px-4 sm:px-6 py-4 border-t border-[#161A2B] flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-white">
-            <div class="flex items-center space-x-2">
-                <span class="text-xs font-head font-bold text-slate-300 uppercase tracking-wider">Aksi Workflow:</span>
-            </div>
-
-            <div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 w-full md:w-auto">
-                <!-- 1. PENDING_APPROVAL -->
-                @if($cashAdvance->status === 'PENDING_APPROVAL')
-                    @if(!$cashAdvance->approved_by)
-                        @if(auth()->user()->canApproveCA($cashAdvance))
-                            <button @click="showApproveModal = true" class="btn-brand text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center gap-1.5">
-                                <i data-lucide="check" class="w-4 h-4"></i>
-                                <span>Setujui Pengajuan CA</span>
-                            </button>
-                            <button @click="showRejectModal = true" class="btn-dark text-xs py-2 px-4 border border-[#FF3C00]/40 w-full sm:w-auto inline-flex items-center gap-1.5">
-                                <i data-lucide="x" class="w-4 h-4 text-[#FF3C00]"></i>
-                                <span>Tolak CA</span>
-                            </button>
-                        @else
-                            <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-head font-medium">
-                                <i data-lucide="clock" class="w-4 h-4 text-amber-400"></i>
-                                <span>Menunggu Approval {{ $cashAdvance->user->isAtasan() || $cashAdvance->user->isFinance() ? 'Direktur' : 'Atasan / Direktur' }}</span>
-                            </span>
-                        @endif
-                    @else
-                        @if(auth()->user()->canDisburseCA($cashAdvance))
-                            <button @click="showDisburseModal = true" class="btn-brand text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center gap-1.5 shadow-md">
-                                <i data-lucide="wallet" class="w-4 h-4"></i>
-                                <span>Catat Pencairan Dana {{ auth()->user()->isFinance() ? '(Finance)' : '(Direktur)' }}</span>
-                            </button>
-                        @endif
-                        <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-head font-medium">
-                            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
-                            <span>Disetujui {{ $cashAdvance->approver->name ?? 'Direktur' }} &bull; Menunggu Pencairan {{ auth()->user()->canDisburseCA($cashAdvance) ? '(Siap Dicairkan)' : 'Finance' }}</span>
+        @if(auth()->user()->isKaryawan())
+            {{-- Karyawan: TIDAK MENAMPILKAN BAR "AKSI WORKFLOW" --}}
+            {{-- Bila status ACTIVE, tampilkan tombol operasional kas pemohon secara bersih dan nyaman --}}
+            @if($cashAdvance->status === 'ACTIVE' && $cashAdvance->user_id === auth()->id())
+                <div class="bg-slate-50 px-4 sm:px-6 py-3.5 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-head font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                            <i data-lucide="wallet" class="w-3.5 h-3.5 text-[#FF3C00]"></i>
+                            <span>Aksi Kas Operasional:</span>
                         </span>
-                    @endif
-                @endif
-
-                <!-- 2. ACTIVE -->
-                @if($cashAdvance->status === 'ACTIVE')
-                    <!-- Pemohon Actions -->
-                    @if($cashAdvance->user_id === auth()->id())
-                        <a href="{{ route('expenses.create', $cashAdvance) }}" class="btn-brand text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center gap-1.5">
+                    </div>
+                    <div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                        <a href="{{ route('expenses.create', $cashAdvance) }}" class="btn-brand text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition">
                             <i data-lucide="camera" class="w-4 h-4"></i>
                             <span>Catat Pengeluaran</span>
                         </a>
 
-                        <button @click="showTopupModal = true" class="btn-secondary text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center gap-1.5">
+                        <button type="button" @click="showTopupModal = true" class="btn-secondary text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center justify-center gap-1.5 active:scale-95 transition">
                             <i data-lucide="arrow-up-circle" class="w-4 h-4 text-[#FF3C00]"></i>
                             <span>Ajukan Top-Up Dana</span>
                         </button>
 
-                        <button @click="showCompleteModal = true" class="btn-dark text-xs py-2 px-4 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500 hover:text-white transition w-full sm:w-auto inline-flex items-center gap-1.5">
+                        <button type="button" @click="showCompleteModal = true" class="btn-dark text-xs py-2 px-4 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500 hover:text-white transition w-full sm:w-auto inline-flex items-center justify-center gap-1.5 active:scale-95 transition">
                             <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
                             <span>Tandai Proyek Selesai</span>
                         </button>
-                    @endif
+                    </div>
+                </div>
+            @endif
+        @else
+            <!-- WORKFLOW ACTIONS TOOLBAR (Untuk Atasan / Finance / Direktur / Super Admin) -->
+            <div class="bg-[#050A1E] px-4 sm:px-6 py-4 border-t border-[#161A2B] flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-white">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs font-head font-bold text-slate-300 uppercase tracking-wider">Aksi Workflow:</span>
+                </div>
 
-                    <!-- TOP-UP WORKFLOW ACTIONS -->
-                    @php
-                        $pendingTopup = $cashAdvance->topUps->whereIn('status', ['PENDING_ATASAN', 'PENDING_FINANCE', 'PENDING_DIREKTUR', 'APPROVED'])->first();
-                    @endphp
-                    @if($pendingTopup)
-                        @if($pendingTopup->status === 'PENDING_ATASAN')
-                            @if((auth()->user()->isAtasan() || auth()->user()->isDirektur()) && auth()->id() !== $pendingTopup->user_id)
-                                <form action="{{ route('top-ups.approve-atasan', $pendingTopup) }}" method="POST" class="inline">
-                                    @csrf
-                                    <button type="submit" class="btn-brand text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center gap-1.5">
-                                        <i data-lucide="check" class="w-4 h-4"></i>
-                                        <span>Setujui Top-Up (Rp {{ number_format($pendingTopup->amount, 0, ',', '.') }})</span>
-                                    </button>
-                                </form>
-                                <button type="button" @click="showTopupRejectModal = true; topupRejectId = {{ $pendingTopup->id }}; topupRejectAmount = '{{ number_format($pendingTopup->amount, 0, ',', '.') }}'" class="btn-dark text-xs py-2 px-4 border border-[#FF3C00]/40 w-full sm:w-auto inline-flex items-center gap-1.5">
+                <div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 w-full md:w-auto">
+                    <!-- 1. PENDING_APPROVAL -->
+                    @if($cashAdvance->status === 'PENDING_APPROVAL')
+                        @if(!$cashAdvance->approved_by)
+                            @if(auth()->user()->canApproveCA($cashAdvance))
+                                <button @click="showApproveModal = true" class="btn-brand text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center gap-1.5">
+                                    <i data-lucide="check" class="w-4 h-4"></i>
+                                    <span>Setujui Pengajuan CA</span>
+                                </button>
+                                <button @click="showRejectModal = true" class="btn-dark text-xs py-2 px-4 border border-[#FF3C00]/40 w-full sm:w-auto inline-flex items-center gap-1.5">
                                     <i data-lucide="x" class="w-4 h-4 text-[#FF3C00]"></i>
-                                    <span>Tolak Top-Up</span>
+                                    <span>Tolak CA</span>
                                 </button>
                             @else
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 text-xs font-head font-medium">
-                                    <i data-lucide="clock" class="w-3.5 h-3.5 text-blue-400"></i>
-                                    <span>Top-Up Rp {{ number_format($pendingTopup->amount, 0, ',', '.') }} Menunggu Approval Atasan</span>
+                                <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-head font-medium">
+                                    <i data-lucide="clock" class="w-4 h-4 text-amber-400"></i>
+                                    <span>Menunggu Approval {{ $cashAdvance->user->isAtasan() || $cashAdvance->user->isFinance() ? 'Direktur' : 'Atasan / Direktur' }}</span>
                                 </span>
                             @endif
-                        @elseif($pendingTopup->status === 'PENDING_FINANCE')
-                            @if((auth()->user()->isFinance() || auth()->user()->isDirektur()) && auth()->id() !== $pendingTopup->user_id)
-                                <form action="{{ route('top-ups.approve-finance', $pendingTopup) }}" method="POST" class="inline">
-                                    @csrf
-                                    <button type="submit" class="btn-brand text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center gap-1.5">
-                                        <i data-lucide="check" class="w-4 h-4"></i>
-                                        <span>Setujui Top-Up Finance (Rp {{ number_format($pendingTopup->amount, 0, ',', '.') }})</span>
-                                    </button>
-                                </form>
-                                <button type="button" @click="showTopupRejectModal = true; topupRejectId = {{ $pendingTopup->id }}; topupRejectAmount = '{{ number_format($pendingTopup->amount, 0, ',', '.') }}'" class="btn-dark text-xs py-2 px-4 border border-[#FF3C00]/40 w-full sm:w-auto inline-flex items-center gap-1.5">
-                                    <i data-lucide="x" class="w-4 h-4 text-[#FF3C00]"></i>
-                                    <span>Tolak Top-Up</span>
-                                </button>
-                            @else
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-head font-medium">
-                                    <i data-lucide="clock" class="w-3.5 h-3.5 text-purple-400"></i>
-                                    <span>Top-Up Rp {{ number_format($pendingTopup->amount, 0, ',', '.') }} Menunggu Evaluasi Finance</span>
-                                </span>
-                            @endif
-                        @elseif($pendingTopup->status === 'PENDING_DIREKTUR')
-                            @if(auth()->user()->isDirektur() && auth()->id() !== $pendingTopup->user_id)
-                                <form action="{{ route('top-ups.approve-direktur', $pendingTopup) }}" method="POST" class="inline">
-                                    @csrf
-                                    <button type="submit" class="btn-brand text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center gap-1.5">
-                                        <i data-lucide="check" class="w-4 h-4"></i>
-                                        <span>Setujui Top-Up Direktur (Rp {{ number_format($pendingTopup->amount, 0, ',', '.') }})</span>
-                                    </button>
-                                </form>
-                                <button type="button" @click="showTopupRejectModal = true; topupRejectId = {{ $pendingTopup->id }}; topupRejectAmount = '{{ number_format($pendingTopup->amount, 0, ',', '.') }}'" class="btn-dark text-xs py-2 px-4 border border-[#FF3C00]/40 w-full sm:w-auto inline-flex items-center gap-1.5">
-                                    <i data-lucide="x" class="w-4 h-4 text-[#FF3C00]"></i>
-                                    <span>Tolak Top-Up</span>
-                                </button>
-                            @else
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-head font-medium">
-                                    <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-400"></i>
-                                    <span>Top-Up Rp {{ number_format($pendingTopup->amount, 0, ',', '.') }} Menunggu Approval Direktur</span>
-                                </span>
-                            @endif
-                        @elseif($pendingTopup->status === 'APPROVED')
-                            @if(auth()->user()->isFinance() || auth()->user()->isDirektur())
-                                <button type="button" @click="showTopupDisburseModal = true; topupDisburseId = {{ $pendingTopup->id }}; topupDisburseAmount = '{{ number_format($pendingTopup->amount, 0, ',', '.') }}'" class="btn-brand text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center gap-1.5">
-                                    <i data-lucide="wallet" class="w-4 h-4"></i>
-                                    <span>Cairkan Dana Top-Up (Rp {{ number_format($pendingTopup->amount, 0, ',', '.') }})</span>
-                                </button>
-                            @else
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-300 text-xs font-head font-medium">
-                                    <i data-lucide="wallet" class="w-3.5 h-3.5 text-sky-400"></i>
-                                    <span>Top-Up Disetujui &bull; Menunggu Pencairan Finance</span>
-                                </span>
-                            @endif
-                        @endif
-                    @endif
-
-                    <!-- Direktur Exception: Unlock Gembok -->
-                    @if(auth()->user()->isDirektur())
-                        @if(!$cashAdvance->is_unlocked)
-                            <button @click="showUnlockModal = true" class="btn-dark text-xs py-2 px-4 border border-[#FF3C00]/40 w-full sm:w-auto inline-flex items-center gap-1.5">
-                                <i data-lucide="unlock" class="w-4 h-4 text-[#FF3C00]"></i>
-                                <span>Buka Gembok Pengecualian</span>
-                            </button>
                         @else
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-head font-medium">
-                                <i data-lucide="unlock" class="w-3.5 h-3.5 text-emerald-400"></i>
-                                <span>Gembok Dibuka (Pengecualian Direktur)</span>
+                            @if(auth()->user()->canDisburseCA($cashAdvance))
+                                <button @click="showDisburseModal = true" class="btn-brand text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center gap-1.5 shadow-md">
+                                    <i data-lucide="wallet" class="w-4 h-4"></i>
+                                    <span>Catat Pencairan Dana {{ auth()->user()->isFinance() ? '(Finance)' : '(Direktur)' }}</span>
+                                </button>
+                            @endif
+                            <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-head font-medium">
+                                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+                                <span>Disetujui {{ $cashAdvance->approver->name ?? 'Direktur' }} &bull; Menunggu Pencairan {{ auth()->user()->canDisburseCA($cashAdvance) ? '(Siap Dicairkan)' : 'Finance' }}</span>
                             </span>
                         @endif
                     @endif
 
-                    <!-- Struk Pending Info for Finance / Direktur -->
-                    @if(auth()->user()->canVerifyAndCloseCA($cashAdvance))
+                    <!-- 2. ACTIVE -->
+                    @if($cashAdvance->status === 'ACTIVE')
+                        <!-- Pemohon Actions (Bila pemohon adalah atasan/finance/direktur itu sendiri) -->
+                        @if($cashAdvance->user_id === auth()->id())
+                            <a href="{{ route('expenses.create', $cashAdvance) }}" class="btn-brand text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center gap-1.5">
+                                <i data-lucide="camera" class="w-4 h-4"></i>
+                                <span>Catat Pengeluaran</span>
+                            </a>
+
+                            <button @click="showTopupModal = true" class="btn-secondary text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center gap-1.5">
+                                <i data-lucide="arrow-up-circle" class="w-4 h-4 text-[#FF3C00]"></i>
+                                <span>Ajukan Top-Up Dana</span>
+                            </button>
+
+                            <button @click="showCompleteModal = true" class="btn-dark text-xs py-2 px-4 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500 hover:text-white transition w-full sm:w-auto inline-flex items-center gap-1.5">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+                                <span>Tandai Proyek Selesai</span>
+                            </button>
+                        @endif
+
+                        <!-- TOP-UP WORKFLOW ACTIONS -->
+                        @php
+                            $pendingTopup = $cashAdvance->topUps->whereIn('status', ['PENDING_ATASAN', 'PENDING_FINANCE', 'PENDING_DIREKTUR', 'APPROVED'])->first();
+                        @endphp
+                        @if($pendingTopup)
+                            @if($pendingTopup->status === 'PENDING_ATASAN')
+                                @if((auth()->user()->isAtasan() || auth()->user()->isDirektur()) && auth()->id() !== $pendingTopup->user_id)
+                                    <form action="{{ route('top-ups.approve-atasan', $pendingTopup) }}" method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit" class="btn-brand text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center gap-1.5">
+                                            <i data-lucide="check" class="w-4 h-4"></i>
+                                            <span>Setujui Top-Up (Rp {{ number_format($pendingTopup->amount, 0, ',', '.') }})</span>
+                                        </button>
+                                    </form>
+                                    <button type="button" @click="showTopupRejectModal = true; topupRejectId = {{ $pendingTopup->id }}; topupRejectAmount = '{{ number_format($pendingTopup->amount, 0, ',', '.') }}'" class="btn-dark text-xs py-2 px-4 border border-[#FF3C00]/40 w-full sm:w-auto inline-flex items-center gap-1.5">
+                                        <i data-lucide="x" class="w-4 h-4 text-[#FF3C00]"></i>
+                                        <span>Tolak Top-Up</span>
+                                    </button>
+                                @else
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 text-xs font-head font-medium">
+                                        <i data-lucide="clock" class="w-3.5 h-3.5 text-blue-400"></i>
+                                        <span>Top-Up Rp {{ number_format($pendingTopup->amount, 0, ',', '.') }} Menunggu Approval Atasan</span>
+                                    </span>
+                                @endif
+                            @elseif($pendingTopup->status === 'PENDING_FINANCE')
+                                @if((auth()->user()->isFinance() || auth()->user()->isDirektur()) && auth()->id() !== $pendingTopup->user_id)
+                                    <form action="{{ route('top-ups.approve-finance', $pendingTopup) }}" method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit" class="btn-brand text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center gap-1.5">
+                                            <i data-lucide="check" class="w-4 h-4"></i>
+                                            <span>Setujui Top-Up Finance (Rp {{ number_format($pendingTopup->amount, 0, ',', '.') }})</span>
+                                        </button>
+                                    </form>
+                                    <button type="button" @click="showTopupRejectModal = true; topupRejectId = {{ $pendingTopup->id }}; topupRejectAmount = '{{ number_format($pendingTopup->amount, 0, ',', '.') }}'" class="btn-dark text-xs py-2 px-4 border border-[#FF3C00]/40 w-full sm:w-auto inline-flex items-center gap-1.5">
+                                        <i data-lucide="x" class="w-4 h-4 text-[#FF3C00]"></i>
+                                        <span>Tolak Top-Up</span>
+                                    </button>
+                                @else
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-head font-medium">
+                                        <i data-lucide="clock" class="w-3.5 h-3.5 text-purple-400"></i>
+                                        <span>Top-Up Rp {{ number_format($pendingTopup->amount, 0, ',', '.') }} Menunggu Evaluasi Finance</span>
+                                    </span>
+                                @endif
+                            @elseif($pendingTopup->status === 'PENDING_DIREKTUR')
+                                @if(auth()->user()->isDirektur() && auth()->id() !== $pendingTopup->user_id)
+                                    <form action="{{ route('top-ups.approve-direktur', $pendingTopup) }}" method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit" class="btn-brand text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center gap-1.5">
+                                            <i data-lucide="check" class="w-4 h-4"></i>
+                                            <span>Setujui Top-Up Direktur (Rp {{ number_format($pendingTopup->amount, 0, ',', '.') }})</span>
+                                        </button>
+                                    </form>
+                                    <button type="button" @click="showTopupRejectModal = true; topupRejectId = {{ $pendingTopup->id }}; topupRejectAmount = '{{ number_format($pendingTopup->amount, 0, ',', '.') }}'" class="btn-dark text-xs py-2 px-4 border border-[#FF3C00]/40 w-full sm:w-auto inline-flex items-center gap-1.5">
+                                        <i data-lucide="x" class="w-4 h-4 text-[#FF3C00]"></i>
+                                        <span>Tolak Top-Up</span>
+                                    </button>
+                                @else
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-head font-medium">
+                                        <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-400"></i>
+                                        <span>Top-Up Rp {{ number_format($pendingTopup->amount, 0, ',', '.') }} Menunggu Approval Direktur</span>
+                                    </span>
+                                @endif
+                            @elseif($pendingTopup->status === 'APPROVED')
+                                @if(auth()->user()->isFinance() || auth()->user()->isDirektur())
+                                    <button type="button" @click="showTopupDisburseModal = true; topupDisburseId = {{ $pendingTopup->id }}; topupDisburseAmount = '{{ number_format($pendingTopup->amount, 0, ',', '.') }}'" class="btn-brand text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center gap-1.5">
+                                        <i data-lucide="wallet" class="w-4 h-4"></i>
+                                        <span>Cairkan Dana Top-Up (Rp {{ number_format($pendingTopup->amount, 0, ',', '.') }})</span>
+                                    </button>
+                                @else
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-300 text-xs font-head font-medium">
+                                        <i data-lucide="wallet" class="w-3.5 h-3.5 text-sky-400"></i>
+                                        <span>Top-Up Disetujui &bull; Menunggu Pencairan Finance</span>
+                                    </span>
+                                @endif
+                            @endif
+                        @endif
+
+                        <!-- Direktur Exception: Unlock Gembok -->
+                        @if(auth()->user()->isDirektur())
+                            @if(!$cashAdvance->is_unlocked)
+                                <button @click="showUnlockModal = true" class="btn-dark text-xs py-2 px-4 border border-[#FF3C00]/40 w-full sm:w-auto inline-flex items-center gap-1.5">
+                                    <i data-lucide="unlock" class="w-4 h-4 text-[#FF3C00]"></i>
+                                    <span>Buka Gembok Pengecualian</span>
+                                </button>
+                            @else
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-head font-medium">
+                                    <i data-lucide="unlock" class="w-3.5 h-3.5 text-emerald-400"></i>
+                                    <span>Gembok Dibuka (Pengecualian Direktur)</span>
+                                </span>
+                            @endif
+                        @endif
+
+                        <!-- Struk Pending Info for Finance / Direktur -->
+                        @if(auth()->user()->canVerifyAndCloseCA($cashAdvance))
+                            @php
+                                $unverifiedCount = $cashAdvance->expenses->whereIn('verification_status', ['PENDING', 'NEEDS_REVISION'])->count();
+                            @endphp
+                            @if($unverifiedCount > 0)
+                                <a href="#daftar-pengeluaran" class="btn-dark text-xs py-2 px-3.5 border border-amber-500/40 text-amber-300 hover:bg-amber-500 hover:text-slate-900 transition inline-flex items-center gap-1.5">
+                                    <i data-lucide="file-check" class="w-4 h-4 text-amber-400"></i>
+                                    <span>{{ $unverifiedCount }} Struk Perlu Verifikasi</span>
+                                </a>
+                            @endif
+                        @endif
+                    @endif
+
+                    <!-- 3. NEED_SETTLEMENT -->
+                    @if($cashAdvance->status === 'NEED_SETTLEMENT')
+                        @if($cashAdvance->user_id === auth()->id())
+                            <button @click="showRefundModal = true" class="btn-brand text-xs py-2.5 px-5 w-full sm:w-auto inline-flex items-center gap-1.5">
+                                <i data-lucide="upload" class="w-4 h-4"></i>
+                                <span>Upload Bukti Transfer Refund Sisa Dana</span>
+                            </button>
+                        @else
+                            <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-head font-medium">
+                                <i data-lucide="alert-circle" class="w-4 h-4 text-amber-400"></i>
+                                <span>Menunggu Karyawan Mentransfer Refund Sisa Kas (Rp {{ number_format($cashAdvance->current_balance, 0, ',', '.') }})</span>
+                            </span>
+                        @endif
+                    @endif
+
+                    <!-- 4. PENDING_VERIFICATION -->
+                    @if($cashAdvance->status === 'PENDING_VERIFICATION')
                         @php
                             $unverifiedCount = $cashAdvance->expenses->whereIn('verification_status', ['PENDING', 'NEEDS_REVISION'])->count();
                         @endphp
-                        @if($unverifiedCount > 0)
-                            <a href="#daftar-pengeluaran" class="btn-dark text-xs py-2 px-3.5 border border-amber-500/40 text-amber-300 hover:bg-amber-500 hover:text-slate-900 transition inline-flex items-center gap-1.5">
-                                <i data-lucide="file-check" class="w-4 h-4 text-amber-400"></i>
-                                <span>{{ $unverifiedCount }} Struk Perlu Verifikasi</span>
-                            </a>
+                        @if(auth()->user()->canVerifyAndCloseCA($cashAdvance))
+                            @if($unverifiedCount > 0)
+                                <a href="#daftar-pengeluaran" class="btn-dark text-xs py-2.5 px-4 border border-amber-500/50 text-amber-300 hover:bg-amber-500 hover:text-slate-900 transition inline-flex items-center gap-1.5">
+                                    <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
+                                    <span>Verifikasi {{ $unverifiedCount }} Struk Sebelum Tutup CA</span>
+                                </a>
+                            @else
+                                <button @click="showCloseModal = true" class="btn-brand text-xs py-2.5 px-5 w-full sm:w-auto inline-flex items-center gap-1.5">
+                                    <i data-lucide="check-check" class="w-4 h-4"></i>
+                                    <span>Tutup Cash Advance (CLOSED)</span>
+                                </button>
+                            @endif
+                        @endif
+                        @if($cashAdvance->user_id === auth()->id())
+                            <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 text-xs font-head font-medium">
+                                <i data-lucide="clock" class="w-4 h-4 text-blue-400"></i>
+                                <span>Menunggu Verifikasi Akhir & Penutupan oleh Finance</span>
+                            </span>
+                        @elseif(!auth()->user()->canVerifyAndCloseCA($cashAdvance))
+                            <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-slate-500/10 border border-slate-500/30 text-slate-300 text-xs font-head font-medium">
+                                <i data-lucide="clock" class="w-4 h-4 text-slate-400"></i>
+                                <span>Dalam Proses Verifikasi Akhir Finance</span>
+                            </span>
                         @endif
                     @endif
-                @endif
 
-                <!-- 3. NEED_SETTLEMENT -->
-                @if($cashAdvance->status === 'NEED_SETTLEMENT')
-                    @if($cashAdvance->user_id === auth()->id())
-                        <button @click="showRefundModal = true" class="btn-brand text-xs py-2.5 px-5 w-full sm:w-auto inline-flex items-center gap-1.5">
-                            <i data-lucide="upload" class="w-4 h-4"></i>
-                            <span>Upload Bukti Transfer Refund Sisa Dana</span>
-                        </button>
-                    @else
-                        <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-head font-medium">
-                            <i data-lucide="alert-circle" class="w-4 h-4 text-amber-400"></i>
-                            <span>Menunggu Karyawan Mentransfer Refund Sisa Kas (Rp {{ number_format($cashAdvance->current_balance, 0, ',', '.') }})</span>
+                    <!-- 5. CLOSED -->
+                    @if($cashAdvance->status === 'CLOSED')
+                        <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-head font-bold">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+                            <span>Cash Advance Resmi Ditutup (CLOSED) &bull; Lunas</span>
                         </span>
                     @endif
-                @endif
 
-                <!-- 4. PENDING_VERIFICATION -->
-                @if($cashAdvance->status === 'PENDING_VERIFICATION')
-                    @php
-                        $unverifiedCount = $cashAdvance->expenses->whereIn('verification_status', ['PENDING', 'NEEDS_REVISION'])->count();
-                    @endphp
-                    @if(auth()->user()->canVerifyAndCloseCA($cashAdvance))
-                        @if($unverifiedCount > 0)
-                            <a href="#daftar-pengeluaran" class="btn-dark text-xs py-2.5 px-4 border border-amber-500/50 text-amber-300 hover:bg-amber-500 hover:text-slate-900 transition inline-flex items-center gap-1.5">
-                                <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
-                                <span>Verifikasi {{ $unverifiedCount }} Struk Sebelum Tutup CA</span>
-                            </a>
-                        @else
-                            <button @click="showCloseModal = true" class="btn-brand text-xs py-2.5 px-5 w-full sm:w-auto inline-flex items-center gap-1.5">
-                                <i data-lucide="check-check" class="w-4 h-4"></i>
-                                <span>Tutup Cash Advance (CLOSED)</span>
-                            </button>
-                        @endif
-                    @endif
-                    @if($cashAdvance->user_id === auth()->id())
-                        <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 text-xs font-head font-medium">
-                            <i data-lucide="clock" class="w-4 h-4 text-blue-400"></i>
-                            <span>Menunggu Verifikasi Akhir & Penutupan oleh Finance</span>
-                        </span>
-                    @elseif(!auth()->user()->canVerifyAndCloseCA($cashAdvance))
-                        <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-slate-500/10 border border-slate-500/30 text-slate-300 text-xs font-head font-medium">
-                            <i data-lucide="clock" class="w-4 h-4 text-slate-400"></i>
-                            <span>Dalam Proses Verifikasi Akhir Finance</span>
+                    <!-- 6. REJECTED -->
+                    @if($cashAdvance->status === 'REJECTED')
+                        <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-rose-500/15 border border-rose-500/40 text-rose-300 text-xs font-head font-bold">
+                            <i data-lucide="x-circle" class="w-4 h-4 text-rose-400"></i>
+                            <span>Pengajuan Ditolak: {{ $cashAdvance->rejection_reason ?: 'Tidak disetujui' }}</span>
                         </span>
                     @endif
-                @endif
-
-                <!-- 5. CLOSED -->
-                @if($cashAdvance->status === 'CLOSED')
-                    <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-head font-bold">
-                        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
-                        <span>Cash Advance Resmi Ditutup (CLOSED) &bull; Lunas</span>
-                    </span>
-                @endif
-
-                <!-- 6. REJECTED -->
-                @if($cashAdvance->status === 'REJECTED')
-                    <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-rose-500/15 border border-rose-500/40 text-rose-300 text-xs font-head font-bold">
-                        <i data-lucide="x-circle" class="w-4 h-4 text-rose-400"></i>
-                        <span>Pengajuan Ditolak: {{ $cashAdvance->rejection_reason ?: 'Tidak disetujui' }}</span>
-                    </span>
-                @endif
+                </div>
             </div>
-        </div>
+        @endif
     </div>
 
     <!-- SETTLEMENT NOTICE BANNER IF NEED_SETTLEMENT -->
     @if($cashAdvance->status === 'NEED_SETTLEMENT')
-        <div class="bg-amber-50 border border-amber-300 rounded-xl p-5 shadow-sm">
-            <div class="flex items-start space-x-3.5">
-                <div class="w-10 h-10 rounded-lg bg-amber-200 border border-amber-300 text-amber-900 flex items-center justify-center flex-shrink-0">
-                    <i data-lucide="receipt-refund" class="w-5 h-5"></i>
+        <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4" x-data="{ copied: false }">
+            <div class="flex items-start gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-900 flex items-center justify-center flex-shrink-0 shadow-2xs">
+                    <i data-lucide="receipt-refund" class="w-6 h-6 text-amber-800"></i>
                 </div>
-                <div class="space-y-2 flex-grow">
-                    <h3 class="text-sm font-bold text-amber-950 uppercase tracking-wide">Kewajiban Pengembalian Sisa Dana (Refund)</h3>
-                    <p class="text-xs text-amber-900 leading-relaxed">
-                        Proyek telah selesai atau masa aktif telah habis dengan sisa saldo kas sebesar <strong class="font-mono">Rp {{ number_format($cashAdvance->current_balance, 0, ',', '.') }}</strong>. Sesuai aturan tata kelola, Anda wajib mentransfer sisa kas ke rekening kantor dan mengunggah bukti transfer dalam waktu <strong>3 hari kerja</strong>.
-                    </p>
-                    <div class="p-3 bg-white rounded-lg border border-amber-200 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                        <div>
-                            <span class="text-slate-400 block text-[10px] font-bold uppercase">Bank Kantor:</span>
-                            <span class="font-bold text-slate-800">{{ \App\Models\SystemSetting::get('company_bank_name', 'BCA') }}</span>
-                        </div>
-                        <div>
-                            <span class="text-slate-400 block text-[10px] font-bold uppercase">No. Rekening:</span>
-                            <span class="font-mono font-bold text-slate-900 text-sm">{{ \App\Models\SystemSetting::get('company_bank_account', '712-888-9900') }}</span>
-                        </div>
-                        <div>
-                            <span class="text-slate-400 block text-[10px] font-bold uppercase">Atas Nama:</span>
-                            <span class="font-bold text-slate-800">{{ \App\Models\SystemSetting::get('company_bank_holder', 'PT Technodrives Indonesia') }}</span>
-                        </div>
+                <div class="space-y-1.5 flex-grow">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h3 class="text-sm sm:text-base font-bold text-amber-950 uppercase tracking-wide">
+                            Kewajiban Pengembalian Sisa Dana (Refund)
+                        </h3>
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-200 border border-amber-300 text-amber-900 text-[10px] font-bold uppercase tracking-wider">
+                            Wajib Settlement Segera
+                        </span>
                     </div>
+                    <p class="text-xs sm:text-sm text-amber-900 leading-relaxed">
+                        Proyek telah selesai atau masa aktif telah habis dengan sisa saldo kas sebesar <strong class="font-mono text-amber-950 font-bold bg-amber-200/60 px-1.5 py-0.5 rounded">Rp {{ number_format($cashAdvance->current_balance, 0, ',', '.') }}</strong>. Sesuai aturan tata kelola, Anda wajib mentransfer sisa kas ke rekening kantor dan mengunggah bukti transfer dalam waktu <strong>3 hari kerja</strong>.
+                    </p>
                 </div>
             </div>
+
+            <!-- Rekening Bank Kantor Card -->
+            <div class="p-4 bg-white rounded-xl border border-amber-200 shadow-2xs grid grid-cols-1 sm:grid-cols-3 gap-3.5 text-xs">
+                <div class="space-y-0.5">
+                    <span class="text-slate-400 block text-[10px] font-bold uppercase tracking-wider">Bank Kantor:</span>
+                    <span class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                        <i data-lucide="building-2" class="w-4 h-4 text-blue-600"></i>
+                        <span>{{ \App\Models\SystemSetting::get('company_bank_name', 'Bank Central Asia (BCA)') }}</span>
+                    </span>
+                </div>
+                <div class="space-y-0.5">
+                    <span class="text-slate-400 block text-[10px] font-bold uppercase tracking-wider">No. Rekening:</span>
+                    <div class="flex items-center gap-2">
+                        <span class="font-mono font-bold text-slate-950 text-base sm:text-lg tracking-tight select-all">
+                            {{ \App\Models\SystemSetting::get('company_bank_account', '712-888-9900') }}
+                        </span>
+                        <button type="button" 
+                            @click="navigator.clipboard.writeText('{{ preg_replace('/[^0-9]/', '', \App\Models\SystemSetting::get('company_bank_account', '7128889900')) }}'); copied = true; setTimeout(() => copied = false, 2500)"
+                            class="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold transition active:scale-95"
+                            title="Salin Nomor Rekening">
+                            <i data-lucide="copy" class="w-3 h-3" x-show="!copied"></i>
+                            <i data-lucide="check" class="w-3 h-3 text-emerald-600" x-show="copied" x-cloak></i>
+                            <span x-text="copied ? 'Tersalin!' : 'Salin'">Salin</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="space-y-0.5">
+                    <span class="text-slate-400 block text-[10px] font-bold uppercase tracking-wider">Atas Nama:</span>
+                    <span class="font-bold text-slate-900 text-sm block">
+                        {{ \App\Models\SystemSetting::get('company_bank_holder', 'PT TECHNODRIVES INDONESIA') }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Direct Upload Refund Action Button for CA Owner -->
+            @if($cashAdvance->user_id === auth()->id())
+                <div class="pt-3 border-t border-amber-200/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <div class="flex items-center gap-2 text-xs text-amber-900">
+                        <i data-lucide="info" class="w-4 h-4 text-amber-700 flex-shrink-0"></i>
+                        <span>Sudah melakukan transfer? Klik tombol di samping untuk mengunggah bukti transfer.</span>
+                    </div>
+                    <button type="button" @click="showRefundModal = true" class="btn-brand text-xs sm:text-sm py-2.5 px-5 w-full sm:w-auto inline-flex items-center justify-center gap-2 shadow-md active:scale-95 transition flex-shrink-0 font-bold">
+                        <i data-lucide="upload" class="w-4 h-4"></i>
+                        <span>Upload Bukti Transfer Refund Sisa Dana</span>
+                    </button>
+                </div>
+            @else
+                <div class="pt-3 border-t border-amber-200/80 flex items-center gap-2 text-xs text-amber-900">
+                    <i data-lucide="clock" class="w-4 h-4 text-amber-700 flex-shrink-0"></i>
+                    <span>Menunggu karyawan ({{ $cashAdvance->user->name }}) mentransfer sisa kas dan mengunggah bukti refund.</span>
+                </div>
+            @endif
         </div>
     @endif
 
