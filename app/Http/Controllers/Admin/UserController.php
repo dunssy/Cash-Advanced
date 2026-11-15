@@ -113,7 +113,8 @@ class UserController extends Controller
             'password' => ['required', 'string', 'min:6'],
             'role' => ['required', 'in:karyawan,atasan,finance,direktur,super_admin'],
             'manager_id' => ['nullable', 'exists:users,id'],
-            'department' => ['nullable', 'string', 'max:100'],
+            'department' => ['nullable'],
+            'departments' => ['nullable'],
             'phone' => ['nullable', 'string', 'max:20'],
             'bank_name' => ['nullable', 'string', 'max:50'],
             'bank_account_number' => ['nullable', 'string', 'max:50'],
@@ -145,6 +146,14 @@ class UserController extends Controller
             $avatarPath = $request->file('avatar')->store('avatars', 'public');
         }
 
+        $departmentsInput = $request->input('departments', $request->input('department'));
+        if (is_string($departmentsInput) && str_starts_with(trim($departmentsInput), '[') && str_ends_with(trim($departmentsInput), ']')) {
+            $departmentsInput = json_decode($departmentsInput, true);
+        }
+        if (is_array($departmentsInput)) {
+            $departmentsInput = array_slice(array_values(array_filter(array_map('trim', $departmentsInput))), 0, 10);
+        }
+
         // 3. Simpan entitas User baru ke basis data dengan enkripsi password (Bcrypt/Argon2)
         $user = User::create([
             'name' => $validated['name'],
@@ -152,7 +161,7 @@ class UserController extends Controller
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
             'manager_id' => $validated['manager_id'] ?: null,
-            'department' => $validated['department'],
+            'department' => $departmentsInput ?: null,
             'avatar' => $avatarPath,
             'phone' => $validated['phone'],
             'bank_name' => $validated['bank_name'],
@@ -222,7 +231,8 @@ class UserController extends Controller
             'password' => ['nullable', 'string', 'min:6'],
             'role' => ['required', 'in:karyawan,atasan,finance,direktur,super_admin'],
             'manager_id' => ['nullable', 'exists:users,id'],
-            'department' => ['nullable', 'string', 'max:100'],
+            'department' => ['nullable'],
+            'departments' => ['nullable'],
             'phone' => ['nullable', 'string', 'max:20'],
             'bank_name' => ['nullable', 'string', 'max:50'],
             'bank_account_number' => ['nullable', 'string', 'max:50'],
@@ -252,13 +262,21 @@ class UserController extends Controller
         // 3. Simpan data sebelum diperbarui untuk perbandingan jejak audit
         $oldValues = $user->toArray();
 
+        $departmentsInput = $request->input('departments', $request->input('department'));
+        if (is_string($departmentsInput) && str_starts_with(trim($departmentsInput), '[') && str_ends_with(trim($departmentsInput), ']')) {
+            $departmentsInput = json_decode($departmentsInput, true);
+        }
+        if (is_array($departmentsInput)) {
+            $departmentsInput = array_slice(array_values(array_filter(array_map('trim', $departmentsInput))), 0, 10);
+        }
+
         // 4. Siapkan array data yang akan diperbarui
         $data = [
             'name' => $validated['name'],
             'email' => $validated['email'],
             'role' => $validated['role'],
             'manager_id' => $validated['manager_id'] ?: null,
-            'department' => $validated['department'],
+            'department' => $departmentsInput ?: null,
             'phone' => $validated['phone'],
             'bank_name' => $validated['bank_name'],
             'bank_account_number' => $validated['bank_account_number'],

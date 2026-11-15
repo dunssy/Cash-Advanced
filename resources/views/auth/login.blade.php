@@ -101,34 +101,6 @@
                     Lupa Password?
                 </a>
             </div>
-
-            {{-- <!-- Quick Demo Login Switcher -->
-            <div class="mt-6 pt-5 border-t border-slate-100">
-                <p class="text-[11px] font-heading font-semibold text-bodygrey uppercase tracking-wider text-center mb-3">
-                    Akses Cepat Demo (1-Click Switch):
-                </p>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    @foreach($demoUsers as $demo)
-                        <form action="{{ route('quick-login') }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="user_id" value="{{ $demo->id }}">
-                            <button type="submit" class="w-full text-left p-2.5 rounded-[12px] border border-cardborder bg-surface/50 hover:bg-white hover:border-brand hover:shadow-sm transition flex items-center space-x-2.5 group cursor-pointer">
-                                <span class="w-2.5 h-2.5 rounded-full flex-shrink-0
-                                    {{ $demo->role === 'direktur' ? 'bg-[#FFC704]' : '' }}
-                                    {{ $demo->role === 'finance' ? 'bg-[#FF3C00]' : '' }}
-                                    {{ $demo->role === 'atasan' ? 'bg-[#050A1E]' : '' }}
-                                    {{ $demo->role === 'karyawan' ? 'bg-[#161A2B]' : '' }}
-                                    {{ $demo->role === 'super_admin' ? 'bg-[#FF3B00]' : '' }}
-                                "></span>
-                                <div class="overflow-hidden">
-                                    <span class="block text-xs font-semibold text-navy group-hover:text-brand transition truncate">{{ $demo->name }}</span>
-                                    <span class="block text-[10px] font-mono text-bodygrey uppercase">{{ $demo->role }}</span>
-                                </div>
-                            </button>
-                        </form>
-                    @endforeach
-                </div>
-            </div> --}}
         </div>
 
         <div class="text-center mt-5 text-[11px] text-slate-400 font-normal">

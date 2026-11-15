@@ -21,7 +21,6 @@ Route::get('/', function () {
 // Authentication
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/quick-login', [AuthController::class, 'quickLogin'])->name('quick-login');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Protected Routes

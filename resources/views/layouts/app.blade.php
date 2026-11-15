@@ -69,7 +69,7 @@
                         <span class="truncate">{{ auth()->user()->name }}</span>
                         <i data-lucide="user-cog" class="w-3.5 h-3.5 text-slate-400 group-hover:text-[#FF3C00] flex-shrink-0 ml-1"></i>
                     </div>
-                    <div class="flex items-center space-x-1 mt-0.5">
+                    <div class="flex items-center flex-wrap gap-1 mt-1">
                         <span class="text-[9px] font-head uppercase font-bold px-2 py-0.5 rounded-full
                             {{ auth()->user()->role === 'direktur' ? 'bg-[#FFC704] text-[#050A1E]' : '' }}
                             {{ auth()->user()->role === 'finance' ? 'bg-white/20 text-white' : '' }}
@@ -77,7 +77,16 @@
                             {{ auth()->user()->role === 'karyawan' ? 'bg-white/10 text-slate-300' : '' }}
                             {{ auth()->user()->role === 'super_admin' ? 'bg-[#FF3C00] text-white' : '' }}
                         ">{{ auth()->user()->role }}</span>
-                        <span class="text-[9px] text-slate-400 truncate">{{ auth()->user()->department ?: 'Staff' }}</span>
+                        @if(!empty(auth()->user()->departments))
+                            @foreach(array_slice(auth()->user()->departments, 0, 2) as $dept)
+                                <span class="text-[9px] text-slate-300 bg-white/10 px-1.5 py-0.5 rounded font-head truncate max-w-[110px]" title="Tag: {{ $dept }}">Tag: {{ $dept }}</span>
+                            @endforeach
+                            @if(count(auth()->user()->departments) > 2)
+                                <span class="text-[8px] text-slate-400 font-head">+{{ count(auth()->user()->departments) - 2 }}</span>
+                            @endif
+                        @else
+                            <span class="text-[9px] text-slate-400 truncate">Staff</span>
+                        @endif
                     </div>
                 </div>
             </a>
@@ -217,38 +226,8 @@
 
             </div>
 
-            <!-- Sidebar Footer: 1-Click Demo Switcher + Logout -->
-            <div class="p-3 border-t border-[#161A2B] bg-[#050A1E]/80 space-y-2">
-                <div x-data="{ openDemoSide: false }" x-show="!sidebarCollapsed">
-                    <button @click="openDemoSide = !openDemoSide" type="button" 
-                        class="w-full py-1.5 px-2.5 rounded-lg bg-[#161A2B] hover:bg-white/10 text-[#FF3C00] border border-[#FF3C00]/30 text-xs font-semibold flex items-center justify-between transition cursor-pointer">
-                        <span class="flex items-center space-x-1.5">
-                            <i data-lucide="user-cog" class="w-3.5 h-3.5"></i>
-                            <span class="font-head text-[10px] uppercase font-bold">Ganti Akun Demo</span>
-                        </span>
-                        <i data-lucide="chevron-down" class="w-3 h-3 transition-transform" :class="{ 'rotate-180': openDemoSide }"></i>
-                    </button>
-                    <div x-show="openDemoSide" x-cloak class="mt-2 space-y-1 max-h-40 overflow-y-auto pr-0.5">
-                        @foreach(\App\Models\User::orderBy('role')->get() as $u)
-                            <form action="{{ route('quick-login') }}" method="POST" class="m-0">
-                                @csrf
-                                <input type="hidden" name="user_id" value="{{ $u->id }}">
-                                <button type="submit" 
-                                    class="w-full text-left p-1.5 rounded-lg border transition flex items-center justify-between cursor-pointer {{ $u->id === auth()->id() ? 'border-[#FF3C00] bg-[#161A2B] font-bold text-white' : 'border-white/5 bg-white/5 text-slate-300 hover:bg-white/10' }}">
-                                    <span class="text-[11px] truncate">{{ $u->name }}</span>
-                                    <span class="text-[9px] uppercase font-bold px-1.5 py-0.2 rounded font-head
-                                        {{ $u->role === 'direktur' ? 'bg-[#FFC704] text-[#050A1E]' : '' }}
-                                        {{ $u->role === 'finance' ? 'bg-white text-[#050A1E]' : '' }}
-                                        {{ $u->role === 'atasan' ? 'bg-[#050A1E] text-white border border-white/20' : '' }}
-                                        {{ $u->role === 'karyawan' ? 'bg-slate-700 text-white' : '' }}
-                                        {{ $u->role === 'super_admin' ? 'bg-[#FF3C00] text-white' : '' }}
-                                    ">{{ $u->role }}</span>
-                                </button>
-                            </form>
-                        @endforeach
-                    </div>
-                </div>
-
+            <!-- Sidebar Footer: Logout Button -->
+            <div class="p-3 border-t border-[#161A2B] bg-[#050A1E]/80">
                 <form action="{{ route('logout') }}" method="POST">
                     @csrf
                     <button type="submit" 
@@ -301,74 +280,6 @@
 
                 <!-- User & Notifications Controls -->
                 <div class="flex items-center space-x-2 sm:space-x-3">
-                    <!-- Quick Demo Switcher Navbar Button (Always Accessible in 1 Click) -->
-                    <div class="relative hidden sm:block" x-data="{ openDemo: false }" @click.outside="openDemo = false" @keydown.escape.window="openDemo = false">
-                        <button @click="openDemo = !openDemo" type="button" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-[#161A2B] hover:bg-white/10 text-[#FF3C00] border border-[#FF3C00]/40 hover:border-[#FF3C00] text-xs font-semibold transition" title="Ganti Akun Demo (5 Role)">
-                            <i data-lucide="user-cog" class="w-3.5 h-3.5 text-[#FF3C00]"></i>
-                            <span class="font-head text-[11px] uppercase tracking-wider font-bold">Demo Switch</span>
-                            <i data-lucide="chevron-down" class="w-3 h-3 transition-transform duration-150" :class="{ 'rotate-180': openDemo }"></i>
-                        </button>
-
-                        <!-- Dropdown Menu for Quick Switcher -->
-                        <div x-show="openDemo" x-cloak @click.stop
-                            x-transition:enter="transition ease-out duration-150 transform"
-                            x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
-                            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                            x-transition:leave="transition ease-in duration-100 transform"
-                            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-                            x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
-                            class="absolute right-0 mt-2 w-72 rounded-xl shadow-2xl bg-white text-[#050A1E] border-y-[3px] border-[#FF3C00] py-2 z-50">
-                            <div class="px-3.5 py-2 border-b border-slate-100 bg-[#F4F4F4] flex items-center justify-between">
-                                <span class="text-[10px] font-bold text-[#050A1E] uppercase tracking-wider flex items-center space-x-1 font-head">
-                                    <i data-lucide="shield-check" class="w-3.5 h-3.5 text-[#FF3C00]"></i>
-                                    <span>Pilih Akun Demo:</span>
-                                </span>
-                                <span class="text-[10px] font-head text-[#FF3C00] font-bold uppercase">{{ auth()->user()->role }}</span>
-                            </div>
-                            <div class="p-2 space-y-1.5 max-h-72 overflow-y-auto">
-                                @foreach(\App\Models\User::orderBy('role')->get() as $u)
-                                    <form action="{{ route('quick-login') }}" method="POST" class="m-0">
-                                        @csrf
-                                        <input type="hidden" name="user_id" value="{{ $u->id }}">
-                                        <button type="submit" 
-                                            class="w-full text-left p-2 rounded-xl border transition flex items-center justify-between group
-                                            {{ $u->id === auth()->id() ? 'border-[#FF3C00] bg-orange-50/70 ring-1 ring-[#FF3C00]/30' : 'border-slate-200 bg-white hover:border-[#FF3C00] hover:bg-[#F4F4F4]' }}">
-                                            <div class="flex items-center space-x-2.5 min-w-0">
-                                                <span class="w-7 h-7 rounded-lg text-xs font-head font-bold flex items-center justify-center flex-shrink-0
-                                                    {{ $u->role === 'direktur' ? 'bg-[#050A1E] text-[#FFC704]' : '' }}
-                                                    {{ $u->role === 'finance' ? 'bg-[#161A2B] text-white' : '' }}
-                                                    {{ $u->role === 'atasan' ? 'bg-[#050A1E] text-white' : '' }}
-                                                    {{ $u->role === 'karyawan' ? 'bg-[#F4F4F4] text-[#050A1E] border border-slate-300' : '' }}
-                                                    {{ $u->role === 'super_admin' ? 'bg-[#FF3C00] text-white' : '' }}
-                                                ">
-                                                    {{ strtoupper(substr($u->name, 0, 1)) }}
-                                                </span>
-                                                <div class="min-w-0">
-                                                    <div class="flex items-center space-x-1">
-                                                        <p class="text-xs font-bold text-[#050A1E] truncate group-hover:text-[#FF3C00] transition leading-tight font-head">{{ $u->name }}</p>
-                                                        @if($u->id === auth()->id())
-                                                            <span class="text-[9px] text-[#FF3C00] font-bold font-head">(Aktif)</span>
-                                                        @endif
-                                                    </div>
-                                                    <span class="text-[10px] text-[#7A7A7A] block truncate font-body">{{ $u->department ?: $u->email }}</span>
-                                                </div>
-                                            </div>
-                                            <span class="text-[9px] font-head uppercase font-bold tracking-wider px-2 py-0.5 rounded-full flex-shrink-0 ml-2
-                                                {{ $u->role === 'direktur' ? 'bg-[#FFC704] text-[#050A1E]' : '' }}
-                                                {{ $u->role === 'finance' ? 'bg-[#161A2B] text-white' : '' }}
-                                                {{ $u->role === 'atasan' ? 'bg-[#050A1E] text-white' : '' }}
-                                                {{ $u->role === 'karyawan' ? 'bg-[#F4F4F4] text-[#7A7A7A] border border-[#E1E1E1]' : '' }}
-                                                {{ $u->role === 'super_admin' ? 'bg-[#FF3C00] text-white' : '' }}
-                                            ">
-                                                {{ $u->role }}
-                                            </span>
-                                        </button>
-                                    </form>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Notifications Dropdown -->
                     <div class="relative" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
                         <button @click="open = !open" type="button" class="p-2 rounded-lg hover:bg-white/10 relative text-slate-200 focus:outline-none transition">
@@ -478,13 +389,18 @@
                                 <div class="min-w-0 flex-1">
                                     <p class="text-xs font-bold text-[#050A1E] font-head truncate">{{ auth()->user()->name }}</p>
                                     <p class="text-[11px] font-mono text-[#7A7A7A] truncate">{{ auth()->user()->email }}</p>
-                                    <span class="text-[9px] font-head uppercase font-bold tracking-wider px-2 py-0.5 rounded-full inline-block mt-0.5
-                                        {{ auth()->user()->role === 'direktur' ? 'bg-[#FFC704] text-[#050A1E]' : '' }}
-                                        {{ auth()->user()->role === 'finance' ? 'bg-[#161A2B] text-white' : '' }}
-                                        {{ auth()->user()->role === 'atasan' ? 'bg-[#050A1E] text-white' : '' }}
-                                        {{ auth()->user()->role === 'karyawan' ? 'bg-[#F4F4F4] text-[#050A1E] border border-cardborder' : '' }}
-                                        {{ auth()->user()->role === 'super_admin' ? 'bg-[#FF3C00] text-white' : '' }}
-                                    ">{{ auth()->user()->role }}</span>
+                                    <div class="flex flex-wrap items-center gap-1 mt-1">
+                                        <span class="text-[9px] font-head uppercase font-bold tracking-wider px-2 py-0.5 rounded-full inline-block
+                                            {{ auth()->user()->role === 'direktur' ? 'bg-[#FFC704] text-[#050A1E]' : '' }}
+                                            {{ auth()->user()->role === 'finance' ? 'bg-[#161A2B] text-white' : '' }}
+                                            {{ auth()->user()->role === 'atasan' ? 'bg-[#050A1E] text-white' : '' }}
+                                            {{ auth()->user()->role === 'karyawan' ? 'bg-[#F4F4F4] text-[#050A1E] border border-cardborder' : '' }}
+                                            {{ auth()->user()->role === 'super_admin' ? 'bg-[#FF3C00] text-white' : '' }}
+                                        ">{{ auth()->user()->role }}</span>
+                                        @foreach(auth()->user()->departments as $dept)
+                                            <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white text-[#050A1E] border border-cardborder">Tag: {{ $dept }}</span>
+                                        @endforeach
+                                    </div>
                                 </div>
                             </div>
 
@@ -494,57 +410,6 @@
                                     <i data-lucide="user-cog" class="w-4 h-4 text-[#FF3C00] group-hover:text-white transition"></i>
                                     <span>Pengaturan Profil (Biodata & Foto)</span>
                                 </a>
-                            </div>
-
-                            <!-- Role Switcher Quick Actions for Demo (1-Click Buttons) -->
-                            <div class="px-3 py-2.5 bg-[#F4F4F4]/50 border-b border-slate-100">
-                                <div class="flex items-center justify-between mb-2">
-                                    <span class="text-[10px] font-bold text-[#050A1E] uppercase tracking-wider flex items-center space-x-1 font-head">
-                                        <i data-lucide="users" class="w-3 h-3 text-[#FF3C00]"></i>
-                                        <span>Ganti Akun Cepat (Demo):</span>
-                                    </span>
-                                    <span class="text-[9px] font-head text-[#FF3C00] font-bold bg-white px-2 py-0.5 rounded-full border border-[#FF3C00]/30">1-Klik</span>
-                                </div>
-                                <div class="space-y-1.5 max-h-56 overflow-y-auto pr-0.5">
-                                    @foreach(\App\Models\User::orderBy('role')->get() as $u)
-                                        @if($u->id !== auth()->id())
-                                            <form action="{{ route('quick-login') }}" method="POST" class="m-0">
-                                                @csrf
-                                                <input type="hidden" name="user_id" value="{{ $u->id }}">
-                                                <button type="submit" class="w-full text-left p-2 rounded-xl border border-cardborder bg-white hover:border-[#FF3C00] hover:bg-[#F4F4F4] transition flex items-center justify-between group cursor-pointer">
-                                                    <div class="flex items-center space-x-2 min-w-0">
-                                                        @if($u->avatar_url)
-                                                            <img src="{{ $u->avatar_url }}" alt="{{ $u->name }}" class="w-6 h-6 rounded-lg object-cover flex-shrink-0 border border-slate-200">
-                                                        @else
-                                                            <span class="w-6 h-6 rounded-lg text-[10px] font-head font-bold flex items-center justify-center flex-shrink-0
-                                                                {{ $u->role === 'direktur' ? 'bg-[#050A1E] text-[#FFC704]' : '' }}
-                                                                {{ $u->role === 'finance' ? 'bg-[#161A2B] text-white' : '' }}
-                                                                {{ $u->role === 'atasan' ? 'bg-[#050A1E] text-white' : '' }}
-                                                                {{ $u->role === 'karyawan' ? 'bg-[#F4F4F4] text-[#050A1E] border border-cardborder' : '' }}
-                                                                {{ $u->role === 'super_admin' ? 'bg-[#FF3C00] text-white' : '' }}
-                                                            ">
-                                                                {{ strtoupper(substr($u->name, 0, 1)) }}
-                                                            </span>
-                                                        @endif
-                                                        <div class="min-w-0">
-                                                            <p class="text-xs font-bold text-[#050A1E] truncate group-hover:text-[#FF3C00] transition leading-tight font-head">{{ $u->name }}</p>
-                                                            <span class="text-[10px] text-bodygrey block truncate font-body">{{ $u->department ?: $u->email }}</span>
-                                                        </div>
-                                                    </div>
-                                                    <span class="text-[9px] font-head uppercase font-bold tracking-wider px-2 py-0.5 rounded-full flex-shrink-0 ml-2
-                                                        {{ $u->role === 'direktur' ? 'bg-[#FFC704] text-[#050A1E]' : '' }}
-                                                        {{ $u->role === 'finance' ? 'bg-[#161A2B] text-white' : '' }}
-                                                        {{ $u->role === 'atasan' ? 'bg-[#050A1E] text-white' : '' }}
-                                                        {{ $u->role === 'karyawan' ? 'bg-[#F4F4F4] text-[#7A7A7A] border border-[#E1E1E1]' : '' }}
-                                                        {{ $u->role === 'super_admin' ? 'bg-[#FF3C00] text-white' : '' }}
-                                                    ">
-                                                        {{ $u->role }}
-                                                    </span>
-                                                </button>
-                                            </form>
-                                        @endif
-                                    @endforeach
-                                </div>
                             </div>
 
                             <form action="{{ route('logout') }}" method="POST" class="mt-1">
@@ -616,7 +481,7 @@
                                 <span class="truncate">{{ auth()->user()->name }}</span>
                                 <i data-lucide="user-cog" class="w-3.5 h-3.5 text-slate-400 group-hover:text-[#FF3C00] flex-shrink-0 ml-1"></i>
                             </div>
-                            <div class="flex items-center space-x-1.5 mt-0.5">
+                            <div class="flex flex-wrap items-center gap-1 mt-1">
                                 <span class="badge-retail text-[10px] uppercase font-bold
                                     {{ auth()->user()->role === 'direktur' ? 'bg-[#FFC704] text-[#050A1E]' : '' }}
                                     {{ auth()->user()->role === 'finance' ? 'bg-[#161A2B] text-white' : '' }}
@@ -626,7 +491,9 @@
                                 ">
                                     {{ auth()->user()->role }}
                                 </span>
-                                <span class="text-[10px] text-[#7A7A7A] truncate font-body">{{ auth()->user()->department ?: 'Staff' }}</span>
+                                @foreach(auth()->user()->departments as $dept)
+                                    <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-[#050A1E] border border-slate-200">Tag: {{ $dept }}</span>
+                                @endforeach
                             </div>
                         </div>
                     </a>
@@ -700,43 +567,6 @@
 
 
                     </nav>
-
-                    <!-- 1-Click Role Switcher in Drawer (Mobile) -->
-                    <div class="p-3 mt-2 border-t border-cardborder bg-[#F4F4F4]">
-                        <p class="text-[10px] font-head font-bold uppercase tracking-wider text-[#050A1E] mb-2 flex items-center justify-between">
-                            <span>Ganti Akun Demo (1-Klik):</span>
-                            <span class="text-[9px] font-head text-[#FF3C00] font-bold">5 Role</span>
-                        </p>
-                        <div class="space-y-1.5 max-h-48 overflow-y-auto pr-0.5">
-                            @foreach(\App\Models\User::orderBy('role')->get() as $u)
-                                <form action="{{ route('quick-login') }}" method="POST" class="m-0">
-                                    @csrf
-                                    <input type="hidden" name="user_id" value="{{ $u->id }}">
-                                    <button type="submit" class="w-full text-left p-2 rounded-xl border transition flex items-center justify-between cursor-pointer {{ $u->id === auth()->id() ? 'border-[#FF3C00] bg-white font-bold ring-1 ring-[#FF3C00]/30' : 'border-cardborder bg-white hover:border-[#FF3C00]' }}">
-                                        <div class="flex items-center space-x-2 min-w-0">
-                                            <span class="w-6 h-6 rounded-lg text-[10px] font-head font-bold flex items-center justify-center flex-shrink-0
-                                                {{ $u->role === 'direktur' ? 'bg-[#050A1E] text-[#FFC704]' : '' }}
-                                                {{ $u->role === 'finance' ? 'bg-[#161A2B] text-white' : '' }}
-                                                {{ $u->role === 'atasan' ? 'bg-[#050A1E] text-white' : '' }}
-                                                {{ $u->role === 'karyawan' ? 'bg-[#F4F4F4] text-[#050A1E] border border-cardborder' : '' }}
-                                                {{ $u->role === 'super_admin' ? 'bg-[#FF3C00] text-white' : '' }}
-                                            ">{{ strtoupper(substr($u->name, 0, 1)) }}</span>
-                                            <div class="min-w-0">
-                                                <p class="text-xs font-head font-semibold text-[#050A1E] truncate leading-tight">{{ $u->name }}</p>
-                                            </div>
-                                        </div>
-                                        <span class="text-[9px] font-head uppercase font-bold px-2 py-0.5 rounded-full
-                                            {{ $u->role === 'direktur' ? 'bg-[#FFC704] text-[#050A1E]' : '' }}
-                                            {{ $u->role === 'finance' ? 'bg-[#161A2B] text-white' : '' }}
-                                            {{ $u->role === 'atasan' ? 'bg-[#050A1E] text-white' : '' }}
-                                            {{ $u->role === 'karyawan' ? 'bg-[#F4F4F4] text-[#7A7A7A] border border-cardborder' : '' }}
-                                            {{ $u->role === 'super_admin' ? 'bg-[#FF3C00] text-white' : '' }}
-                                        ">{{ $u->role }}</span>
-                                    </button>
-                                </form>
-                            @endforeach
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Drawer Footer Logout -->

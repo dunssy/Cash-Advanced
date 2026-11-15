@@ -76,7 +76,8 @@ class ProfileController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'unique:users,email,' . $user->id],
             'phone' => ['nullable', 'string', 'max:20'],
-            'department' => ['nullable', 'string', 'max:100'],
+            'department' => ['nullable'],
+            'departments' => ['nullable'],
             'bank_name' => ['nullable', 'string', 'max:50'],
             'bank_account_number' => ['nullable', 'string', 'max:50'],
             'bank_account_holder' => ['nullable', 'string', 'max:100'],
@@ -100,12 +101,21 @@ class ProfileController extends Controller
         $oldValues = $user->toArray();
 
         // 2. Siapkan data biodata yang diizinkan untuk diperbarui secara mandiri
+        // Pemrosesan tag divisi (maksimal 10 divisi dicantumkan sebagai nama tag)
+        $departmentsInput = $request->input('departments', $request->input('department'));
+        if (is_string($departmentsInput) && str_starts_with(trim($departmentsInput), '[') && str_ends_with(trim($departmentsInput), ']')) {
+            $departmentsInput = json_decode($departmentsInput, true);
+        }
+        if (is_array($departmentsInput)) {
+            $departmentsInput = array_slice(array_values(array_filter(array_map('trim', $departmentsInput))), 0, 10);
+        }
+
         // Perhatikan: 'role' sengaja TIDAK dimasukkan agar tidak dapat diubah oleh user sendiri.
         $data = [
             'name' => $validated['name'],
             'email' => $validated['email'],
             'phone' => $validated['phone'] ?? null,
-            'department' => $validated['department'] ?? null,
+            'department' => $departmentsInput ?: null,
             'bank_name' => $validated['bank_name'] ?? null,
             'bank_account_number' => $validated['bank_account_number'] ?? null,
             'bank_account_holder' => $validated['bank_account_holder'] ?? null,

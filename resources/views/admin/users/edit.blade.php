@@ -85,16 +85,70 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1">Departemen / Divisi</label>
-                    <input type="text" name="department" value="{{ old('department', $user->department) }}"
-                        class="w-full input-commerce">
+            <div>
+                <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1">Nomor WhatsApp / HP</label>
+                <input type="text" name="phone" value="{{ old('phone', $user->phone) }}"
+                    class="w-full input-commerce font-mono">
+            </div>
+
+            <!-- Tag Divisi / Departemen (Maksimal 10 Divisi dengan format Tag: [Nama Divisi]) -->
+            <div x-data="{
+                tags: {{ json_encode(old('departments', $user->departments ?? [])) }},
+                newTag: '',
+                maxTags: 10,
+                addTag() {
+                    let val = this.newTag.trim();
+                    if (!val) return;
+                    if (this.tags.length >= this.maxTags) return;
+                    if (!this.tags.includes(val)) {
+                        this.tags.push(val);
+                    }
+                    this.newTag = '';
+                },
+                removeTag(index) {
+                    this.tags.splice(index, 1);
+                }
+            }" class="space-y-2 pt-2 border-t border-slate-100">
+                <input type="hidden" name="departments" value="">
+                <div class="flex items-center justify-between">
+                    <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider">
+                        Tag Departemen / Divisi <span class="text-[#FF3C00] font-normal normal-case text-[11px]">(Maks. 10 Divisi)</span>
+                    </label>
+                    <span class="text-[11px] font-mono px-2 py-0.5 rounded-full font-bold"
+                        :class="tags.length >= maxTags ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'"
+                        x-text="tags.length + ' / ' + maxTags + ' Divisi'">
+                    </span>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1">Nomor WhatsApp / HP</label>
-                    <input type="text" name="phone" value="{{ old('phone', $user->phone) }}"
-                        class="w-full input-commerce font-mono">
+
+                <!-- Tag Badges Display -->
+                <div class="flex flex-wrap gap-1.5 min-h-[40px] p-2 bg-slate-50 rounded-lg border border-slate-200 items-center">
+                    <template x-for="(tag, index) in tags" :key="index">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-medium bg-[#050A1E] text-white shadow-sm border border-[#050A1E]">
+                            <span class="text-[#FFC704] font-bold">Tag:</span>
+                            <span x-text="tag"></span>
+                            <button type="button" @click="removeTag(index)" class="text-slate-400 hover:text-[#FF3C00] ml-1 transition font-bold" title="Hapus tag">&times;</button>
+                            <input type="hidden" name="departments[]" :value="tag">
+                        </span>
+                    </template>
+                    <span x-show="tags.length === 0" class="text-xs text-slate-400 italic py-1 px-1">
+                        Belum ada tag divisi. Masukkan nama divisi di bawah ini (maksimal 10 divisi).
+                    </span>
+                </div>
+
+                <!-- Input to Add New Tag -->
+                <div class="flex items-center gap-2">
+                    <div class="relative flex-1">
+                        <input type="text" x-model="newTag" @keydown.enter.prevent="addTag()"
+                            placeholder="Ketik nama divisi lalu tekan Enter atau klik Tambah Tag..."
+                            :disabled="tags.length >= maxTags"
+                            class="w-full input-commerce text-xs py-1.5 disabled:bg-slate-100 disabled:cursor-not-allowed">
+                    </div>
+                    <button type="button" @click="addTag()"
+                        :disabled="tags.length >= maxTags || !newTag.trim()"
+                        class="px-3 py-1.5 bg-[#161A2B] hover:bg-[#FF3C00] text-white text-xs font-bold rounded-lg transition flex items-center space-x-1.5 disabled:opacity-40 disabled:hover:bg-[#161A2B] disabled:cursor-not-allowed cursor-pointer flex-shrink-0 shadow-sm">
+                        <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                        <span>Tambah Tag</span>
+                    </button>
                 </div>
             </div>
 

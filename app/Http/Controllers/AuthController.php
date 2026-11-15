@@ -25,9 +25,7 @@ class AuthController extends Controller
      * Menampilkan halaman login sistem.
      *
      * Jika pengguna sudah dalam keadaan terautentikasi (logged-in), maka akan langsung dialihkan
-     * ke halaman dashboard utama. Untuk mempermudah demonstrasi dan pengujian alur peran
-     * (Karyawan, Atasan, Finance, Direktur, Super Admin), daftar user diurutkan secara hierarkis
-     * dan dikirimkan ke view login.
+     * ke halaman dashboard utama.
      *
      * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
@@ -39,21 +37,8 @@ class AuthController extends Controller
             return redirect()->route('dashboard');
         }
 
-        // 2. Ambil daftar user demo untuk pengujian multi-role
-        // Urutan peran: Karyawan -> Atasan -> Finance -> Direktur -> Super Admin
-        $demoUsers = User::orderByRaw("
-            CASE role 
-                WHEN 'karyawan' THEN 1 
-                WHEN 'atasan' THEN 2 
-                WHEN 'finance' THEN 3 
-                WHEN 'direktur' THEN 4 
-                WHEN 'super_admin' THEN 5 
-                ELSE 6 
-            END
-        ")->get();
-
-        // 3. Tampilkan antarmuka login beserta opsi user demo
-        return view('auth.login', compact('demoUsers'));
+        // 2. Tampilkan antarmuka login
+        return view('auth.login');
     }
 
     /**
@@ -100,39 +85,6 @@ class AuthController extends Controller
         return back()->withErrors([
             'email' => 'Email atau password yang Anda masukkan salah.',
         ])->onlyInput('email');
-    }
-
-    /**
-     * Memfasilitasi perpindahan sesi akun demo secara instan (Quick Login).
-     *
-     * Fitur ini sangat krusial selama fase pengembangan dan peninjauan sistem untuk
-     * menguji alur kerja multi-tier (misal: pengajuan oleh Karyawan -> persetujuan Atasan ->
-     * verifikasi Finance -> pengawasan Direktur) tanpa harus mengetik password berulang kali.
-     *
-     * @param  \Illuminate\Http\Request  $request Objek HTTP Request yang memuat user_id tujuan.
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function quickLogin(Request $request): RedirectResponse
-    {
-        // 1. Validasi keberadaan user_id yang dipilih
-        $request->validate([
-            'user_id' => ['required', 'exists:users,id'],
-        ]);
-
-        // 2. Temukan user dan lakukan proses login manual
-        $user = User::findOrFail($request->user_id);
-        Auth::login($user);
-
-        // 3. Regenerasi sesi untuk integritas keamanan sesi baru
-        $request->session()->regenerate();
-
-        // 4. Catat perpindahan akun ke Audit Log untuk transparansi sistem
-        AuditLog::record('QUICK_LOGIN', $user, "Quick switch login sebagai {$user->name} ({$user->role}).");
-
-        // 5. Alihkan ke dashboard utama dengan notifikasi sukses
-        return redirect()->route('dashboard')
-            ->with('success', "Berhasil masuk sebagai {$user->name} ({$user->role}).")
-            ->with('login_loader', true);
     }
 
     /**

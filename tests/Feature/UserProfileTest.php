@@ -114,4 +114,66 @@ class UserProfileTest extends TestCase
         $user->refresh();
         $this->assertNull($user->avatar);
     }
+
+    public function test_user_can_set_and_update_division_tags_up_to_10(): void
+    {
+        $user = User::where('role', 'karyawan')->first();
+        $this->actingAs($user);
+
+        $divisions = ['IT Systems', 'Network Engineering', 'Cloud Ops', 'Support'];
+
+        $response = $this->put('/profile', [
+            'name' => $user->name,
+            'email' => $user->email,
+            'departments' => $divisions,
+        ]);
+
+        $response->assertSessionHas('success');
+        $user->refresh();
+
+        $this->assertCount(4, $user->departments);
+        $this->assertEquals($divisions, $user->departments);
+        $this->assertEquals(['Tag: IT Systems', 'Tag: Network Engineering', 'Tag: Cloud Ops', 'Tag: Support'], $user->department_tags);
+        $this->assertEquals('IT Systems, Network Engineering, Cloud Ops, Support', $user->department);
+    }
+
+    public function test_division_tags_capped_at_maximum_10(): void
+    {
+        $user = User::where('role', 'karyawan')->first();
+        $this->actingAs($user);
+
+        // Kirim 12 divisi (melebihi batas maksimal 10)
+        $twelveDivisions = [
+            'Divisi 1', 'Divisi 2', 'Divisi 3', 'Divisi 4', 'Divisi 5',
+            'Divisi 6', 'Divisi 7', 'Divisi 8', 'Divisi 9', 'Divisi 10',
+            'Divisi 11', 'Divisi 12'
+        ];
+
+        $response = $this->put('/profile', [
+            'name' => $user->name,
+            'email' => $user->email,
+            'departments' => $twelveDivisions,
+        ]);
+
+        $response->assertSessionHas('success');
+        $user->refresh();
+
+        // Pastikan dipotong maksimal 10
+        $this->assertCount(10, $user->departments);
+        $this->assertEquals('Divisi 10', $user->departments[9]);
+        $this->assertFalse(in_array('Divisi 11', $user->departments));
+        $this->assertFalse(in_array('Divisi 12', $user->departments));
+    }
+
+    public function test_quick_demo_login_is_removed(): void
+    {
+        $user = User::where('role', 'karyawan')->first();
+
+        $response = $this->post('/quick-login', [
+            'user_id' => $user->id,
+        ]);
+
+        // Route /quick-login harus 404 karena fitur demo sudah ditiadakan
+        $response->assertStatus(404);
+    }
 }

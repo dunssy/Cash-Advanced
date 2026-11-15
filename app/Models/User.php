@@ -93,6 +93,91 @@ class User extends Authenticatable
         return strtoupper(substr($this->name, 0, 2));
     }
 
+    /**
+     * Accessor untuk nilai string departemen (backward compatibility).
+     * Jika tersimpan sebagai array JSON, mengembalikan daftar nama divisi dipisah koma.
+     */
+    public function getDepartmentAttribute($value): ?string
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        if (is_string($value) && str_starts_with(trim($value), '[') && str_ends_with(trim($value), ']')) {
+            $decoded = json_decode($value, true);
+            if (is_array($decoded)) {
+                return implode(', ', $decoded);
+            }
+        }
+
+        return $value;
+    }
+
+    /**
+     * Mutator untuk kolom department.
+     * Menerima array tag divisi (maksimal 10), string JSON, atau string koma,
+     * dan menyimpannya secara terstandarisasi sebagai JSON array di basis data.
+     */
+    public function setDepartmentAttribute($value): void
+    {
+        if (is_array($value)) {
+            $tags = array_slice(array_values(array_filter(array_map('trim', $value))), 0, 10);
+            $this->attributes['department'] = !empty($tags) ? json_encode($tags, JSON_UNESCAPED_UNICODE) : null;
+            return;
+        }
+
+        if (is_string($value) && str_starts_with(trim($value), '[') && str_ends_with(trim($value), ']')) {
+            $decoded = json_decode($value, true);
+            if (is_array($decoded)) {
+                $tags = array_slice(array_values(array_filter(array_map('trim', $decoded))), 0, 10);
+                $this->attributes['department'] = !empty($tags) ? json_encode($tags, JSON_UNESCAPED_UNICODE) : null;
+                return;
+            }
+        }
+
+        if (is_string($value) && !empty(trim($value))) {
+            $parts = preg_split('/[,;]+/', $value);
+            $tags = array_slice(array_values(array_filter(array_map('trim', $parts))), 0, 10);
+            $this->attributes['department'] = !empty($tags) ? json_encode($tags, JSON_UNESCAPED_UNICODE) : null;
+            return;
+        }
+
+        $this->attributes['department'] = null;
+    }
+
+    /**
+     * Mendapatkan daftar tag divisi dalam bentuk array murni (maksimal 10 divisi).
+     *
+     * @return array<int, string>
+     */
+    public function getDepartmentsAttribute(): array
+    {
+        $raw = $this->attributes['department'] ?? null;
+        if (empty($raw)) {
+            return [];
+        }
+
+        if (str_starts_with(trim($raw), '[') && str_ends_with(trim($raw), ']')) {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                return array_slice(array_values(array_filter(array_map('trim', $decoded))), 0, 10);
+            }
+        }
+
+        $parts = preg_split('/[,;]+/', $raw);
+        return array_slice(array_values(array_filter(array_map('trim', $parts))), 0, 10);
+    }
+
+    /**
+     * Mendapatkan tag divisi dengan format nama tag (contoh: "Tag: Operasional").
+     *
+     * @return array<int, string>
+     */
+    public function getDepartmentTagsAttribute(): array
+    {
+        return array_map(fn($d) => 'Tag: ' . $d, $this->departments);
+    }
+
     // Role check helpers
     public function isSuperAdmin(): bool
     {

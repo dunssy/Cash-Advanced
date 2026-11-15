@@ -74,8 +74,16 @@
                                     <span class="text-slate-400 italic font-mono text-[11px]">Direksi (Puncak)</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-3 text-slate-700 whitespace-nowrap">
-                                {{ $u->department ?: '-' }}
+                            <td class="px-4 py-3 text-slate-700">
+                                <div class="flex flex-wrap gap-1 max-w-xs">
+                                    @forelse($u->departments as $dept)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-slate-100 text-[#050A1E] border border-slate-300">
+                                            <span class="text-[#FF3C00] font-bold mr-1">Tag:</span>{{ $dept }}
+                                        </span>
+                                    @empty
+                                        <span class="text-slate-400 font-mono text-xs">-</span>
+                                    @endforelse
+                                </div>
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap font-mono text-xs">
                                 @if($u->bank_name)
