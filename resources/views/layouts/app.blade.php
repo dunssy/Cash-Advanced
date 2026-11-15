@@ -587,34 +587,54 @@
         </div>
     </div>
 
-    <!-- Main Container -->
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 pb-8 md:pb-10">
-        <!-- Flash Messages -->
+    <!-- Main Container (Generous mobile pb-28 to prevent overlap with bottom navigation) -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-5 pb-28 sm:pb-32 md:pb-10">
+        <!-- Flash Messages (Compact & Dismissible) -->
         @if(session('success'))
-            <div class="mb-4 bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-lg shadow-sm flex items-start space-x-3">
-                <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5"></i>
-                <div class="text-xs text-emerald-950 font-medium leading-relaxed">{{ session('success') }}</div>
+            <div x-data="{ show: true }" x-show="show" x-transition class="mb-4 bg-emerald-50 border border-emerald-200 border-l-4 border-l-emerald-500 p-3 sm:p-4 rounded-xl shadow-sm flex items-center justify-between space-x-3">
+                <div class="flex items-center space-x-2.5 min-w-0">
+                    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                    <div class="text-xs text-emerald-950 font-medium leading-relaxed truncate sm:whitespace-normal">{{ session('success') }}</div>
+                </div>
+                <button type="button" @click="show = false" class="text-emerald-700 hover:text-emerald-900 p-1 rounded-lg hover:bg-emerald-100 transition flex-shrink-0 cursor-pointer" title="Tutup">
+                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                </button>
             </div>
         @endif
 
         @if(session('warning'))
-            <div class="mb-4 bg-amber-50 border-l-4 border-amber-500 p-4 rounded-lg shadow-sm flex items-start space-x-3">
-                <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5"></i>
-                <div class="text-xs text-amber-950 font-medium leading-relaxed">{{ session('warning') }}</div>
+            <div x-data="{ show: true }" x-show="show" x-transition class="mb-4 bg-amber-50 border border-amber-200 border-l-4 border-l-amber-500 p-3 sm:p-4 rounded-xl shadow-sm flex items-center justify-between space-x-3">
+                <div class="flex items-center space-x-2.5 min-w-0">
+                    <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-600 flex-shrink-0"></i>
+                    <div class="text-xs text-amber-950 font-medium leading-relaxed truncate sm:whitespace-normal">{{ session('warning') }}</div>
+                </div>
+                <button type="button" @click="show = false" class="text-amber-700 hover:text-amber-900 p-1 rounded-lg hover:bg-amber-100 transition flex-shrink-0 cursor-pointer" title="Tutup">
+                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                </button>
             </div>
         @endif
 
         @if(session('error'))
-            <div class="mb-4 bg-rose-50 border-l-4 border-rose-600 p-4 rounded-lg shadow-sm flex items-start space-x-3">
-                <i data-lucide="alert-octagon" class="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5"></i>
-                <div class="text-xs text-rose-950 font-medium leading-relaxed">{{ session('error') }}</div>
+            <div x-data="{ show: true }" x-show="show" x-transition class="mb-4 bg-rose-50 border border-rose-200 border-l-4 border-l-rose-600 p-3 sm:p-4 rounded-xl shadow-sm flex items-center justify-between space-x-3">
+                <div class="flex items-center space-x-2.5 min-w-0">
+                    <i data-lucide="alert-octagon" class="w-4 h-4 text-rose-600 flex-shrink-0"></i>
+                    <div class="text-xs text-rose-950 font-medium leading-relaxed truncate sm:whitespace-normal">{{ session('error') }}</div>
+                </div>
+                <button type="button" @click="show = false" class="text-rose-700 hover:text-rose-900 p-1 rounded-lg hover:bg-rose-100 transition flex-shrink-0 cursor-pointer" title="Tutup">
+                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                </button>
             </div>
         @endif
 
         @if(session('info'))
-            <div class="mb-4 bg-sky-50 border-l-4 border-sky-500 p-4 rounded-lg shadow-sm flex items-start space-x-3">
-                <i data-lucide="info" class="w-5 h-5 text-sky-600 flex-shrink-0 mt-0.5"></i>
-                <div class="text-xs text-sky-950 font-medium leading-relaxed">{{ session('info') }}</div>
+            <div x-data="{ show: true }" x-show="show" x-transition class="mb-4 bg-sky-50 border border-sky-200 border-l-4 border-l-sky-500 p-3 sm:p-4 rounded-xl shadow-sm flex items-center justify-between space-x-3">
+                <div class="flex items-center space-x-2.5 min-w-0">
+                    <i data-lucide="info" class="w-4 h-4 text-sky-600 flex-shrink-0"></i>
+                    <div class="text-xs text-sky-950 font-medium leading-relaxed truncate sm:whitespace-normal">{{ session('info') }}</div>
+                </div>
+                <button type="button" @click="show = false" class="text-sky-700 hover:text-sky-900 p-1 rounded-lg hover:bg-sky-100 transition flex-shrink-0 cursor-pointer" title="Tutup">
+                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                </button>
             </div>
         @endif
 
@@ -622,102 +642,98 @@
     </main>
 
     <!-- App-Like Mobile Bottom Navigation Bar (Visible only on mobile md:hidden) -->
-    <nav class="fixed bottom-0 inset-x-0 z-40 bg-[#050A1E]/95 backdrop-blur-md border-t border-[#161A2B] pt-2 px-3 sm:px-6 md:hidden shadow-[0_-4px_16px_rgba(0,0,0,0.3)] no-print" style="padding-bottom: max(0.6rem, env(safe-area-inset-bottom));">
+    <nav class="fixed bottom-0 inset-x-0 z-40 bg-[#050A1E]/95 backdrop-blur-lg border-t border-[#161A2B] px-3 sm:px-6 md:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.35)] no-print pointer-events-auto" style="padding-bottom: max(0.6rem, env(safe-area-inset-bottom));">
         @if(auth()->user()->isFinance() || auth()->user()->isDirektur())
             <!-- Role Finance & Direktur (4-Tab Bar: Beranda, Daftar CA, Laporan, Audit) -->
-            <div class="grid grid-cols-4 items-center max-w-sm mx-auto text-center">
+            <div class="grid grid-cols-4 items-center max-w-sm mx-auto text-center h-14">
                 <!-- Tab 1: Beranda -->
-                <a href="{{ route('dashboard') }}" class="flex flex-col items-center py-1 px-1 rounded-xl transition {{ request()->routeIs('dashboard') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
+                <a href="{{ route('dashboard') }}" class="flex flex-col items-center justify-center py-1 px-1 rounded-xl transition active:scale-95 {{ request()->routeIs('dashboard') ? 'text-[#FF3C00] font-bold' : 'text-slate-400 hover:text-white' }}">
                     <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                    <span class="text-[10px] mt-0.5 font-head font-medium">Beranda</span>
+                    <span class="text-[10px] mt-1 font-head font-medium">Beranda</span>
                 </a>
 
                 <!-- Tab 2: Daftar CA -->
-                <a href="{{ route('cash-advances.index') }}" class="flex flex-col items-center py-1 px-1 rounded-xl transition {{ request()->routeIs('cash-advances.*') && !request()->routeIs('cash-advances.create') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
+                <a href="{{ route('cash-advances.index') }}" class="flex flex-col items-center justify-center py-1 px-1 rounded-xl transition active:scale-95 {{ request()->routeIs('cash-advances.*') && !request()->routeIs('cash-advances.create') ? 'text-[#FF3C00] font-bold' : 'text-slate-400 hover:text-white' }}">
                     <i data-lucide="receipt" class="w-5 h-5"></i>
-                    <span class="text-[10px] mt-0.5 font-head font-medium">Daftar CA</span>
+                    <span class="text-[10px] mt-1 font-head font-medium">Daftar CA</span>
                 </a>
 
                 <!-- Tab 3: Laporan -->
-                <a href="{{ route('reports.rincian-ca') }}" class="flex flex-col items-center py-1 px-1 rounded-xl transition {{ request()->routeIs('reports.*') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
+                <a href="{{ route('reports.rincian-ca') }}" class="flex flex-col items-center justify-center py-1 px-1 rounded-xl transition active:scale-95 {{ request()->routeIs('reports.*') ? 'text-[#FF3C00] font-bold' : 'text-slate-400 hover:text-white' }}">
                     <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
-                    <span class="text-[10px] mt-0.5 font-head font-medium">Laporan</span>
+                    <span class="text-[10px] mt-1 font-head font-medium">Laporan</span>
                 </a>
 
                 <!-- Tab 4: Audit Trail -->
-                <a href="{{ route('audit-logs.index') }}" class="flex flex-col items-center py-1 px-1 rounded-xl transition {{ request()->routeIs('audit-logs.*') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
+                <a href="{{ route('audit-logs.index') }}" class="flex flex-col items-center justify-center py-1 px-1 rounded-xl transition active:scale-95 {{ request()->routeIs('audit-logs.*') ? 'text-[#FF3C00] font-bold' : 'text-slate-400 hover:text-white' }}">
                     <i data-lucide="history" class="w-5 h-5"></i>
-                    <span class="text-[10px] mt-0.5 font-head font-medium">Audit</span>
+                    <span class="text-[10px] mt-1 font-head font-medium">Audit</span>
                 </a>
             </div>
         @elseif(auth()->user()->isSuperAdmin())
             <!-- Role Super Admin (4-Tab Bar: Beranda, Users, Audit, Setting) -->
-            <div class="grid grid-cols-4 items-center max-w-sm mx-auto text-center">
-                <a href="{{ route('dashboard') }}" class="flex flex-col items-center py-1 px-1 rounded-xl transition {{ request()->routeIs('dashboard') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
+            <div class="grid grid-cols-4 items-center max-w-sm mx-auto text-center h-14">
+                <a href="{{ route('dashboard') }}" class="flex flex-col items-center justify-center py-1 px-1 rounded-xl transition active:scale-95 {{ request()->routeIs('dashboard') ? 'text-[#FF3C00] font-bold' : 'text-slate-400 hover:text-white' }}">
                     <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                    <span class="text-[10px] mt-0.5 font-head font-medium">Beranda</span>
+                    <span class="text-[10px] mt-1 font-head font-medium">Beranda</span>
                 </a>
-                <a href="{{ route('admin.users.index') }}" class="flex flex-col items-center py-1 px-1 rounded-xl transition {{ request()->routeIs('admin.users.*') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
+                <a href="{{ route('admin.users.index') }}" class="flex flex-col items-center justify-center py-1 px-1 rounded-xl transition active:scale-95 {{ request()->routeIs('admin.users.*') ? 'text-[#FF3C00] font-bold' : 'text-slate-400 hover:text-white' }}">
                     <i data-lucide="users" class="w-5 h-5"></i>
-                    <span class="text-[10px] mt-0.5 font-head font-medium">Users</span>
+                    <span class="text-[10px] mt-1 font-head font-medium">Users</span>
                 </a>
-                <a href="{{ route('audit-logs.index') }}" class="flex flex-col items-center py-1 px-1 rounded-xl transition {{ request()->routeIs('audit-logs.*') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
+                <a href="{{ route('audit-logs.index') }}" class="flex flex-col items-center justify-center py-1 px-1 rounded-xl transition active:scale-95 {{ request()->routeIs('audit-logs.*') ? 'text-[#FF3C00] font-bold' : 'text-slate-400 hover:text-white' }}">
                     <i data-lucide="history" class="w-5 h-5"></i>
-                    <span class="text-[10px] mt-0.5 font-head font-medium">Audit</span>
+                    <span class="text-[10px] mt-1 font-head font-medium">Audit</span>
                 </a>
-                <a href="{{ route('admin.settings.index') }}" class="flex flex-col items-center py-1 px-1 rounded-xl transition {{ request()->routeIs('admin.settings.*') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
+                <a href="{{ route('admin.settings.index') }}" class="flex flex-col items-center justify-center py-1 px-1 rounded-xl transition active:scale-95 {{ request()->routeIs('admin.settings.*') ? 'text-[#FF3C00] font-bold' : 'text-slate-400 hover:text-white' }}">
                     <i data-lucide="settings" class="w-5 h-5"></i>
-                    <span class="text-[10px] mt-0.5 font-head font-medium">Setting</span>
+                    <span class="text-[10px] mt-1 font-head font-medium">Setting</span>
                 </a>
             </div>
         @elseif(auth()->user()->isAtasan())
-            <!-- Role Atasan (4-Tab Bar: Beranda, CA Tim, Laporan, Profil) -->
-            <div class="grid grid-cols-4 items-center max-w-sm mx-auto text-center">
-                <a href="{{ route('dashboard') }}" class="flex flex-col items-center py-1 px-1 rounded-xl transition {{ request()->routeIs('dashboard') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
+            <!-- Role Atasan (3-Tab Bar: Beranda, CA Tim, Laporan) -->
+            <div class="grid grid-cols-3 items-center max-w-xs mx-auto text-center h-14">
+                <a href="{{ route('dashboard') }}" class="flex flex-col items-center justify-center py-1 px-1 rounded-xl transition active:scale-95 {{ request()->routeIs('dashboard') ? 'text-[#FF3C00] font-bold' : 'text-slate-400 hover:text-white' }}">
                     <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                    <span class="text-[10px] mt-0.5 font-head font-medium">Beranda</span>
+                    <span class="text-[10px] mt-1 font-head font-medium">Beranda</span>
                 </a>
-                <a href="{{ route('cash-advances.index') }}" class="flex flex-col items-center py-1 px-1 rounded-xl transition {{ request()->routeIs('cash-advances.*') && !request()->routeIs('cash-advances.create') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
+                <a href="{{ route('cash-advances.index') }}" class="flex flex-col items-center justify-center py-1 px-1 rounded-xl transition active:scale-95 {{ request()->routeIs('cash-advances.*') && !request()->routeIs('cash-advances.create') ? 'text-[#FF3C00] font-bold' : 'text-slate-400 hover:text-white' }}">
                     <i data-lucide="receipt" class="w-5 h-5"></i>
-                    <span class="text-[10px] mt-0.5 font-head font-medium">CA Tim</span>
+                    <span class="text-[10px] mt-1 font-head font-medium">CA Tim</span>
                 </a>
-                <a href="{{ route('reports.rincian-ca') }}" class="flex flex-col items-center py-1 px-1 rounded-xl transition {{ request()->routeIs('reports.*') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
+                <a href="{{ route('reports.rincian-ca') }}" class="flex flex-col items-center justify-center py-1 px-1 rounded-xl transition active:scale-95 {{ request()->routeIs('reports.*') ? 'text-[#FF3C00] font-bold' : 'text-slate-400 hover:text-white' }}">
                     <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
-                    <span class="text-[10px] mt-0.5 font-head font-medium">Laporan</span>
-                </a>
-                <a href="{{ route('profile.edit') }}" class="flex flex-col items-center py-1 px-1 rounded-xl transition {{ request()->routeIs('profile.*') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
-                    <i data-lucide="user-cog" class="w-5 h-5"></i>
-                    <span class="text-[10px] mt-0.5 font-head font-medium">Profil</span>
+                    <span class="text-[10px] mt-1 font-head font-medium">Laporan</span>
                 </a>
             </div>
         @else
             <!-- Role Karyawan (3-Tab Bar: Beranda, + Ajukan, CA Saya) -->
-            <div class="grid grid-cols-3 items-center max-w-xs mx-auto text-center">
+            <div class="grid grid-cols-3 items-center max-w-xs mx-auto text-center h-14">
                 <!-- Tab 1: Beranda -->
-                <a href="{{ route('dashboard') }}" class="flex flex-col items-center py-1 px-1 rounded-xl transition {{ request()->routeIs('dashboard') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
+                <a href="{{ route('dashboard') }}" class="flex flex-col items-center justify-center py-1 px-1 rounded-xl transition active:scale-95 {{ request()->routeIs('dashboard') ? 'text-[#FF3C00] font-bold' : 'text-slate-400 hover:text-white' }}">
                     <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                    <span class="text-[10px] mt-0.5 font-head font-medium">Beranda</span>
+                    <span class="text-[10px] mt-1 font-head font-medium">Beranda</span>
                 </a>
 
                 <!-- Tab 2: Center Elevated Action (+ Ajukan) -->
-                <a href="{{ route('cash-advances.create') }}" class="flex flex-col items-center -mt-6 group" title="Ajukan CA Baru">
-                    <div class="w-13 h-13 rounded-full bg-[#FF3B00] text-white flex items-center justify-center shadow-[0_4px_14px_rgba(255,59,0,0.5)] border-2 border-[#050A1E] group-hover:scale-105 active:scale-95 transition-transform duration-150 p-3">
+                <a href="{{ route('cash-advances.create') }}" class="flex flex-col items-center justify-center -mt-6 group active:scale-95 transition" title="Ajukan CA Baru">
+                    <div class="w-12 h-12 rounded-full bg-[#FF3B00] text-white flex items-center justify-center shadow-[0_4px_16px_rgba(255,59,0,0.55)] ring-4 ring-[#050A1E] group-hover:bg-[#FF3D00] transition-all duration-200">
                         <i data-lucide="plus" class="w-6 h-6 stroke-[2.5]"></i>
                     </div>
-                    <span class="text-[10px] mt-0.5 font-head font-bold text-slate-200">Ajukan</span>
+                    <span class="text-[10px] mt-1 font-head font-bold text-slate-200">Ajukan</span>
                 </a>
 
                 <!-- Tab 3: CA Saya -->
-                <a href="{{ route('cash-advances.index') }}" class="flex flex-col items-center py-1 px-1 rounded-xl transition {{ request()->routeIs('cash-advances.*') && !request()->routeIs('cash-advances.create') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
+                <a href="{{ route('cash-advances.index') }}" class="flex flex-col items-center justify-center py-1 px-1 rounded-xl transition active:scale-95 {{ request()->routeIs('cash-advances.*') && !request()->routeIs('cash-advances.create') ? 'text-[#FF3C00] font-bold' : 'text-slate-400 hover:text-white' }}">
                     <i data-lucide="receipt" class="w-5 h-5"></i>
-                    <span class="text-[10px] mt-0.5 font-head font-medium">CA Saya</span>
+                    <span class="text-[10px] mt-1 font-head font-medium">CA Saya</span>
                 </a>
             </div>
         @endif
     </nav>
 
-    <!-- Bottom Functional Footer (PT. Technodrives Official Info - Diberi pb-24 di mobile agar tidak tertutup nav) -->
-    <footer class="bg-[#050A1E] text-[#7A7A7A] border-t border-[#161A2B] text-xs pt-7 pb-24 md:pb-7 mt-auto no-print">
+    <!-- Bottom Functional Footer (PT. Technodrives Official Info - Desktop Only to prevent mobile clutter) -->
+    <footer class="bg-[#050A1E] text-[#7A7A7A] border-t border-[#161A2B] text-xs pt-7 pb-7 mt-auto no-print hidden md:block">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-white/5 pb-4">
                 <div class="flex items-center space-x-3">
@@ -744,6 +760,9 @@
             </div>
         </div>
     </footer>
+    <div class="md:hidden py-3 text-center text-[10px] text-slate-400 font-mono no-print">
+        &copy; 2026 PT. Technodrives Indonesia
+    </div>
         </div>
     </div>
 
