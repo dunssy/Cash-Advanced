@@ -89,7 +89,7 @@
                     </label>
                     <span class="text-[11px] font-mono px-2 py-0.5 rounded-full font-bold"
                         :class="tags.length >= maxTags ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'"
-                        x-text="tags.length + ' / ' + maxTags + ' Divisi'">
+                        x-text="'# ' + tags.length + ' / ' + maxTags + ' Divisi'">
                     </span>
                 </div>
 
@@ -97,24 +97,28 @@
                 <div class="flex flex-wrap gap-1.5 min-h-[40px] p-2 bg-slate-50 rounded-lg border border-slate-200 items-center">
                     <template x-for="(tag, index) in tags" :key="index">
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-medium bg-[#050A1E] text-white shadow-sm border border-[#050A1E]">
-                            <span class="text-[#FFC704] font-bold">Tag:</span>
+                            <span class="text-[#FFC704] font-bold">#</span>
                             <span x-text="tag"></span>
                             <button type="button" @click="removeTag(index)" class="text-slate-400 hover:text-[#FF3C00] ml-1 transition font-bold" title="Hapus tag">&times;</button>
                             <input type="hidden" name="departments[]" :value="tag">
                         </span>
                     </template>
-                    <span x-show="tags.length === 0" class="text-xs text-slate-400 italic py-1 px-1">
-                        Belum ada tag divisi. Masukkan nama divisi di bawah ini (maksimal 10 divisi).
-                    </span>
+                    <div x-show="tags.length === 0" class="inline-flex items-center space-x-1.5 py-0.5 px-2 rounded bg-white text-slate-400 font-mono text-xs border border-dashed border-slate-300">
+                        <span class="font-bold">#</span>
+                        <span class="font-sans italic">Tidak ada tag</span>
+                    </div>
                 </div>
 
                 <!-- Input to Add New Tag -->
                 <div class="flex items-center gap-2">
                     <div class="relative flex-1">
+                        <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400 font-mono font-bold text-xs">
+                            #
+                        </span>
                         <input type="text" x-model="newTag" @keydown.enter.prevent="addTag()"
                             placeholder="Ketik nama divisi lalu tekan Enter atau klik Tambah Tag..."
                             :disabled="tags.length >= maxTags"
-                            class="w-full input-commerce text-xs py-1.5 disabled:bg-slate-100 disabled:cursor-not-allowed">
+                            class="w-full input-commerce text-xs py-1.5 pl-6 disabled:bg-slate-100 disabled:cursor-not-allowed">
                     </div>
                     <button type="button" @click="addTag()"
                         :disabled="tags.length >= maxTags || !newTag.trim()"

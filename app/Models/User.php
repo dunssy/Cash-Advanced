@@ -169,13 +169,13 @@ class User extends Authenticatable
     }
 
     /**
-     * Mendapatkan tag divisi dengan format nama tag (contoh: "Tag: Operasional").
+     * Mendapatkan tag divisi dengan format nama tag (contoh: "#Operasional").
      *
      * @return array<int, string>
      */
     public function getDepartmentTagsAttribute(): array
     {
-        return array_map(fn($d) => 'Tag: ' . $d, $this->departments);
+        return array_map(fn($d) => '#' . $d, $this->departments);
     }
 
     // Role check helpers

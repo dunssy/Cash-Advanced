@@ -133,7 +133,7 @@ class UserProfileTest extends TestCase
 
         $this->assertCount(4, $user->departments);
         $this->assertEquals($divisions, $user->departments);
-        $this->assertEquals(['Tag: IT Systems', 'Tag: Network Engineering', 'Tag: Cloud Ops', 'Tag: Support'], $user->department_tags);
+        $this->assertEquals(['#IT Systems', '#Network Engineering', '#Cloud Ops', '#Support'], $user->department_tags);
         $this->assertEquals('IT Systems, Network Engineering, Cloud Ops, Support', $user->department);
     }
 

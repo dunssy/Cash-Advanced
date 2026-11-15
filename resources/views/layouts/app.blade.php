@@ -79,13 +79,13 @@
                         ">{{ auth()->user()->role }}</span>
                         @if(!empty(auth()->user()->departments))
                             @foreach(array_slice(auth()->user()->departments, 0, 2) as $dept)
-                                <span class="text-[9px] text-slate-300 bg-white/10 px-1.5 py-0.5 rounded font-head truncate max-w-[110px]" title="Tag: {{ $dept }}">Tag: {{ $dept }}</span>
+                                <span class="text-[9px] text-slate-300 bg-white/10 px-1.5 py-0.5 rounded font-mono truncate max-w-[110px]" title="# {{ $dept }}"># {{ $dept }}</span>
                             @endforeach
                             @if(count(auth()->user()->departments) > 2)
-                                <span class="text-[8px] text-slate-400 font-head">+{{ count(auth()->user()->departments) - 2 }}</span>
+                                <span class="text-[8px] text-slate-400 font-mono font-bold">+{{ count(auth()->user()->departments) - 2 }}</span>
                             @endif
                         @else
-                            <span class="text-[9px] text-slate-400 truncate">Staff</span>
+                            <span class="text-[9px] font-mono text-slate-400 bg-white/5 px-1.5 py-0.5 rounded" title="Tidak ada tag">#</span>
                         @endif
                     </div>
                 </div>
@@ -397,9 +397,11 @@
                                             {{ auth()->user()->role === 'karyawan' ? 'bg-[#F4F4F4] text-[#050A1E] border border-cardborder' : '' }}
                                             {{ auth()->user()->role === 'super_admin' ? 'bg-[#FF3C00] text-white' : '' }}
                                         ">{{ auth()->user()->role }}</span>
-                                        @foreach(auth()->user()->departments as $dept)
-                                            <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white text-[#050A1E] border border-cardborder">Tag: {{ $dept }}</span>
-                                        @endforeach
+                                        @forelse(auth()->user()->departments as $dept)
+                                            <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white text-[#050A1E] border border-cardborder"># {{ $dept }}</span>
+                                        @empty
+                                            <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white text-slate-400 border border-cardborder" title="Tidak ada tag">#</span>
+                                        @endforelse
                                     </div>
                                 </div>
                             </div>
@@ -491,9 +493,11 @@
                                 ">
                                     {{ auth()->user()->role }}
                                 </span>
-                                @foreach(auth()->user()->departments as $dept)
-                                    <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-[#050A1E] border border-slate-200">Tag: {{ $dept }}</span>
-                                @endforeach
+                                @forelse(auth()->user()->departments as $dept)
+                                    <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-[#050A1E] border border-slate-200"># {{ $dept }}</span>
+                                @empty
+                                    <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-400 border border-slate-200" title="Tidak ada tag">#</span>
+                                @endforelse
                             </div>
                         </div>
                     </a>
