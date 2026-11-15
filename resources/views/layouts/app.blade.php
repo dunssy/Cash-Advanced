@@ -691,8 +691,8 @@
                 </a>
             </div>
         @else
-            <!-- Role Karyawan (4-Tab Bar: Beranda, + Ajukan, CA Saya, Profil) -->
-            <div class="grid grid-cols-4 items-center max-w-sm mx-auto text-center">
+            <!-- Role Karyawan (3-Tab Bar: Beranda, + Ajukan, CA Saya) -->
+            <div class="grid grid-cols-3 items-center max-w-xs mx-auto text-center">
                 <!-- Tab 1: Beranda -->
                 <a href="{{ route('dashboard') }}" class="flex flex-col items-center py-1 px-1 rounded-xl transition {{ request()->routeIs('dashboard') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
                     <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
@@ -711,12 +711,6 @@
                 <a href="{{ route('cash-advances.index') }}" class="flex flex-col items-center py-1 px-1 rounded-xl transition {{ request()->routeIs('cash-advances.*') && !request()->routeIs('cash-advances.create') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
                     <i data-lucide="receipt" class="w-5 h-5"></i>
                     <span class="text-[10px] mt-0.5 font-head font-medium">CA Saya</span>
-                </a>
-
-                <!-- Tab 4: Profil -->
-                <a href="{{ route('profile.edit') }}" class="flex flex-col items-center py-1 px-1 rounded-xl transition {{ request()->routeIs('profile.*') ? 'text-[#FF3C00] font-bold' : 'text-slate-300 hover:text-[#FF3C00]' }}">
-                    <i data-lucide="user-cog" class="w-5 h-5"></i>
-                    <span class="text-[10px] mt-0.5 font-head font-medium">Profil</span>
                 </a>
             </div>
         @endif
