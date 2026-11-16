@@ -20,19 +20,19 @@
     --td-yellow: #FFC704;
     --td-font-head: "Poppins", sans-serif;
     --td-font-body: "Fira Sans", sans-serif;
-    --td-radius-pill: 30px;
-    --td-radius-card: 15px;
-    --td-radius-input: 15px;
-    --td-radius-label: 20px;
-    --td-transition: 0.5s;
+    --td-radius-pill: 9999px;
+    --td-radius-card: 12px;
+    --td-radius-input: 8px;
+    --td-radius-label: 6px;
+    --td-transition: 0.15s ease-out;
 }
 
 body {
     font-family: var(--td-font-body);
-    font-size: 16px;
-    line-height: 26px;
-    background-color: #F4F4F4;
-    color: #7A7A7A;
+    font-size: 15px;
+    line-height: 24px;
+    background-color: #F8FAFC;
+    color: #475569;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -40,37 +40,41 @@ body {
 h1, h2, h3, h4, h5, h6 {
     font-family: var(--td-font-head);
     font-weight: 700;
-    color: #050A1E;
+    color: #0F172A;
 }
 
-/* Tombol Utama (Solutek Brand Button: Latar #FF3B00, teks putih, uppercase 15px, radius 30px, hover Navy #050A1E, transisi 0.5s) */
+/* Tombol Utama (Solutek Brand Button: Latar #FF3C00, teks putih, radius 8px, hover #E03500, transisi 0.15s) */
 .btn-brand, .btn-primary {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    background-color: #FF3B00;
+    background-color: #FF3C00;
     color: #FFFFFF !important;
     font-family: var(--td-font-head);
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 12px 26px;
-    border-radius: 30px;
-    border: 1px solid #FF3B00;
-    min-height: 46px;
+    letter-spacing: 0.3px;
+    padding: 9px 18px;
+    border-radius: var(--td-radius-input);
+    border: 1px solid #FF3C00;
+    min-height: 40px;
     position: relative;
     z-index: 1;
-    transition: all 0.5s ease;
+    transition: var(--td-transition);
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(255, 59, 0, 0.25);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 .btn-brand:hover, .btn-primary:hover {
-    background-color: #050A1E;
-    border-color: #050A1E;
+    background-color: #E03500;
+    border-color: #E03500;
     color: #FFFFFF !important;
-    box-shadow: 0 4px 14px rgba(5, 10, 30, 0.3);
+    box-shadow: 0 4px 12px rgba(255, 60, 0, 0.22);
+    transform: translateY(-1px);
+}
+.btn-brand:active, .btn-primary:active {
+    transform: translateY(0);
+    box-shadow: none;
 }
 
 /* Tombol Gelap (Aksi Sekunder Kuat: Navy #050A1E) */
@@ -82,22 +86,25 @@ h1, h2, h3, h4, h5, h6 {
     background-color: #050A1E;
     color: #FFFFFF !important;
     font-family: var(--td-font-head);
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 12px 24px;
-    border-radius: 30px;
-    border: 1px solid #050A1E;
-    min-height: 46px;
-    transition: all 0.5s ease;
+    letter-spacing: 0.3px;
+    padding: 9px 18px;
+    border-radius: var(--td-radius-input);
+    border: 1px solid #161A2B;
+    min-height: 40px;
+    transition: var(--td-transition);
     cursor: pointer;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 .btn-dark:hover {
-    background-color: #FF3C00;
-    border-color: #FF3C00;
+    background-color: #161A2B;
+    border-color: #2E3856;
     color: #FFFFFF !important;
-    box-shadow: 0 4px 14px rgba(255, 60, 0, 0.25);
+    transform: translateY(-1px);
+}
+.btn-dark:active {
+    transform: translateY(0);
 }
 
 /* Tombol Pucat / Sekunder */
@@ -107,21 +114,26 @@ h1, h2, h3, h4, h5, h6 {
     justify-content: center;
     gap: 0.5rem;
     background-color: #FFFFFF;
-    color: #050A1E;
+    color: #1E293B;
     font-family: var(--td-font-head);
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
-    padding: 11px 22px;
-    border-radius: 30px;
-    border: 1px solid #E1E1E1;
-    min-height: 46px;
-    transition: all 0.5s ease;
+    padding: 9px 18px;
+    border-radius: var(--td-radius-input);
+    border: 1px solid #CBD5E1;
+    min-height: 40px;
+    transition: var(--td-transition);
     cursor: pointer;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 .btn-secondary:hover {
-    background-color: #F5EBE8;
-    border-color: #FF3C00;
-    color: #FF3C00;
+    background-color: #F8FAFC;
+    border-color: #94A3B8;
+    color: #0F172A;
+    transform: translateY(-1px);
+}
+.btn-secondary:active {
+    transform: translateY(0);
 }
 
 /* Tombol Verifikasi / Biru Logo Technodrives (#2E3087) */
@@ -163,173 +175,145 @@ h1, h2, h3, h4, h5, h6 {
     font-family: var(--td-font-head);
     font-size: 13px;
     font-weight: 600;
-    padding: 9px 20px;
-    border-radius: 30px;
+    padding: 8px 18px;
+    border-radius: var(--td-radius-input);
     border: 1px solid #047857;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: var(--td-transition);
     cursor: pointer;
-    box-shadow: 0 3px 10px rgba(5, 150, 105, 0.28);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    letter-spacing: 0.3px;
 }
 .btn-success:hover, .btn-green:hover {
     background-color: #047857;
     border-color: #065F46;
     color: #FFFFFF !important;
-    box-shadow: 0 6px 18px rgba(4, 120, 87, 0.4);
+    box-shadow: 0 4px 12px rgba(4, 120, 87, 0.25);
     transform: translateY(-1px);
 }
 .btn-success:active, .btn-green:active {
     transform: translateY(0);
 }
 
-/* Pill Label Seksi (Gaya h5.section-sub-title website resmi) */
+/* Pill Label Seksi */
 .pill-label {
     font-family: var(--td-font-head);
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     color: #FF3C00;
-    background-color: rgba(255, 60, 0, 0.04);
-    border: 1px solid rgba(122, 122, 122, 0.18);
-    border-radius: 20px;
-    padding: 5px 22px;
+    background-color: rgba(255, 60, 0, 0.06);
+    border: 1px solid rgba(255, 60, 0, 0.2);
+    border-radius: var(--td-radius-label);
+    padding: 3px 10px;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    line-height: 22px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    gap: 5px;
+    line-height: 18px;
+    letter-spacing: 0.3px;
 }
 
-/* Kartu Layanan (Putih, radius 15px, border 1px #E1E1E1) */
+/* Kartu Layanan (Putih, radius 12px, border 1px #E2E8F0) */
 .card-commerce {
     background-color: #FFFFFF;
-    border: 1px solid #E1E1E1;
-    border-radius: 15px;
+    border: 1px solid #E2E8F0;
+    border-radius: var(--td-radius-card);
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
-    transition: border-color 0.5s ease, box-shadow 0.5s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .card-commerce-hoverable:hover {
-    border-color: #FF3C00;
-    box-shadow: 0 8px 24px -4px rgba(255, 60, 0, 0.12);
+    border-color: #CBD5E1;
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.06);
 }
 
-/* Kartu Fitur (Latar #F4F4F4, radius 15px, border 1px #E1E1E1) */
+/* Kartu Fitur (Latar #F8FAFC, radius 12px, border 1px #E2E8F0) */
 .card-feature {
-    background-color: #F4F4F4;
-    border: 1px solid #E1E1E1;
-    border-radius: 15px;
-    transition: border-color 0.5s ease;
+    background-color: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: var(--td-radius-card);
+    transition: border-color 0.2s ease;
 }
 .card-feature:hover {
-    border-color: #FF3C00;
+    border-color: #CBD5E1;
 }
 
-/* Form Input Resmi (.form_box input: height 52-60px, radius 15px, border rgba(122,122,122,0.5), focus #FF3D00) */
+/* Form Input Resmi (Clean 42px height, 8px radius, border #CBD5E1, focus #FF3C00) */
 .input-brand, .input-commerce {
-    border: 1px solid rgba(122, 122, 122, 0.45);
-    min-height: 50px;
-    border-radius: 15px;
-    padding: 0 20px;
+    border: 1px solid #CBD5E1;
+    min-height: 42px;
+    border-radius: var(--td-radius-input);
+    padding: 8px 14px;
     width: 100%;
     font-family: var(--td-font-body);
-    font-size: 15px;
-    color: #050A1E;
+    font-size: 14px;
+    color: #0F172A;
     background-color: #FFFFFF;
-    transition: border-color 0.5s ease, box-shadow 0.5s ease;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
     outline: 0;
 }
 .input-brand:focus, .input-commerce:focus {
-    border-color: #FF3D00;
-    box-shadow: 0 0 4px rgba(255, 61, 0, 0.5);
+    border-color: #FF3C00;
+    box-shadow: 0 0 0 3px rgba(255, 60, 0, 0.12);
     outline: 0;
 }
 textarea.input-brand, textarea.input-commerce {
-    border-radius: 25px;
-    padding: 16px 20px;
-    min-height: 120px;
+    border-radius: var(--td-radius-input);
+    padding: 12px 14px;
+    min-height: 100px;
 }
 
-/* 6 Badge Status Resmi PT Technodrives */
+/* 6 Badge Status Resmi PT Technodrives (Clean 6px radius, no endless pulse) */
 .badge-retail {
     font-family: var(--td-font-head), 'Poppins', sans-serif;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
-    border-radius: 30px;
-    padding: 4px 12px;
+    border-radius: var(--td-radius-label);
+    padding: 3px 8px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    gap: 5px;
     white-space: nowrap;
-    line-height: 1.2;
+    line-height: 1.3;
     vertical-align: middle;
-    transition: all 0.25s ease;
+    transition: all 0.15s ease;
 }
 .badge-pending-approval {
-    background-color: #FFC704 !important;
-    color: #050A1E !important;
-    border: 1px solid #E5B300 !important;
-    box-shadow: 0 1px 3px rgba(255, 199, 4, 0.25) !important;
+    background-color: #FEF3C7 !important;
+    color: #92400E !important;
+    border: 1px solid #FCD34D !important;
 }
 .badge-rejected {
-    background-color: #FF3C00 !important;
-    color: #FFFFFF !important;
-    border: 1px solid #E03500 !important;
-    box-shadow: 0 1px 4px rgba(255, 60, 0, 0.3) !important;
+    background-color: #FEE2E2 !important;
+    color: #B91C1C !important;
+    border: 1px solid #FCA5A5 !important;
 }
 .badge-active {
-    background: linear-gradient(135deg, #0E1638 0%, #050A1E 100%) !important;
+    background-color: #050A1E !important;
     color: #FFFFFF !important;
-    border: 1px solid rgba(255, 60, 0, 0.45) !important;
-    box-shadow: 0 2px 6px rgba(5, 10, 30, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid #1E293B !important;
 }
 .badge-active::before {
     content: '';
-    width: 6.5px;
-    height: 6.5px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     background-color: #FF3C00;
-    box-shadow: 0 0 6px rgba(255, 60, 0, 0.9), 0 0 2px #FF3C00;
     display: inline-block;
     flex-shrink: 0;
-    animation: activeDotPulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-@keyframes activeDotPulse {
-    0%, 100% {
-        transform: scale(1);
-        opacity: 1;
-        box-shadow: 0 0 6px rgba(255, 60, 0, 0.9), 0 0 2px #FF3C00;
-    }
-    50% {
-        transform: scale(1.35);
-        opacity: 0.7;
-        box-shadow: 0 0 10px rgba(255, 60, 0, 1), 0 0 4px #FF3C00;
-    }
-}
-@media (prefers-reduced-motion: reduce) {
-    .badge-active::before {
-        animation: none !important;
-    }
 }
 .badge-need-settlement {
-    background-color: #FFFFFF !important;
-    border: 1.5px solid #FF3C00 !important;
-    color: #FF3C00 !important;
-    box-shadow: 0 1px 3px rgba(255, 60, 0, 0.15) !important;
+    background-color: #FFF7ED !important;
+    border: 1px solid #FFEDD5 !important;
+    color: #C2410C !important;
 }
 .badge-pending-verification {
-    background-color: #161A2B !important;
-    color: #FFFFFF !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    box-shadow: 0 1px 3px rgba(22, 26, 43, 0.3) !important;
+    background-color: #F1F5F9 !important;
+    color: #334155 !important;
+    border: 1px solid #CBD5E1 !important;
 }
 .badge-closed {
-    background-color: #F4F4F4 !important;
-    border: 1px solid #D5D5D5 !important;
-    color: #7A7A7A !important;
+    background-color: #F8FAFC !important;
+    border: 1px solid #E2E8F0 !important;
+    color: #64748B !important;
 }
 
 /* Tabel Data Resmi: Kepala Tabel Navy #050A1E Teks Putih Poppins 600 */
@@ -381,3 +365,149 @@ textarea.input-brand, textarea.input-commerce {
     body { background: white !important; color: black !important; font-size: 10pt; }
     .print-full { width: 100% !important; margin: 0 !important; box-shadow: none !important; }
 }
+
+/* =========================================================================
+   ADMINLTE 4 & BOOTSTRAP 5 THEME INTEGRATION FOR PT TECHNODRIVES
+   ========================================================================= */
+:root {
+    --bs-primary: #FF3C00;
+    --bs-primary-rgb: 255, 60, 0;
+    --bs-body-font-family: var(--td-font-body);
+    --bs-heading-font-family: var(--td-font-head);
+}
+
+.app-wrapper {
+    min-height: 100vh;
+}
+
+.app-sidebar {
+    background-color: #050A1E !important;
+}
+
+.app-sidebar .sidebar-brand {
+    background-color: #050A1E !important;
+    border-bottom: 1px solid #161A2B !important;
+    height: 64px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.app-sidebar .sidebar-menu .nav-link {
+    color: #94A3B8;
+    border-radius: 8px;
+    margin: 2px 10px;
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.15s ease-out;
+}
+
+.app-sidebar .sidebar-menu .nav-link:hover {
+    color: #FFFFFF;
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.app-sidebar .sidebar-menu .nav-link.active {
+    color: #FFFFFF !important;
+    background-color: #FF3C00 !important;
+    box-shadow: 0 4px 12px rgba(255, 60, 0, 0.35) !important;
+    font-weight: 600;
+}
+
+.app-sidebar .sidebar-menu .nav-link.active .nav-icon {
+    color: #FFFFFF !important;
+}
+
+.app-sidebar .sidebar-menu .nav-header {
+    color: #64748B !important;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 14px 16px 4px 16px;
+    text-transform: uppercase;
+}
+
+.app-header {
+    background-color: #FFFFFF !important;
+    border-bottom: 1px solid #E2E8F0 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.app-main {
+    background-color: #F8FAFC !important;
+}
+
+.app-content-header {
+    padding: 1rem 0.5rem;
+}
+
+.app-footer {
+    background-color: #FFFFFF !important;
+    border-top: 1px solid #E2E8F0 !important;
+    color: #64748B;
+    font-size: 13px;
+}
+
+/* AdminLTE Small Box Modern Enhancement */
+.small-box {
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.25rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Ensure modal overlays always sit above AdminLTE navbar (z-1000) and sidebar (z-1038) */
+.fixed.inset-0,
+.modal-backdrop-custom,
+[x-show*="Modal"],
+[x-show*="activeReceiptUrl"] {
+    z-index: 1060 !important;
+}
+.small-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+.small-box .inner {
+    padding: 1.25rem;
+}
+.small-box .inner h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+.small-box .inner p {
+    font-size: 0.85rem;
+    margin-bottom: 0;
+    opacity: 0.9;
+}
+.small-box .small-box-icon {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    font-size: 3rem;
+    opacity: 0.18;
+    transition: transform 0.2s ease;
+}
+.small-box:hover .small-box-icon {
+    transform: scale(1.1);
+}
+.small-box-footer {
+    display: block;
+    padding: 6px 0;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    background-color: rgba(0, 0, 0, 0.12);
+    text-decoration: none;
+    transition: background-color 0.15s ease;
+}
+.small-box-footer:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+

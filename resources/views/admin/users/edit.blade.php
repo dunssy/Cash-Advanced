@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Edit Pengguna - ' . $user->name)
+@section('page_title', 'Edit Pengguna: ' . $user->name)
 
 @section('content')
 <div class="max-w-2xl mx-auto">
@@ -112,9 +113,9 @@
                 <input type="hidden" name="departments" value="">
                 <div class="flex items-center justify-between">
                     <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider">
-                        Tag Departemen / Divisi <span class="text-[#FF3C00] font-normal normal-case text-[11px]">(Maks. 10 Divisi)</span>
+                        Tag Departemen / Divisi <span class="text-[#FF3C00] font-normal normal-case text-xs">(Maks. 10 Divisi)</span>
                     </label>
-                    <span class="text-[11px] font-mono px-2 py-0.5 rounded-full font-bold"
+                    <span class="text-xs font-mono px-2 py-0.5 rounded-full font-bold"
                         :class="tags.length >= maxTags ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'"
                         x-text="'# ' + tags.length + ' / ' + maxTags + ' Divisi'">
                     </span>

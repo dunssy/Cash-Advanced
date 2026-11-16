@@ -54,6 +54,16 @@ class User extends Authenticatable
         return $this->hasMany(CashAdvance::class);
     }
 
+    public function cashAdvanceItems()
+    {
+        return $this->hasMany(CashAdvanceItem::class);
+    }
+
+    public function receivedDistributions()
+    {
+        return $this->hasMany(CashAdvanceDistribution::class, 'receiver_id');
+    }
+
     public function notifications()
     {
         return $this->hasMany(SystemNotification::class)->orderByDesc('created_at');

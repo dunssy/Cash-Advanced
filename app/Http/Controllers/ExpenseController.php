@@ -51,9 +51,13 @@ class ExpenseController extends Controller
     {
         $user = Auth::user();
 
-        // 1. Otorisasi kepemilikan
-        if ($cashAdvance->user_id !== $user->id) {
-            abort(403, 'Akses ditolak: Hanya pemilik Cash Advance yang dapat mencatat pengeluaran.');
+        // 1. Otorisasi kepemilikan atau keterlibatan dalam proyek (multi-karyawan)
+        $isAuthorized = ($cashAdvance->user_id === $user->id)
+            || $cashAdvance->distributions()->where('receiver_id', $user->id)->exists()
+            || $cashAdvance->items()->where('user_id', $user->id)->exists();
+
+        if (!$isAuthorized) {
+            abort(403, 'Akses ditolak: Anda tidak terdaftar sebagai pemegang kas atau anggota tim pada proyek ini.');
         }
 
         // 2. Validasi status CA
@@ -62,8 +66,17 @@ class ExpenseController extends Controller
                 ->with('error', 'Pengeluaran hanya dapat dicatat saat status Cash Advance adalah ACTIVE.');
         }
 
-        // 3. Tampilkan antarmuka pencatatan pengeluaran
-        return view('expenses.create', compact('cashAdvance'));
+        // 3. Ambil daftar item RAB milik user pada proyek ini (atau seluruh item jika user PIC CA)
+        $userRabItems = $cashAdvance->items()->where('user_id', $user->id)->get();
+        if ($userRabItems->isEmpty() && $cashAdvance->user_id === $user->id) {
+            $userRabItems = $cashAdvance->items;
+        }
+
+        // 4. Hitung sisa saldo kas yang dipegang oleh user ini
+        $userBalance = $cashAdvance->userCurrentBalance($user->id);
+
+        // 5. Tampilkan antarmuka pencatatan pengeluaran
+        return view('expenses.create', compact('cashAdvance', 'userRabItems', 'userBalance'));
     }
 
     /**
@@ -89,9 +102,13 @@ class ExpenseController extends Controller
     {
         $user = Auth::user();
 
-        // 1. Otorisasi kepemilikan
-        if ($cashAdvance->user_id !== $user->id) {
-            abort(403, 'Akses ditolak.');
+        // 1. Otorisasi kepemilikan atau keterlibatan dalam proyek
+        $isAuthorized = ($cashAdvance->user_id === $user->id)
+            || $cashAdvance->distributions()->where('receiver_id', $user->id)->exists()
+            || $cashAdvance->items()->where('user_id', $user->id)->exists();
+
+        if (!$isAuthorized) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki wewenang mencatat pengeluaran pada proyek ini.');
         }
 
         // 2. Validasi status keaktifan CA
@@ -104,6 +121,7 @@ class ExpenseController extends Controller
 
         // 3. Aturan validasi formulir pengeluaran
         $rules = [
+            'cash_advance_item_id' => ['nullable', 'exists:cash_advance_items,id'],
             'transaction_date' => ['required', 'date', 'before_or_equal:today', "after_or_equal:{$minDate}"],
             'description' => ['required', 'string', 'max:255'],
             'category' => ['required', 'in:material,transport,sewa_alat,konsumsi,lainnya'],
@@ -131,14 +149,14 @@ class ExpenseController extends Controller
 
         $isTalangan = $request->boolean('is_talangan');
         $amount = (float) $validated['amount'];
-        $currentBalance = $cashAdvance->current_balance;
+        $userBalance = $cashAdvance->userCurrentBalance($user->id);
 
         // 4. KUNCI INPUT SALDO (SOP Dokumen hal 5)
-        // Pengeluaran yang membuat saldo di bawah Rp 0 dilarang sistem kecuali dinyatakan sebagai Talangan
+        // Saldo yang diperiksa adalah saldo kas yang dipegang oleh pemohon saat ini
         if (!$isTalangan) {
-            if ($amount > $currentBalance) {
+            if ($amount > $userBalance) {
                 return back()->withInput()->withErrors([
-                    'amount' => "Saldo tidak cukup! Sisa saldo saat ini: Rp " . number_format($currentBalance, 0, ',', '.') . ", sedangkan pengeluaran diajukan: Rp " . number_format($amount, 0, ',', '.') . ". Silakan ajukan Top-Up terlebih dahulu.",
+                    'amount' => "Saldo kas Anda tidak cukup! Sisa dana kas yang Anda pegang saat ini: Rp " . number_format($userBalance, 0, ',', '.') . ", sedangkan pengeluaran diajukan: Rp " . number_format($amount, 0, ',', '.') . ". Silakan minta Atasan Anda untuk membagikan/menyalurkan dana kas terlebih dahulu, atau gunakan opsi Talangan Darurat.",
                 ]);
             }
         } else {
@@ -185,6 +203,7 @@ class ExpenseController extends Controller
         // 8. Buat record transaksi pengeluaran baru
         $expense = Expense::create([
             'cash_advance_id' => $cashAdvance->id,
+            'cash_advance_item_id' => $validated['cash_advance_item_id'] ?? null,
             'user_id' => $user->id,
             'transaction_date' => $validated['transaction_date'],
             'description' => $validated['description'],
@@ -277,6 +296,12 @@ class ExpenseController extends Controller
 
         $cashAdvance = $expense->cashAdvance;
 
+        // 3. Validasi status keaktifan CA
+        if ($cashAdvance->status !== 'ACTIVE') {
+            return redirect()->route('cash-advances.show', $cashAdvance)
+                ->with('error', 'Transaksi hanya dapat diedit saat status Cash Advance adalah ACTIVE.');
+        }
+
         return view('expenses.edit', compact('expense', 'cashAdvance'));
     }
 
@@ -310,6 +335,12 @@ class ExpenseController extends Controller
         }
 
         $cashAdvance = $expense->cashAdvance;
+
+        // Validasi status keaktifan CA: Hanya transaksi pada CA ACTIVE yang boleh diperbarui
+        if ($cashAdvance->status !== 'ACTIVE') {
+            return back()->with('error', 'Pengeluaran hanya dapat diperbarui saat status Cash Advance adalah ACTIVE.');
+        }
+
         $minDate = $cashAdvance->disbursed_at ? $cashAdvance->disbursed_at->format('Y-m-d') : '2020-01-01';
 
         // 3. Validasi masukan pembaruan
@@ -324,6 +355,19 @@ class ExpenseController extends Controller
             'receipts' => ['nullable', 'array', 'max:5'],
             'receipts.*' => ['file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
         ]);
+
+        // Kunci Input Saldo pada saat update:
+        // Saldo yang tersedia untuk pengeluaran ini = saldo berjalan saat ini + nominal lama transaksi ini
+        if (!$expense->is_talangan) {
+            $availableBalance = (float) $cashAdvance->current_balance + (float) $expense->amount;
+            $newAmount = (float) $validated['amount'];
+
+            if ($newAmount > $availableBalance) {
+                return back()->withInput()->withErrors([
+                    'amount' => 'Nominal baru melebihi sisa kas yang tersedia! Sisa kas yang dapat digunakan: Rp ' . number_format($availableBalance, 0, ',', '.') . '. Silakan ajukan Top-Up terlebih dahulu jika memerlukan dana tambahan.',
+                ]);
+            }
+        }
 
         $oldValues = $expense->toArray();
 
@@ -454,9 +498,21 @@ class ExpenseController extends Controller
     {
         $user = Auth::user();
 
-        // 1. Otorisasi manajerial
+        // 1. Pemisahan Tugas (Separation of Duties): Dilarang menyetujui surat kehilangan milik sendiri
+        if ($expense->user_id === $user->id) {
+            abort(403, 'Akses ditolak: Anda tidak dapat menyetujui surat pernyataan kehilangan struk milik sendiri.');
+        }
+
+        // 2. Otorisasi manajerial
         if (!$user->isAtasan() && !$user->isDirektur()) {
             abort(403, 'Akses ditolak: Hanya Atasan atau Direktur yang dapat menyetujui surat pernyataan kehilangan struk.');
+        }
+
+        // 3. Verifikasi hierarki: Jika penyetuju adalah Atasan biasa, wajib atasan langsung pemohon
+        if ($user->isAtasan() && !$user->isDirektur()) {
+            if ($expense->user->manager_id !== $user->id) {
+                abort(403, 'Akses ditolak: Hanya atasan langsung dari pemohon yang berhak menyetujui surat pernyataan kehilangan struk.');
+            }
         }
 
         // 2. Simpan persetujuan kehilangan struk

@@ -140,6 +140,9 @@ class DashboardController extends Controller
 
             // Total saldo kas mengambang (Active Float) yang sedang berjalan
             $stats['total_active_float'] = CashAdvance::where('status', 'ACTIVE')->get()->sum->current_balance;
+
+            // Jumlah struk yang menanti verifikasi
+            $stats['pending_verification_count'] = Expense::where('verification_status', 'PENDING')->count();
         }
 
         // 7. Pengambilan data pengajuan Cash Advance terbaru sesuai pembatasan akses data (Data Scoping)

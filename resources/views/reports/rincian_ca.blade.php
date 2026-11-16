@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Laporan 1: Rincian per CA')
+@section('page_title', 'Laporan 1: Rincian per Cash Advance')
 
 @section('content')
 <div class="space-y-6">
@@ -33,7 +34,7 @@
         <form action="{{ route('reports.rincian-ca') }}" method="GET" class="flex flex-col sm:flex-row items-center gap-3">
             <label class="text-xs font-bold text-retail-ink uppercase tracking-wider whitespace-nowrap">Pilih Cash Advance:</label>
             <select name="ca_id" onchange="this.form.submit()" class="w-full sm:max-w-md input-commerce font-mono text-xs">
-                @foreach($allCAs as $ca)
+                @foreach($allCAs ?? [] as $ca)
                     <option value="{{ $ca->id }}" {{ $selectedCA && $selectedCA->id === $ca->id ? 'selected' : '' }}>
                         {{ $ca->ca_number }} &bull; {{ $ca->project_name }} ({{ $ca->user->name }}) [{{ $ca->status }}]
                     </option>
@@ -53,34 +54,34 @@
                 <div>
                     <h2 class="text-lg sm:text-xl font-bold text-retail-darkInk tracking-tight">PT TECHNODRIVES INDONESIA</h2>
                     <p class="text-xs text-slate-600">Engineering, Drives & Automation Systems</p>
-                    <p class="text-[11px] text-slate-500 font-mono">Jl. Rungkut Industri Raya No. 45, Surabaya, Jawa Timur</p>
+                    <p class="text-xs text-slate-500 font-mono">Jl. Rungkut Industri Raya No. 45, Surabaya, Jawa Timur</p>
                 </div>
                 <div class="text-right">
                     <h3 class="text-xs sm:text-sm font-bold uppercase text-slate-800">LEMBAR PERTANGGUNGJAWABAN CASH ADVANCE</h3>
                     <span class="text-xs font-mono font-bold text-retail-orange block mt-0.5">{{ $selectedCA->ca_number }}</span>
-                    <span class="text-[10px] font-mono text-slate-400 block">Dicetak: {{ date('d/m/Y H:i') }}</span>
+                    <span class="text-xs font-mono text-slate-400 block">Dicetak: {{ date('d/m/Y H:i') }}</span>
                 </div>
             </div>
 
             <!-- Project & Personnel Details -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs mb-6 font-mono">
                 <div>
-                    <span class="text-slate-400 block text-[10px] uppercase font-bold font-sans">Nama Karyawan</span>
+                    <span class="text-slate-400 block text-xs uppercase font-bold font-sans">Nama Karyawan</span>
                     <span class="font-bold text-slate-900 text-sm font-sans">{{ $selectedCA->user->name }}</span>
-                    <span class="text-slate-500 block text-[11px] font-sans">{{ $selectedCA->user->department }}</span>
+                    <span class="text-slate-500 block text-xs font-sans">{{ $selectedCA->user->department }}</span>
                 </div>
                 <div>
-                    <span class="text-slate-400 block text-[10px] uppercase font-bold font-sans">Proyek & Kode</span>
+                    <span class="text-slate-400 block text-xs uppercase font-bold font-sans">Proyek & Kode</span>
                     <span class="font-bold text-slate-900 text-sm font-sans">{{ $selectedCA->project_name }}</span>
-                    <span class="text-slate-500 block text-[11px]">{{ $selectedCA->project_code ?: '-' }}</span>
+                    <span class="text-slate-500 block text-xs">{{ $selectedCA->project_code ?: '-' }}</span>
                 </div>
                 <div>
-                    <span class="text-slate-400 block text-[10px] uppercase font-bold font-sans">Tanggal Dicairkan</span>
+                    <span class="text-slate-400 block text-xs uppercase font-bold font-sans">Tanggal Dicairkan</span>
                     <span class="font-bold text-slate-800">{{ $selectedCA->disbursed_at ? $selectedCA->disbursed_at->format('d/m/Y') : '-' }}</span>
-                    <span class="text-slate-500 block text-[11px]">Ref: {{ $selectedCA->disbursement_ref ?: '-' }}</span>
+                    <span class="text-slate-500 block text-xs">Ref: {{ $selectedCA->disbursement_ref ?: '-' }}</span>
                 </div>
                 <div>
-                    <span class="text-slate-400 block text-[10px] uppercase font-bold font-sans">Status CA</span>
+                    <span class="text-slate-400 block text-xs uppercase font-bold font-sans">Status CA</span>
                     <span class="badge-retail mt-1 bg-white border-retail-surface">
                         {{ $selectedCA->status }}
                     </span>
@@ -90,25 +91,25 @@
             <!-- Summary Table of Balances -->
             <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center mb-6 font-mono">
                 <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                    <span class="block text-[10px] font-bold uppercase text-slate-500 font-sans">CA Disetujui</span>
+                    <span class="block text-xs font-bold uppercase text-slate-500 font-sans">CA Disetujui</span>
                     <span class="block text-sm font-bold text-slate-800 mt-1">
                         Rp {{ number_format($selectedCA->approved_amount ?: $selectedCA->requested_amount, 0, ',', '.') }}
                     </span>
                 </div>
                 <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                    <span class="block text-[10px] font-bold uppercase text-slate-500 font-sans">Top-Up (+)</span>
+                    <span class="block text-xs font-bold uppercase text-slate-500 font-sans">Top-Up (+)</span>
                     <span class="block text-sm font-bold text-emerald-700 mt-1">
                         +Rp {{ number_format($selectedCA->disbursed_topups_total, 0, ',', '.') }}
                     </span>
                 </div>
                 <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                    <span class="block text-[10px] font-bold uppercase text-slate-500 font-sans">Pengeluaran (-)</span>
+                    <span class="block text-xs font-bold uppercase text-slate-500 font-sans">Pengeluaran (-)</span>
                     <span class="block text-sm font-bold text-rose-700 mt-1">
                         -Rp {{ number_format($selectedCA->recorded_expenses_total, 0, ',', '.') }}
                     </span>
                 </div>
                 <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                    <span class="block text-[10px] font-bold uppercase text-slate-500 font-sans">Sisa Saldo Kas</span>
+                    <span class="block text-xs font-bold uppercase text-slate-500 font-sans">Sisa Saldo Kas</span>
                     <span class="block text-sm font-extrabold {{ $selectedCA->status === 'CLOSED' ? 'text-emerald-700' : 'text-retail-ink' }} mt-1">
                         @if($selectedCA->status === 'CLOSED')
                             Rp 0 (Lunas)
@@ -118,7 +119,7 @@
                     </span>
                 </div>
                 <div class="p-3 bg-amber-50 rounded-xl border border-amber-300 col-span-2 sm:col-span-1">
-                    <span class="block text-[10px] font-bold uppercase text-amber-900 font-sans">Hasil Settlement</span>
+                    <span class="block text-xs font-bold uppercase text-amber-900 font-sans">Hasil Settlement</span>
                     <span class="block text-sm font-black {{ $selectedCA->status === 'CLOSED' ? 'text-emerald-700' : 'text-amber-900' }} mt-1">
                         @if($selectedCA->status === 'CLOSED')
                             Rp 0 (Selesai)
@@ -151,12 +152,12 @@
                                 <td class="px-3 py-2">
                                     <span class="font-medium text-slate-900">{{ $exp->description }}</span>
                                     @if($exp->is_talangan)
-                                        <span class="block text-[10px] text-amber-700 font-semibold font-mono">[Talangan Pribadi]</span>
+                                        <span class="block text-xs text-amber-700 font-semibold font-mono">[Talangan Pribadi]</span>
                                     @endif
                                 </td>
                                 <td class="px-3 py-2 text-slate-600">{{ $exp->vendor_name }}</td>
                                 <td class="px-3 py-2 whitespace-nowrap">
-                                    <span class="badge-retail text-[10px] bg-slate-100 text-slate-700 border-slate-200">
+                                    <span class="badge-retail text-xs bg-slate-100 text-slate-700 border-slate-200">
                                         {{ $exp->category_label }}
                                     </span>
                                 </td>
@@ -164,7 +165,7 @@
                                     {{ number_format($exp->amount, 0, ',', '.') }}
                                 </td>
                                 <td class="px-3 py-2 text-center whitespace-nowrap">
-                                    <span class="badge-retail text-[9px] uppercase font-bold
+                                    <span class="badge-retail text-xs uppercase font-bold
                                         {{ $exp->verification_status === 'VALID' ? 'bg-[#16A34A] text-white shadow-sm' : '' }}
                                         {{ $exp->verification_status === 'PENDING' ? 'bg-[#FFC704] text-[#050A1E]' : '' }}
                                         {{ $exp->verification_status === 'NEEDS_REVISION' ? 'bg-white border-2 border-[#FF3C00] text-[#FF3C00]' : '' }}
@@ -183,7 +184,7 @@
                     </tbody>
                     <tfoot class="bg-slate-50 font-bold border-t border-retail-surface font-mono">
                         <tr>
-                            <td colspan="5" class="px-3 py-2 text-right uppercase text-[11px] font-sans">Total Pengeluaran Valid</td>
+                            <td colspan="5" class="px-3 py-2 text-right uppercase text-xs font-sans">Total Pengeluaran Valid</td>
                             <td class="px-3 py-2 text-right text-sm text-retail-ink">
                                 Rp {{ number_format($selectedCA->valid_expenses_total, 0, ',', '.') }}
                             </td>
@@ -198,17 +199,17 @@
                 <div>
                     <span class="text-slate-500 block mb-12">Dibuat Oleh (Pemohon),</span>
                     <span class="font-bold text-slate-900 block border-b border-slate-400 pb-1 max-w-[180px] mx-auto">{{ $selectedCA->user->name }}</span>
-                    <span class="text-[10px] text-slate-400 mt-0.5 block">Staff / Field Engineer</span>
+                    <span class="text-xs text-slate-400 mt-0.5 block">Staff / Field Engineer</span>
                 </div>
                 <div>
                     <span class="text-slate-500 block mb-12">Disetujui Oleh (Atasan/Direktur),</span>
                     <span class="font-bold text-slate-900 block border-b border-slate-400 pb-1 max-w-[180px] mx-auto">{{ $selectedCA->approver?->name ?: '(...........................)' }}</span>
-                    <span class="text-[10px] text-slate-400 mt-0.5 block">Atasan Langsung</span>
+                    <span class="text-xs text-slate-400 mt-0.5 block">Atasan Langsung</span>
                 </div>
                 <div>
                     <span class="text-slate-500 block mb-12">Diverifikasi & Tutup (Finance),</span>
                     <span class="font-bold text-slate-900 block border-b border-slate-400 pb-1 max-w-[180px] mx-auto">{{ $selectedCA->closer?->name ?: '(...........................)' }}</span>
-                    <span class="text-[10px] text-slate-400 mt-0.5 block">Finance & Accounting</span>
+                    <span class="text-xs text-slate-400 mt-0.5 block">Finance & Accounting</span>
                 </div>
             </div>
         </div>

@@ -96,9 +96,77 @@ class CashAdvance extends Model
         return $this->hasMany(TopUp::class);
     }
 
+    public function items()
+    {
+        return $this->hasMany(CashAdvanceItem::class);
+    }
+
+    public function distributions()
+    {
+        return $this->hasMany(CashAdvanceDistribution::class)->orderByDesc('distributed_at');
+    }
+
     public function expenses()
     {
         return $this->hasMany(Expense::class)->orderByDesc('transaction_date');
+    }
+
+    /**
+     * Total dana yang sudah didistribusikan Atasan ke Karyawan.
+     */
+    public function getDistributedTotalAttribute(): float
+    {
+        return (float) $this->distributions()->sum('amount');
+    }
+
+    /**
+     * Sisa dana di kas Atasan yang belum dibagikan ke anggota tim proyek.
+     */
+    public function getUndistributedAmountAttribute(): float
+    {
+        $base = (float) ($this->approved_amount ?? $this->requested_amount ?? 0);
+        return max(0, $base - $this->distributed_total);
+    }
+
+    /**
+     * Total dana yang diterima oleh user tertentu pada CA proyek ini.
+     */
+    public function userDistributionTotal(int $userId): float
+    {
+        return (float) $this->distributions()->where('receiver_id', $userId)->sum('amount');
+    }
+
+    /**
+     * Total pengeluaran normal yang dicatat oleh user tertentu pada CA proyek ini.
+     */
+    public function userExpensesTotal(int $userId): float
+    {
+        return (float) $this->expenses()
+            ->where('user_id', $userId)
+            ->where('is_talangan', false)
+            ->whereNotIn('verification_status', ['REJECTED', 'VOID'])
+            ->sum('amount');
+    }
+
+    /**
+     * Sisa saldo kas yang dipegang oleh user tertentu.
+     */
+    public function userCurrentBalance(int $userId): float
+    {
+        if ($this->status === 'CLOSED') {
+            return 0.0;
+        }
+
+        // Jika user adalah PIC CA / Atasan:
+        if ($this->user_id === $userId) {
+            // Saldo Atasan = Saldo CA - Saldo yang sudah dibagikan ke karyawan
+            return max(0, $this->current_balance - $this->distributed_total);
+        }
+
+        // Untuk anggota tim / karyawan:
+        $received = $this->userDistributionTotal($userId);
+        $spent = $this->userExpensesTotal($userId);
+        return max(0, $received - $spent);
     }
 
     // Hitungan Saldo Otomatis (Prinsip 3: Saldo dihitung sistem, tidak pernah diketik manusia)

@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Laporan 3: CA Menggantung (Outstanding)')
+@section('page_title', 'Laporan 3: CA Menggantung (Outstanding)')
 
 @section('content')
 <div class="space-y-6">
@@ -37,34 +38,34 @@
             </div>
             <div class="text-right text-xs font-mono">
                 <span class="font-bold text-retail-ink block">Posisi: {{ date('d/m/Y') }}</span>
-                <span class="text-[10px] text-slate-400 block mt-0.5">Total Menggantung: {{ $outstandingCAs->count() }} CA</span>
+                <span class="text-xs text-slate-400 block mt-0.5">Total Menggantung: {{ $outstandingCAs->count() }} CA</span>
             </div>
         </div>
 
         <!-- Metric Summary -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 font-mono">
             <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                <span class="text-[10px] text-slate-500 uppercase font-bold font-sans block">Total Kas Menggantung</span>
+                <span class="text-xs text-slate-500 uppercase font-bold font-sans block">Total Kas Menggantung</span>
                 <span class="text-base sm:text-lg font-bold text-retail-ink block mt-1">
                     Rp {{ number_format($outstandingCAs->sum->current_balance, 0, ',', '.') }}
                 </span>
-                <span class="text-[10px] text-slate-400 block mt-0.5 font-sans">Saldo aktif di tangan karyawan</span>
+                <span class="text-xs text-slate-400 block mt-0.5 font-sans">Saldo aktif di tangan karyawan</span>
             </div>
 
             <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                <span class="text-[10px] text-amber-900 uppercase font-bold font-sans block">Menunggu Refund Sisa (Need Settlement)</span>
+                <span class="text-xs text-amber-900 uppercase font-bold font-sans block">Menunggu Refund Sisa (Need Settlement)</span>
                 <span class="text-base sm:text-lg font-bold text-amber-800 block mt-1">
                     {{ $outstandingCAs->where('status', 'NEED_SETTLEMENT')->count() }} Proyek
                 </span>
-                <span class="text-[10px] text-slate-400 block mt-0.5 font-sans">Proyek tuntas / wajib transfer sisa</span>
+                <span class="text-xs text-slate-400 block mt-0.5 font-sans">Proyek tuntas / wajib transfer sisa</span>
             </div>
 
             <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                <span class="text-[10px] text-rose-800 uppercase font-bold font-sans block">Status Lewat Waktu (OVERDUE)</span>
+                <span class="text-xs text-rose-800 uppercase font-bold font-sans block">Status Lewat Waktu (OVERDUE)</span>
                 <span class="text-base sm:text-lg font-bold text-rose-600 block mt-1">
                     {{ $outstandingCAs->filter->is_overdue->count() }} CA
                 </span>
-                <span class="text-[10px] text-slate-400 block mt-0.5 font-sans">Melebihi durasi batas 2 bulan</span>
+                <span class="text-xs text-slate-400 block mt-0.5 font-sans">Melebihi durasi batas 2 bulan</span>
             </div>
         </div>
 
@@ -91,11 +92,11 @@
                             <td class="px-3 py-2.5 font-bold text-retail-ink whitespace-nowrap">{{ $ca->ca_number }}</td>
                             <td class="px-3 py-2.5 font-sans whitespace-nowrap">
                                 <span class="font-bold text-slate-800">{{ $ca->user->name }}</span>
-                                <span class="block text-[10px] text-slate-400">{{ $ca->user->department }}</span>
+                                <span class="block text-xs text-slate-400">{{ $ca->user->department }}</span>
                             </td>
                             <td class="px-3 py-2.5 font-sans">
                                 <span class="font-medium text-slate-900">{{ $ca->project_name }}</span>
-                                <span class="block text-[10px] font-mono text-slate-400">{{ $ca->project_code ?: '-' }}</span>
+                                <span class="block text-xs font-mono text-slate-400">{{ $ca->project_code ?: '-' }}</span>
                             </td>
                             <td class="px-3 py-2.5 whitespace-nowrap">{{ $ca->disbursed_at ? $ca->disbursed_at->format('d/m/Y') : '-' }}</td>
                             <td class="px-3 py-2.5 whitespace-nowrap">{{ $ca->due_date ? $ca->due_date->format('d/m/Y') : '-' }}</td>

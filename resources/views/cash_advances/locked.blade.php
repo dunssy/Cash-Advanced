@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Pengajuan Digembok')
+@section('page_title', 'Akses Pengajuan Digembok')
 
 @section('content')
 <div class="max-w-2xl mx-auto py-8">
@@ -18,8 +19,8 @@
         @if($lockingCA)
             <div class="mt-6 p-4 sm:p-5 bg-[#F4F4F4] border border-cardborder rounded-[15px] text-left space-y-3">
                 <div class="flex items-center justify-between border-b border-cardborder pb-2.5 gap-2">
-                    <span class="text-[11px] font-head font-bold text-bodygrey uppercase tracking-wider">CA Pengunci:</span>
-                    <span class="badge-retail text-[11px]
+                    <span class="text-xs font-head font-bold text-bodygrey uppercase tracking-wider">CA Pengunci:</span>
+                    <span class="badge-retail text-xs
                         {{ $lockingCA->status === 'ACTIVE' ? 'badge-active' : '' }}
                         {{ $lockingCA->status === 'PENDING_APPROVAL' ? 'badge-pending-approval' : '' }}
                         {{ $lockingCA->status === 'NEED_SETTLEMENT' ? 'badge-need-settlement' : '' }}
@@ -43,11 +44,11 @@
 
                 <div class="grid grid-cols-2 gap-3 text-xs pt-2.5 border-t border-cardborder">
                     <div>
-                        <span class="text-bodygrey block text-[10px] font-head font-bold uppercase">Sisa Saldo Kas:</span>
+                        <span class="text-bodygrey block text-xs font-head font-bold uppercase">Sisa Saldo Kas:</span>
                         <span class="font-head font-bold text-[#050A1E] text-sm">Rp {{ number_format($lockingCA->current_balance, 0, ',', '.') }}</span>
                     </div>
                     <div>
-                        <span class="text-bodygrey block text-[10px] font-head font-bold uppercase">Masa Berlaku / Sisa:</span>
+                        <span class="text-bodygrey block text-xs font-head font-bold uppercase">Masa Berlaku / Sisa:</span>
                         <span class="font-head font-bold {{ $lockingCA->is_overdue ? 'text-[#FF3C00]' : 'text-[#050A1E]' }} text-sm">
                             {{ $lockingCA->is_overdue ? 'OVERDUE' : ($lockingCA->days_remaining . ' Hari Tersisa') }}
                         </span>
@@ -70,7 +71,7 @@
         </div>
 
         <!-- Direktur override notice -->
-        <div class="mt-6 pt-5 border-t border-slate-100 text-[11px] text-slate-400 max-w-md mx-auto leading-relaxed">
+        <div class="mt-6 pt-5 border-t border-slate-100 text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
             <span class="font-bold text-slate-600">Catatan Pengecualian:</span> Gembok pengajuan hanya dapat dibuka oleh <strong>Direktur</strong> bila terdapat kondisi darurat proyek baru yang telah disetujui, dengan alasan tertulis yang tercatat permanen di Audit Log.
         </div>
     </div>

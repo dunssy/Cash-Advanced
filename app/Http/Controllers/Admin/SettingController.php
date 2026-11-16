@@ -66,8 +66,22 @@ class SettingController extends Controller
         // 1. Verifikasi hak akses Super Admin
         $this->ensureSuperAdmin();
 
-        // 2. Ambil data input pengaturan dari formulir
-        $settingsData = $request->input('settings', []);
+        // 2. Validasi input pengaturan sesuai tipe data dan batas nilai aman
+        $validated = $request->validate([
+            'settings' => ['required', 'array'],
+            'settings.max_ca_duration_days' => ['nullable', 'integer', 'min:1', 'max:365'],
+            'settings.topup_nominal_threshold' => ['nullable', 'numeric', 'min:100000'],
+            'settings.topup_percent_threshold' => ['nullable', 'numeric', 'min:1', 'max:100'],
+            'settings.topup_max_times_before_direktur' => ['nullable', 'integer', 'min:1', 'max:10'],
+            'settings.low_balance_warning_percent' => ['nullable', 'numeric', 'min:1', 'max:50'],
+            'settings.settlement_deadline_days' => ['nullable', 'integer', 'min:1', 'max:30'],
+            'settings.late_expense_threshold_days' => ['nullable', 'integer', 'min:1', 'max:14'],
+            'settings.company_bank_name' => ['nullable', 'string', 'max:100'],
+            'settings.company_bank_account' => ['nullable', 'string', 'max:50'],
+            'settings.company_bank_holder' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $settingsData = $validated['settings'];
 
         // 3. Rekam nilai konfigurasi saat ini sebelum diperbarui (Audit Trail baseline)
         $oldValues = SystemSetting::all()->pluck('value', 'key')->toArray();

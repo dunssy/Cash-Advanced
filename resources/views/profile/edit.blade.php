@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Pengaturan Profil & Biodata - ' . $user->name)
+@section('page_title', 'Pengaturan Profil & Biodata')
 
 @section('content')
 <div class="max-w-4xl mx-auto space-y-6">
@@ -56,7 +57,7 @@
                     <i data-lucide="camera" class="w-4 h-4 text-[#FF3C00]"></i>
                     <span>Foto Profil & Status Akun</span>
                 </h2>
-                <span class="text-[11px] font-mono text-slate-400">ID Pengguna: #{{ $user->id }}</span>
+                <span class="text-xs font-mono text-slate-400">ID Pengguna: #{{ $user->id }}</span>
             </div>
 
             <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
@@ -72,7 +73,7 @@
                             </div>
                         </template>
                     </div>
-                    <span class="text-[10px] text-slate-400 font-mono">Format: JPG, PNG, WEBP</span>
+                    <span class="text-xs text-slate-400 font-mono">Format: JPG, PNG, WEBP</span>
                 </div>
 
                 <!-- Avatar Actions & Read-Only Role Information -->
@@ -84,7 +85,7 @@
                         <input type="file" name="avatar" accept="image/*"
                             @change="const file = $event.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => avatarPreview = e.target.result; reader.readAsDataURL(file); }"
                             class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#161A2B] file:text-white hover:file:bg-[#FF3C00] file:cursor-pointer file:transition border border-cardborder rounded-xl p-1.5 bg-slate-50">
-                        <p class="text-[11px] text-slate-400 mt-1 font-body">Disarankan menggunakan foto potret kerja formal / <em>headshot</em> profesional (maks. 5MB).</p>
+                        <p class="text-xs text-slate-400 mt-1 font-body">Disarankan menggunakan foto potret kerja formal / <em>headshot</em> profesional (maks. 5MB).</p>
                     </div>
 
                     @if($user->avatar)
@@ -102,7 +103,7 @@
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center space-x-2 flex-wrap gap-y-1">
                                 <span class="text-xs font-bold text-[#050A1E] font-head">Hak Akses Peran:</span>
-                                <span class="badge-retail text-[11px] uppercase font-bold
+                                <span class="badge-retail text-xs uppercase font-bold
                                     {{ $user->role === 'direktur' ? 'bg-[#FFC704] text-[#050A1E]' : '' }}
                                     {{ $user->role === 'finance' ? 'bg-[#161A2B] text-white' : '' }}
                                     {{ $user->role === 'atasan' ? 'bg-[#050A1E] text-white' : '' }}
@@ -112,10 +113,10 @@
                                     {{ strtoupper($user->role) }}
                                 </span>
                                 @if($user->manager)
-                                    <span class="text-[11px] text-slate-500 font-body">Atasan Langsung: <strong class="text-[#050A1E]">{{ $user->manager->name }}</strong></span>
+                                    <span class="text-xs text-slate-500 font-body">Atasan Langsung: <strong class="text-[#050A1E]">{{ $user->manager->name }}</strong></span>
                                 @endif
                             </div>
-                            <p class="text-[11px] text-slate-400 mt-1 font-body">
+                            <p class="text-xs text-slate-400 mt-1 font-body">
                                 Peran akun ditetapkan oleh manajemen/HRD untuk tata kelola kepatuhan (<em>Separation of Duties</em>) dan tidak dapat diubah sendiri.
                             </p>
                         </div>
@@ -233,8 +234,8 @@
                 </button>
             </div>
 
-            <p class="text-[11px] text-slate-400 font-body">
-                Gunakan simbol <code class="text-[#FF3C00] font-bold font-mono">#</code> untuk mengidentifikasi kelompok divisi (maksimal 10 divisi). Tekan <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-[10px] font-mono">Enter</kbd> atau klik tombol Tambah Tag.
+            <p class="text-xs text-slate-400 font-body">
+                Gunakan simbol <code class="text-[#FF3C00] font-bold font-mono">#</code> untuk mengidentifikasi kelompok divisi (maksimal 10 divisi). Tekan <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-xs font-mono">Enter</kbd> atau klik tombol Tambah Tag.
             </p>
         </div>
 
@@ -245,7 +246,7 @@
                     <i data-lucide="credit-card" class="w-4 h-4 text-[#FF3C00]"></i>
                     <span>Rekening Bank Operasional</span>
                 </h2>
-                <span class="text-[10px] text-slate-400 font-mono">Tujuan transfer pencairan CA / Top-Up</span>
+                <span class="text-xs text-slate-400 font-mono">Tujuan transfer pencairan CA / Top-Up</span>
             </div>
 
             <p class="text-xs text-slate-500 font-body">
@@ -254,7 +255,7 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                    <label class="block text-[11px] font-bold text-[#050A1E] uppercase tracking-wider mb-1 font-head">
+                    <label class="block text-xs font-bold text-[#050A1E] uppercase tracking-wider mb-1 font-head">
                         Nama Bank
                     </label>
                     <input type="text" name="bank_name" value="{{ old('bank_name', $user->bank_name) }}"
@@ -263,7 +264,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-[11px] font-bold text-[#050A1E] uppercase tracking-wider mb-1 font-head">
+                    <label class="block text-xs font-bold text-[#050A1E] uppercase tracking-wider mb-1 font-head">
                         Nomor Rekening
                     </label>
                     <input type="text" name="bank_account_number" value="{{ old('bank_account_number', $user->bank_account_number) }}"
@@ -272,7 +273,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-[11px] font-bold text-[#050A1E] uppercase tracking-wider mb-1 font-head">
+                    <label class="block text-xs font-bold text-[#050A1E] uppercase tracking-wider mb-1 font-head">
                         Nama Pemilik Rekening
                     </label>
                     <input type="text" name="bank_account_holder" value="{{ old('bank_account_holder', $user->bank_account_holder) }}"

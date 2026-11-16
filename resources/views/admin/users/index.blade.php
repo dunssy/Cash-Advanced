@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Kelola Pengguna - Super Admin')
+@section('page_title', 'Kelola Pengguna Sistem')
 
 @section('content')
 <div class="space-y-6">
@@ -51,12 +52,12 @@
                                     @endif
                                     <div class="min-w-0">
                                         <span class="font-bold text-slate-900 block">{{ $u->name }}</span>
-                                        <span class="text-[11px] text-slate-500 font-mono">{{ $u->email }}</span>
+                                        <span class="text-xs text-slate-500 font-mono">{{ $u->email }}</span>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap">
-                                <span class="badge-retail text-[10px] uppercase font-bold
+                                <span class="badge-retail text-xs uppercase font-bold
                                     {{ $u->role === 'direktur' ? 'bg-amber-50 text-amber-900 border-amber-300' : '' }}
                                     {{ $u->role === 'finance' ? 'bg-purple-50 text-purple-900 border-purple-300' : '' }}
                                     {{ $u->role === 'atasan' ? 'bg-blue-50 text-blue-900 border-blue-300' : '' }}
@@ -69,15 +70,15 @@
                             <td class="px-4 py-3 whitespace-nowrap">
                                 @if($u->manager)
                                     <span class="font-bold text-slate-800">{{ $u->manager->name }}</span>
-                                    <span class="block text-[10px] font-mono text-slate-400">({{ $u->manager->role }})</span>
+                                    <span class="block text-xs font-mono text-slate-400">({{ $u->manager->role }})</span>
                                 @else
-                                    <span class="text-slate-400 italic font-mono text-[11px]">Direksi (Puncak)</span>
+                                    <span class="text-slate-400 italic font-mono text-xs">Direksi (Puncak)</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-slate-700">
                                 <div class="flex flex-wrap gap-1 max-w-xs">
                                     @forelse($u->departments as $dept)
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-slate-100 text-[#050A1E] border border-slate-300">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-medium bg-slate-100 text-[#050A1E] border border-slate-300">
                                             <span class="text-[#FF3C00] font-bold mr-1">Tag:</span>{{ $dept }}
                                         </span>
                                     @empty
@@ -88,7 +89,7 @@
                             <td class="px-4 py-3 whitespace-nowrap font-mono text-xs">
                                 @if($u->bank_name)
                                     <span class="font-bold text-slate-800">{{ $u->bank_name }} - {{ $u->bank_account_number }}</span>
-                                    <span class="block text-[10px] text-slate-400 font-sans">a.n {{ $u->bank_account_holder }}</span>
+                                    <span class="block text-xs text-slate-400 font-sans">a.n {{ $u->bank_account_holder }}</span>
                                 @else
                                     <span class="text-slate-400">-</span>
                                 @endif

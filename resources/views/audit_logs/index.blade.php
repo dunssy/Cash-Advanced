@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Audit Trail Sistem')
+@section('page_title', 'Audit Trail Sistem')
 
 @section('content')
 <div class="space-y-6">
@@ -60,9 +61,9 @@
                     <div class="flex items-start justify-between gap-2">
                         <div>
                             <span class="text-xs font-bold text-retail-ink font-mono block">{{ $log->created_at->format('d/m/Y H:i:s') }}</span>
-                            <span class="text-[10px] text-slate-400 font-mono">{{ $log->ip_address ?: '127.0.0.1' }}</span>
+                            <span class="text-xs text-slate-400 font-mono">{{ $log->ip_address ?: '127.0.0.1' }}</span>
                         </div>
-                        <span class="badge-retail text-[10px] uppercase font-bold
+                        <span class="badge-retail text-xs uppercase font-bold
                             {{ str_contains($log->action, 'REJECT') || str_contains($log->action, 'VOID') ? 'bg-[#FF3C00] text-white' : '' }}
                             {{ str_contains($log->action, 'APPROVE') || str_contains($log->action, 'VALID') ? 'bg-[#050A1E] text-white' : '' }}
                             {{ str_contains($log->action, 'OVERRIDE') ? 'bg-[#FFC704] text-[#050A1E]' : '' }}
@@ -76,9 +77,9 @@
                     <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
                         <div class="font-sans">
                             <span class="font-bold text-slate-900">{{ $log->user_name ?: 'System' }}</span>
-                            <span class="text-[10px] text-slate-500 uppercase font-mono ml-1 font-semibold">({{ $log->user_role ?: '-' }})</span>
+                            <span class="text-xs text-slate-500 uppercase font-mono ml-1 font-semibold">({{ $log->user_role ?: '-' }})</span>
                         </div>
-                        <span class="text-[11px] text-slate-500 font-mono font-semibold">{{ $log->record_type ?: '-' }} #{{ $log->record_id ?: '-' }}</span>
+                        <span class="text-xs text-slate-500 font-mono font-semibold">{{ $log->record_type ?: '-' }} #{{ $log->record_id ?: '-' }}</span>
                     </div>
 
                     <p class="text-xs text-slate-700 leading-relaxed font-sans">{{ $log->description }}</p>
@@ -90,7 +91,7 @@
                                 <span x-text="openDetail ? 'Tutup Detail Diff' : 'Lihat Detail Perubahan Nilai (Diff)'"></span>
                             </button>
 
-                            <div x-show="openDetail" x-cloak class="mt-2 text-left p-3 bg-retail-darkInk text-slate-200 rounded-lg border border-retail-ink font-mono text-[10px] overflow-x-auto shadow-lg">
+                            <div x-show="openDetail" x-cloak class="mt-2 text-left p-3 bg-retail-darkInk text-slate-200 rounded-lg border border-retail-ink font-mono text-xs overflow-x-auto shadow-lg">
                                 @if($log->old_values)
                                     <div class="text-rose-400 font-bold mb-1">--- Old Values:</div>
                                     <pre class="whitespace-pre-wrap">{{ json_encode($log->old_values, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
@@ -126,14 +127,14 @@
                         <tr class="hover:bg-slate-50/80 transition" x-data="{ openDetail: false }">
                             <td class="px-4 py-3 whitespace-nowrap">
                                 <span class="font-bold text-retail-ink block">{{ $log->created_at->format('d/m/Y H:i:s') }}</span>
-                                <span class="text-[10px] text-slate-400 font-mono">{{ $log->ip_address ?: '127.0.0.1' }}</span>
+                                <span class="text-xs text-slate-400 font-mono">{{ $log->ip_address ?: '127.0.0.1' }}</span>
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap font-sans">
                                 <span class="font-bold text-slate-900 block">{{ $log->user_name ?: 'System' }}</span>
-                                <span class="text-[10px] text-slate-500 uppercase font-mono font-semibold">{{ $log->user_role ?: '-' }}</span>
+                                <span class="text-xs text-slate-500 uppercase font-mono font-semibold">{{ $log->user_role ?: '-' }}</span>
                             </td>
                             <td class="px-4 py-3 text-center whitespace-nowrap">
-                                <span class="badge-retail text-[10px] uppercase font-bold
+                                <span class="badge-retail text-xs uppercase font-bold
                                     {{ str_contains($log->action, 'REJECT') || str_contains($log->action, 'VOID') ? 'bg-[#FF3C00] text-white' : '' }}
                                     {{ str_contains($log->action, 'APPROVE') || str_contains($log->action, 'VALID') ? 'bg-[#050A1E] text-white' : '' }}
                                     {{ str_contains($log->action, 'OVERRIDE') ? 'bg-[#FFC704] text-[#050A1E]' : '' }}
@@ -151,12 +152,12 @@
                             </td>
                             <td class="px-4 py-3 text-center whitespace-nowrap font-sans">
                                 @if($log->old_values || $log->new_values)
-                                    <button @click="openDetail = !openDetail" class="text-retail-cyan hover:underline font-bold text-[11px]">
+                                    <button @click="openDetail = !openDetail" class="text-retail-cyan hover:underline font-bold text-xs">
                                         <span x-text="openDetail ? 'Tutup' : 'Lihat Diff'"></span>
                                     </button>
 
                                     <!-- Diff Drawer / Popup -->
-                                    <div x-show="openDetail" x-cloak class="mt-2 text-left p-3 bg-retail-darkInk text-slate-200 rounded-lg border border-retail-ink font-mono text-[10px] max-w-xs overflow-x-auto shadow-lg">
+                                    <div x-show="openDetail" x-cloak class="mt-2 text-left p-3 bg-retail-darkInk text-slate-200 rounded-lg border border-retail-ink font-mono text-xs max-w-xs overflow-x-auto shadow-lg">
                                         @if($log->old_values)
                                             <div class="text-rose-400 font-bold mb-1">--- Old Values:</div>
                                             <pre>{{ json_encode($log->old_values, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
@@ -167,7 +168,7 @@
                                         @endif
                                     </div>
                                 @else
-                                    <span class="text-slate-400 text-[10px]">-</span>
+                                    <span class="text-slate-400 text-xs">-</span>
                                 @endif
                             </td>
                         </tr>

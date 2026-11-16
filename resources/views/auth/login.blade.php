@@ -84,7 +84,7 @@
                         <input type="checkbox" name="remember" class="w-4 h-4 rounded text-brand focus:ring-brand border-slate-300">
                         <span class="text-navy">Ingat saya</span>
                     </label>
-                    <span class="text-[11px] font-mono text-slate-400"></span>
+                    <span class="text-xs font-mono text-slate-400"></span>
                 </div>
 
                 <button id="btn-login-submit" type="submit" class="w-full btn-brand mt-2 cursor-pointer transition-all duration-200">
@@ -97,13 +97,13 @@
 
             {{-- lupakan password --}}
             <div class="mt-4 text-center">
-                <a href="" class="text-[11px] text-brand hover:text-brand-dark transition">
+                <a href="javascript:void(0)" onclick="alert('Silakan hubungi IT Administrator atau Super Admin untuk reset password akun Anda.')" class="text-xs text-brand hover:text-brand-dark transition font-medium">
                     Lupa Password?
                 </a>
             </div>
         </div>
 
-        <div class="text-center mt-5 text-[11px] text-slate-400 font-normal">
+        <div class="text-center mt-5 text-xs text-slate-400 font-normal">
             &copy; 2026 PT Technodrives Indonesia &bull; Expert Electrical Solutions & Testing
         </div>
     </div>

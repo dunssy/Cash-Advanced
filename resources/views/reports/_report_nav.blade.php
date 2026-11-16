@@ -5,7 +5,7 @@
                 <i data-lucide="bar-chart-3" class="w-4 h-4 text-[#FF3C00]"></i>
             </div>
             <div>
-                <span class="block text-[10px] font-head font-bold text-bodygrey uppercase tracking-wider">Kategori Laporan:</span>
+                <span class="block text-xs font-head font-bold text-bodygrey uppercase tracking-wider">Kategori Laporan:</span>
                 <span class="block text-xs font-head font-bold text-[#050A1E]">
                     @if(request()->routeIs('reports.rincian-ca'))
                         1. Rincian per Cash Advance

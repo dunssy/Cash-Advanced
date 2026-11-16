@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Daftar Cash Advance')
+@section('title', auth()->user()->isKaryawan() ? 'Cash Advance Saya' : 'Daftar Cash Advance')
+@section('page_title', auth()->user()->isKaryawan() ? 'Cash Advance Saya' : 'Daftar Cash Advance')
 
 @section('content')
 <div class="space-y-6">
@@ -15,7 +16,7 @@
                     <h2 class="text-xs font-semibold font-head text-[#FF3C00]">Laporan {{ auth()->user()->isKaryawan() ? 'Cash Advance Saya' : 'Daftar Cash Advance' }}</h2>
                 </div>
             </div>
-            <div class="text-right text-[11px] text-[#7A7A7A] font-body">
+            <div class="text-right text-xs text-[#7A7A7A] font-body">
                 <p>Dicetak: {{ date('d/m/Y H:i') }} WIB</p>
                 <p>Oleh: <strong>{{ auth()->user()->name }}</strong> ({{ strtoupper(auth()->user()->role) }})</p>
                 @if(request('status'))<p class="font-bold text-[#050A1E]">Filter Status: {{ request('status') }}</p>@endif
@@ -95,7 +96,7 @@
                         <span class="font-head font-bold text-xs text-white bg-[#050A1E] px-2.5 py-1 rounded-md">
                             {{ $ca->ca_number }}
                         </span>
-                        <span class="badge-retail text-[10px]
+                        <span class="badge-retail text-xs
                             {{ $ca->status === 'PENDING_APPROVAL' ? ($ca->approved_by ? 'bg-sky-50 text-sky-800 border-sky-300' : 'badge-pending-approval') : '' }}
                             {{ $ca->status === 'REJECTED' ? 'badge-rejected' : '' }}
                             {{ $ca->status === 'ACTIVE' ? 'badge-active' : '' }}
@@ -124,7 +125,7 @@
                     </div>
 
                     <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                        <span class="text-[10px] font-head text-[#7A7A7A] uppercase font-bold">Sisa Saldo Kas</span>
+                        <span class="text-xs font-head text-[#7A7A7A] uppercase font-bold">Sisa Saldo Kas</span>
                         <span class="font-head font-extrabold text-sm {{ $ca->status === 'CLOSED' ? 'text-emerald-700' : ($ca->current_balance > 0 ? 'text-[#FF3C00]' : 'text-slate-800') }}">
                             @if($ca->status === 'CLOSED')
                                 <span class="inline-flex items-center gap-1">
@@ -141,7 +142,7 @@
                         <div>
                             @if($ca->status === 'ACTIVE' || $ca->status === 'NEED_SETTLEMENT')
                                 @if($ca->is_overdue)
-                                    <span class="badge-retail bg-rose-100 text-rose-800 border-rose-300 font-bold text-[10px]">OVERDUE</span>
+                                    <span class="badge-retail bg-rose-100 text-rose-800 border-rose-300 font-bold text-xs">OVERDUE</span>
                                 @else
                                     <span class="text-xs text-slate-600">Durasi: <strong class="text-slate-900 font-mono">{{ $ca->days_remaining }} hari</strong></span>
                                 @endif
@@ -198,7 +199,7 @@
                             <td>
                                 @if(auth()->user()->isKaryawan())
                                     <div class="flex items-center space-x-2">
-                                        <span class="font-head font-bold text-[11px] text-white bg-[#050A1E] px-2 py-0.5 rounded-md inline-block whitespace-nowrap">
+                                        <span class="font-head font-bold text-xs text-white bg-[#050A1E] px-2 py-0.5 rounded-md inline-block whitespace-nowrap">
                                             {{ $ca->ca_number }}
                                         </span>
                                         <span class="font-head font-bold text-sm text-[#050A1E] block truncate max-w-sm">{{ $ca->project_name }}</span>

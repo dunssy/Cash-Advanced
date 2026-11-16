@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Laporan 4: Rekap Kepatuhan Karyawan')
+@section('page_title', 'Rekap Kepatuhan Karyawan')
 
 @section('content')
 <div class="space-y-6">
@@ -37,7 +38,7 @@
             </div>
             <div class="text-right text-xs font-mono">
                 <span class="font-bold text-retail-ink block">Posisi: {{ date('d/m/Y') }}</span>
-                <span class="text-[10px] text-slate-400 block mt-0.5">Total Personil: {{ $employees->count() }} Karyawan</span>
+                <span class="text-xs text-slate-400 block mt-0.5">Total Personil: {{ $employees->count() }} Karyawan</span>
             </div>
         </div>
 
@@ -65,7 +66,7 @@
                         <tr class="hover:bg-slate-50 {{ $hasDisciplinaryRisk ? 'bg-amber-50/40' : '' }}">
                             <td class="px-3.5 py-2.5 font-bold text-retail-ink whitespace-nowrap font-sans">
                                 {{ $user->name }}
-                                <span class="block text-[10px] font-mono text-slate-400 font-normal">{{ $user->email }}</span>
+                                <span class="block text-xs font-mono text-slate-400 font-normal">{{ $user->email }}</span>
                             </td>
                             <td class="px-3.5 py-2.5 text-slate-600 whitespace-nowrap font-sans">{{ $user->department ?: '-' }}</td>
                             <td class="px-3.5 py-2.5 text-center font-bold text-slate-800">{{ $row['total_ca'] }}</td>
@@ -113,8 +114,8 @@
         </div>
 
         <div class="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 space-y-1">
-            <span class="font-bold text-retail-ink block text-[11px] uppercase tracking-wide">Keterangan Indikator Kepatuhan:</span>
-            <ul class="list-disc list-inside text-[11px] text-slate-500 space-y-0.5">
+            <span class="font-bold text-retail-ink block text-xs uppercase tracking-wide">Keterangan Indikator Kepatuhan:</span>
+            <ul class="list-disc list-inside text-xs text-slate-500 space-y-0.5">
                 <li><strong>Telat Catat Struk:</strong> Transaksi dicatat lebih dari 1 hari kalender sejak transaksi terjadi (label TERLAMBAT).</li>
                 <li><strong>Telat Refund Sisa:</strong> Sisa kas ditransfer melewati batas 3 hari kerja setelah status NEED_SETTLEMENT.</li>
                 <li><strong>Overdue:</strong> Cash Advance yang belum tuntas melewati batas maksimal 2 bulan (60 hari) sejak pencairan dana.</li>

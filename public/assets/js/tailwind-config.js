@@ -3,6 +3,9 @@
  * Tailwind CSS Configuration
  */
 tailwind.config = {
+    corePlugins: {
+        preflight: false, // Prevents Tailwind from overriding Bootstrap 5 / AdminLTE 4 base resets
+    },
     theme: {
         extend: {
             colors: {
@@ -33,25 +36,26 @@ tailwind.config = {
                 mono: ['"Poppins"', 'monospace'], // Currency & technical amounts use bold Poppins
             },
             borderRadius: {
-                'pill': '30px',
-                'card': '15px',
-                'input': '15px',
-                'label': '20px',
-                'sm': '6px',
-                'DEFAULT': '10px',
-                'md': '12px',
-                'lg': '15px',
-                'xl': '20px',
-                '2xl': '30px',
+                'sm': '4px',
+                'DEFAULT': '6px',
+                'md': '8px',
+                'lg': '10px',
+                'xl': '12px',
+                '2xl': '16px',
+                'full': '9999px',
+                'pill': '9999px',
+                'card': '12px',
+                'input': '8px',
+                'label': '6px',
             },
             boxShadow: {
-                'header': '0 2px 5px -2px rgba(0, 0, 0, 0.1)',
-                'submenu': '0px 1px 3px rgba(0, 0, 0, 0.3)',
+                'header': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)',
+                'submenu': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
                 'card': '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
-                'focus': '0 0 4px rgba(255, 61, 0, 0.5)',
+                'focus': '0 0 0 3px rgba(255, 60, 0, 0.15)',
             },
             transitionDuration: {
-                'brand': '500ms',
+                'brand': '150ms',
             }
         }
     }

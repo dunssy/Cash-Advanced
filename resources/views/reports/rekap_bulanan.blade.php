@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Laporan 2: Rekap Bulanan Pajak & Pembukuan')
+@section('page_title', 'Laporan 2: Rekap Bulanan Pajak & Pembukuan')
 
 @section('content')
 <div class="space-y-6">
@@ -66,34 +67,34 @@
             </div>
             <div class="text-right text-xs font-mono">
                 <span class="font-bold text-retail-ink block text-sm">Periode: {{ \Carbon\Carbon::create(null, (int)$month, 1)->translatedFormat('F') }} {{ $year }}</span>
-                <span class="text-[10px] text-slate-400 block mt-0.5">Total Dokumen: {{ $cas->count() }} CA</span>
+                <span class="text-xs text-slate-400 block mt-0.5">Total Dokumen: {{ $cas->count() }} CA</span>
             </div>
         </div>
 
         <!-- Metric Summary -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 font-mono">
             <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                <span class="text-[10px] text-slate-500 uppercase font-bold font-sans block">Total Dana Dicairkan</span>
+                <span class="text-xs text-slate-500 uppercase font-bold font-sans block">Total Dana Dicairkan</span>
                 <span class="text-sm sm:text-base font-bold text-slate-900 block mt-1">Rp {{ number_format($totalDana, 0, ',', '.') }}</span>
-                <span class="text-[10px] text-slate-400 block mt-0.5">CA: {{ number_format($totalCAInitial, 0, ',', '.') }}</span>
+                <span class="text-xs text-slate-400 block mt-0.5">CA: {{ number_format($totalCAInitial, 0, ',', '.') }}</span>
             </div>
 
             <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                <span class="text-[10px] text-slate-500 uppercase font-bold font-sans block">Biaya Valid (Pajak)</span>
+                <span class="text-xs text-slate-500 uppercase font-bold font-sans block">Biaya Valid (Pajak)</span>
                 <span class="text-sm sm:text-base font-bold text-emerald-700 block mt-1">Rp {{ number_format($totalValidExpense, 0, ',', '.') }}</span>
-                <span class="text-[10px] text-slate-400 block mt-0.5">Struk lengkap & sah</span>
+                <span class="text-xs text-slate-400 block mt-0.5">Struk lengkap & sah</span>
             </div>
 
             <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                <span class="text-[10px] text-slate-500 uppercase font-bold font-sans block">Total Sisa Dana Di-Refund</span>
+                <span class="text-xs text-slate-500 uppercase font-bold font-sans block">Total Sisa Dana Di-Refund</span>
                 <span class="text-sm sm:text-base font-bold text-purple-700 block mt-1">Rp {{ number_format($totalRefund, 0, ',', '.') }}</span>
-                <span class="text-[10px] text-slate-400 block mt-0.5">Masuk rekening kantor</span>
+                <span class="text-xs text-slate-400 block mt-0.5">Masuk rekening kantor</span>
             </div>
 
             <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                <span class="text-[10px] text-slate-500 uppercase font-bold font-sans block">Outstanding / Belum Selesai</span>
+                <span class="text-xs text-slate-500 uppercase font-bold font-sans block">Outstanding / Belum Selesai</span>
                 <span class="text-sm sm:text-base font-bold text-amber-800 block mt-1">{{ $cas->whereNotIn('status', ['CLOSED', 'REJECTED'])->count() }} Dokumen</span>
-                <span class="text-[10px] text-slate-400 block mt-0.5 font-sans">Sedang berjalan</span>
+                <span class="text-xs text-slate-400 block mt-0.5 font-sans">Sedang berjalan</span>
             </div>
         </div>
 
@@ -116,41 +117,41 @@
                         <tr>
                             <td class="px-3.5 py-2 font-bold text-slate-900 font-sans">Material & Perlengkapan</td>
                             <td class="px-3.5 py-2 text-slate-500 font-sans">Pembelian kabel, konektor, sparepart lokal proyek</td>
-                            <td class="px-3.5 py-2 text-right font-bold text-slate-800">Rp {{ number_format($categories['material'], 0, ',', '.') }}</td>
+                            <td class="px-3.5 py-2 text-right font-bold text-slate-800">Rp {{ number_format($categories['material'] ?? 0, 0, ',', '.') }}</td>
                             <td class="px-3.5 py-2 text-right font-semibold text-slate-600">
-                                {{ $totalValidExpense > 0 ? number_format(($categories['material'] / $totalValidExpense) * 100, 1) : 0 }}%
+                                {{ $totalValidExpense > 0 ? number_format((($categories['material'] ?? 0) / $totalValidExpense) * 100, 1) : 0 }}%
                             </td>
                         </tr>
                         <tr>
                             <td class="px-3.5 py-2 font-bold text-slate-900 font-sans">Transportasi & BBM / Tol</td>
                             <td class="px-3.5 py-2 text-slate-500 font-sans">BBM kendaraan operasional, struk tol, tiket perjalanan tim</td>
-                            <td class="px-3.5 py-2 text-right font-bold text-slate-800">Rp {{ number_format($categories['transport'], 0, ',', '.') }}</td>
+                            <td class="px-3.5 py-2 text-right font-bold text-slate-800">Rp {{ number_format($categories['transport'] ?? 0, 0, ',', '.') }}</td>
                             <td class="px-3.5 py-2 text-right font-semibold text-slate-600">
-                                {{ $totalValidExpense > 0 ? number_format(($categories['transport'] / $totalValidExpense) * 100, 1) : 0 }}%
+                                {{ $totalValidExpense > 0 ? number_format((($categories['transport'] ?? 0) / $totalValidExpense) * 100, 1) : 0 }}%
                             </td>
                         </tr>
                         <tr>
                             <td class="px-3.5 py-2 font-bold text-slate-900 font-sans">Sewa Alat & Kendaraan</td>
                             <td class="px-3.5 py-2 text-slate-500 font-sans">Sewa scaffolding, crane kecil, pickup lokal, alat ukur</td>
-                            <td class="px-3.5 py-2 text-right font-bold text-slate-800">Rp {{ number_format($categories['sewa_alat'], 0, ',', '.') }}</td>
+                            <td class="px-3.5 py-2 text-right font-bold text-slate-800">Rp {{ number_format($categories['sewa_alat'] ?? 0, 0, ',', '.') }}</td>
                             <td class="px-3.5 py-2 text-right font-semibold text-slate-600">
-                                {{ $totalValidExpense > 0 ? number_format(($categories['sewa_alat'] / $totalValidExpense) * 100, 1) : 0 }}%
+                                {{ $totalValidExpense > 0 ? number_format((($categories['sewa_alat'] ?? 0) / $totalValidExpense) * 100, 1) : 0 }}%
                             </td>
                         </tr>
                         <tr>
                             <td class="px-3.5 py-2 font-bold text-slate-900 font-sans">Konsumsi & Penginapan</td>
                             <td class="px-3.5 py-2 text-slate-500 font-sans">Hotel/losmen teknisi lapangan, makan dinas lembur</td>
-                            <td class="px-3.5 py-2 text-right font-bold text-slate-800">Rp {{ number_format($categories['konsumsi'], 0, ',', '.') }}</td>
+                            <td class="px-3.5 py-2 text-right font-bold text-slate-800">Rp {{ number_format($categories['konsumsi'] ?? 0, 0, ',', '.') }}</td>
                             <td class="px-3.5 py-2 text-right font-semibold text-slate-600">
-                                {{ $totalValidExpense > 0 ? number_format(($categories['konsumsi'] / $totalValidExpense) * 100, 1) : 0 }}%
+                                {{ $totalValidExpense > 0 ? number_format((($categories['konsumsi'] ?? 0) / $totalValidExpense) * 100, 1) : 0 }}%
                             </td>
                         </tr>
                         <tr>
                             <td class="px-3.5 py-2 font-bold text-slate-900 font-sans">Lain-lain Operasional</td>
                             <td class="px-3.5 py-2 text-slate-500 font-sans">Fotokopi berkas, perijinan kawasan industri, porter, dll</td>
-                            <td class="px-3.5 py-2 text-right font-bold text-slate-800">Rp {{ number_format($categories['lainnya'], 0, ',', '.') }}</td>
+                            <td class="px-3.5 py-2 text-right font-bold text-slate-800">Rp {{ number_format($categories['lainnya'] ?? 0, 0, ',', '.') }}</td>
                             <td class="px-3.5 py-2 text-right font-semibold text-slate-600">
-                                {{ $totalValidExpense > 0 ? number_format(($categories['lainnya'] / $totalValidExpense) * 100, 1) : 0 }}%
+                                {{ $totalValidExpense > 0 ? number_format((($categories['lainnya'] ?? 0) / $totalValidExpense) * 100, 1) : 0 }}%
                             </td>
                         </tr>
                         <tr class="bg-slate-50 font-bold border-t border-retail-surface">
@@ -187,7 +188,7 @@
                                 <td class="px-3 py-2 font-sans">{{ $c->user->name }}</td>
                                 <td class="px-3 py-2 font-sans">{{ $c->project_name }}</td>
                                 <td class="px-3 py-2 text-center">
-                                    <span class="badge-retail text-[10px]">{{ $c->status }}</span>
+                                    <span class="badge-retail text-xs">{{ $c->status }}</span>
                                 </td>
                                 <td class="px-3 py-2 text-right">Rp {{ number_format($c->approved_amount ?: $c->requested_amount, 0, ',', '.') }}</td>
                                 <td class="px-3 py-2 text-right text-emerald-700">+Rp {{ number_format($c->disbursed_topups_total, 0, ',', '.') }}</td>
@@ -207,18 +208,18 @@
         <!-- Footer Signs -->
         <div class="grid grid-cols-2 gap-8 text-center text-xs pt-8 border-t border-retail-surface mt-8 font-sans">
             <div>
-                <span class="text-slate-400 block text-[10px] uppercase font-bold">Dibuat Oleh (Finance & Pajak)</span>
+                <span class="text-slate-400 block text-xs uppercase font-bold">Dibuat Oleh (Finance & Pajak)</span>
                 <div class="h-16 flex items-end justify-center font-bold text-slate-900 border-b border-slate-300 pb-1">
                     {{ auth()->user()->isFinance() ? auth()->user()->name : 'Dewi Lestari' }}
                 </div>
-                <span class="text-[10px] text-slate-400 block mt-1">Admin Keuangan & Perpajakan</span>
+                <span class="text-xs text-slate-400 block mt-1">Admin Keuangan & Perpajakan</span>
             </div>
             <div>
-                <span class="text-slate-400 block text-[10px] uppercase font-bold">Mengetahui & Menyetujui</span>
+                <span class="text-slate-400 block text-xs uppercase font-bold">Mengetahui & Menyetujui</span>
                 <div class="h-16 flex items-end justify-center font-bold text-slate-900 border-b border-slate-300 pb-1">
                     Bambang Soedirgo
                 </div>
-                <span class="text-[10px] text-slate-400 block mt-1">Direktur Utama</span>
+                <span class="text-xs text-slate-400 block mt-1">Direktur Utama</span>
             </div>
         </div>
     </div>

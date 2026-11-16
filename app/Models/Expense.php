@@ -11,6 +11,7 @@ class Expense extends Model
 
     protected $fillable = [
         'cash_advance_id',
+        'cash_advance_item_id',
         'user_id',
         'transaction_date',
         'description',
@@ -52,6 +53,11 @@ class Expense extends Model
     public function cashAdvance()
     {
         return $this->belongsTo(CashAdvance::class);
+    }
+
+    public function item()
+    {
+        return $this->belongsTo(CashAdvanceItem::class, 'cash_advance_item_id');
     }
 
     public function user()

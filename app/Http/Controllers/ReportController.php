@@ -68,11 +68,25 @@ class ReportController extends Controller
 
         $allCAs = (clone $caQuery)->get();
 
-        // 3. Tentukan CA yang sedang dipilih (default: CA terbaru)
+        // 3. Tentukan CA yang sedang dipilih (default: CA terbaru yang berhak diakses pengguna)
         $selectedId = $request->input('ca_id', $allCAs->first()?->id);
-        $selectedCA = $selectedId 
-            ? CashAdvance::with(['user.manager', 'approver', 'disburser', 'expenses.attachments', 'expenses.verifier', 'topUps'])->find($selectedId) 
-            : null;
+        $selectedCA = null;
+
+        if ($selectedId) {
+            // Pastikan dokumen yang diminta berada dalam batas otorisasi pengguna (Cegah IDOR / BOLA)
+            $selectedCA = (clone $caQuery)->with([
+                'user.manager', 
+                'approver', 
+                'disburser', 
+                'expenses.attachments', 
+                'expenses.verifier', 
+                'topUps'
+            ])->find($selectedId);
+
+            if (!$selectedCA && $request->filled('ca_id')) {
+                abort(403, 'Akses ditolak: Anda tidak memiliki wewenang untuk memeriksa rincian Cash Advance ini.');
+            }
+        }
 
         // 4. Tangani ekspor data ke format CSV
         if ($request->input('export') === 'csv' && $selectedCA) {

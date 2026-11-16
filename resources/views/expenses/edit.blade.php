@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Edit Pengeluaran #' . $expense->id)
+@section('page_title', 'Edit Transaksi Pengeluaran')
 
 @section('content')
 <div class="max-w-2xl mx-auto">
@@ -19,7 +20,7 @@
             <div>
                 <span class="font-head font-bold uppercase tracking-wide text-[#050A1E]">Catatan Perbaikan dari Finance:</span>
                 <p class="mt-1 leading-relaxed italic">"{{ $expense->verification_notes }}"</p>
-                <span class="text-[11px] text-orange-900 block mt-1">Silakan sesuaikan data atau unggah ulang struk yang lebih jelas di bawah ini.</span>
+                <span class="text-xs text-orange-900 block mt-1">Silakan sesuaikan data atau unggah ulang struk yang lebih jelas di bawah ini.</span>
             </div>
         </div>
     @endif
@@ -124,7 +125,7 @@
                                 <a href="{{ $att->url }}" target="_blank" class="text-xs font-semibold text-slate-900 hover:text-retail-orange hover:underline truncate max-w-[200px] block" title="{{ $att->file_name }}">
                                     {{ $att->file_name }}
                                 </a>
-                                <span class="text-[11px] text-slate-500 block font-mono mt-0.5">
+                                <span class="text-xs text-slate-500 block font-mono mt-0.5">
                                     {{ round($att->file_size / 1024, 1) }} KB &bull; <span class="uppercase font-bold text-slate-600">{{ $att->file_type }}</span>
                                 </span>
                             </div>

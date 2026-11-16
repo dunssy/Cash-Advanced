@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
 use App\Models\CashAdvance;
+use App\Models\CashAdvanceDistribution;
+use App\Models\CashAdvanceItem;
 use App\Models\SystemNotification;
 use App\Models\SystemSetting;
 use App\Models\User;
@@ -52,19 +54,40 @@ class CashAdvanceController extends Controller
         $user = Auth::user();
 
         // 1. Inisialisasi kueri dasar dengan eager loading relasi pendukung
-        $query = CashAdvance::with(['user', 'approver', 'disburser', 'expenses', 'topUps'])
-            ->orderByDesc('created_at');
+        $query = CashAdvance::with([
+            'user', 
+            'approver', 
+            'disburser', 
+            'expenses.user', 
+            'topUps', 
+            'items.user', 
+            'distributions.receiver'
+        ])->orderByDesc('created_at');
 
         // 2. Pembatasan cakupan data sesuai peran pengguna (Data Scoping)
         if ($user->isKaryawan()) {
-            // Karyawan hanya melihat data miliknya
-            $query->where('user_id', $user->id);
+            // Karyawan melihat data miliknya atau CA proyek di mana ia terlibat sebagai anggota tim (memiliki item RAB atau menerima distribusi dana)
+            $query->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhereHas('items', function ($iq) use ($user) {
+                      $iq->where('user_id', $user->id);
+                  })
+                  ->orWhereHas('distributions', function ($dq) use ($user) {
+                      $dq->where('receiver_id', $user->id);
+                  });
+            });
         } elseif ($user->isAtasan()) {
-            // Atasan melihat data pribadi dan data bawahan langsungnya
+            // Atasan melihat data pribadi dan data bawahan langsungnya, serta CA proyek di mana bawahannya terlibat
             $subordinateIds = $user->subordinates()->pluck('id')->toArray();
             $query->where(function ($q) use ($user, $subordinateIds) {
                 $q->where('user_id', $user->id)
-                  ->orWhereIn('user_id', $subordinateIds);
+                  ->orWhereIn('user_id', $subordinateIds)
+                  ->orWhereHas('items', function ($iq) use ($subordinateIds) {
+                      $iq->whereIn('user_id', $subordinateIds);
+                  })
+                  ->orWhereHas('distributions', function ($dq) use ($subordinateIds) {
+                      $dq->whereIn('receiver_id', $subordinateIds);
+                  });
             });
         }
         // Finance, Direktur, dan Super Admin dapat memantau seluruh CA perusahaan tanpa filter pemilik
@@ -123,26 +146,47 @@ class CashAdvanceController extends Controller
         }
 
         // 2. Evaluasi Gembok Pengajuan (Dokumen SOP hal 2 & hal 7)
-        // Satu karyawan hanya berhak memegang 1 CA aktif pada satu waktu hingga statusnya resmi CLOSED
         if ($user->hasActiveLock()) {
             $lockingCA = $user->getActiveLockingCA();
             return view('cash_advances.locked', compact('lockingCA'));
         }
 
-        // 3. Render antarmuka pembuatan pengajuan CA baru
-        return view('cash_advances.create');
+        // 3. Estimasi Nomor / ID CA Otomatis untuk tampilan
+        $lastCaThisMonth = CashAdvance::whereYear('created_at', date('Y'))
+            ->whereMonth('created_at', date('m'))
+            ->orderByDesc('id')
+            ->first();
+
+        $nextSequence = 1;
+        if ($lastCaThisMonth && preg_match('/-(\d{4})$/', $lastCaThisMonth->ca_number, $matches)) {
+            $nextSequence = (int)$matches[1] + 1;
+        }
+        $previewCaNumber = sprintf('CA-%s%s-%04d', date('Y'), date('m'), $nextSequence);
+
+        // 4. Daftar Proyek Aktif / Berjalan milik Atasan untuk penggabungan RAB karyawan
+        $existingProjects = collect();
+        if ($user->isKaryawan() && $user->manager_id) {
+            $existingProjects = CashAdvance::where('user_id', $user->manager_id)
+                ->whereIn('status', ['PENDING_APPROVAL', 'ACTIVE'])
+                ->orderByDesc('created_at')
+                ->get();
+        }
+
+        // 5. Daftar anggota tim (bawahan) jika yang mengakses adalah Atasan
+        $subordinates = $user->isAtasan() ? $user->subordinates()->where('is_active', true)->get() : collect();
+
+        // 6. Render antarmuka pembuatan pengajuan CA baru
+        return view('cash_advances.create', compact('previewCaNumber', 'existingProjects', 'subordinates'));
     }
 
     /**
-     * Menyimpan berkas pengajuan Cash Advance baru ke dalam basis data.
+     * Menyimpan berkas pengajuan Cash Advance baru beserta Rincian Kebutuhan (RAB) ke dalam basis data.
      *
-     * Alur kerja:
-     * 1. Validasi server-side status gembok pengajuan pemohon.
-     * 2. Validasi kelengkapan data (proyek, tujuan, dan nominal minimal Rp 10.000).
-     * 3. Pembuatan nomor urut unik sistem: CA-YYYYMM-XXXX.
-     * 4. Penyimpanan data CA dengan status awal 'PENDING_APPROVAL'.
-     * 5. Pencatatan ke Audit Log.
-     * 6. Penerbitan notifikasi otomatis kepada pihak penyetuju (Atasan langsung atau Direktur).
+     * Alur kerja Baru (1 Proyek untuk Beberapa Karyawan):
+     * 1. Karyawan dapat memilih proyek yang sudah berjalan di bawah Atasannya ATAU mengusulkan proyek baru.
+     * 2. Karyawan/Atasan mengisi tabel rincian RAB (item, kategori, volume, harga satuan, subtotal).
+     * 3. Seluruh rincian kebutuhan karyawan dikonsolidasi di bawah penanggung jawab proyek (Atasan).
+     * 4. Atasan kemudian memvalidasi/mengajukan CA proyek ke Direktur / Finance.
      *
      * @param  \Illuminate\Http\Request  $request Objek HTTP Request yang memuat formulir pengajuan.
      * @return \Illuminate\Http\RedirectResponse
@@ -156,76 +200,210 @@ class CashAdvanceController extends Controller
             abort(403, 'Super Admin tidak dapat mengajukan Cash Advance.');
         }
 
-        // 2. Pengecekan ulang Gembok pada sisi server (Server-Side Enforcement)
+        // 2. Evaluasi Gembok Pengajuan
         if ($user->hasActiveLock()) {
             return back()->with('error', 'Pengajuan ditolak sistem: Anda masih memiliki Cash Advance aktif yang belum berstatus CLOSED.');
         }
 
-        // 3. Validasi formulir pengajuan
+        $submissionType = $request->input('submission_type', 'new');
+
+        // SKENARIO 1: Menambahkan Rincian RAB ke Proyek Atasan yang Sudah Berjalan
+        if ($submissionType === 'existing' && $request->filled('existing_ca_id')) {
+            $ca = CashAdvance::findOrFail($request->existing_ca_id);
+
+            $request->validate([
+                'items' => ['required', 'array', 'min:1'],
+                'items.*.item_name' => ['required', 'string', 'max:255'],
+                'items.*.category' => ['required', 'in:material,transport,sewa_alat,konsumsi,lainnya'],
+                'items.*.quantity' => ['required', 'numeric', 'min:0.01'],
+                'items.*.unit' => ['required', 'string', 'max:50'],
+                'items.*.unit_price' => ['required', 'numeric', 'min:0'],
+                'items.*.notes' => ['nullable', 'string', 'max:500'],
+            ], [
+                'items.required' => 'Minimal 1 item rincian RAB wajib diisi.',
+                'items.*.item_name.required' => 'Nama kebutuhan rincian wajib diisi.',
+            ]);
+
+            $totalAdded = 0;
+            foreach ($request->input('items', []) as $itemData) {
+                $qty = (float) $itemData['quantity'];
+                $price = (float) $itemData['unit_price'];
+                $subtotal = $qty * $price;
+                $totalAdded += $subtotal;
+
+                CashAdvanceItem::create([
+                    'cash_advance_id' => $ca->id,
+                    'user_id' => $user->id,
+                    'category' => $itemData['category'],
+                    'item_name' => $itemData['item_name'],
+                    'quantity' => $qty,
+                    'unit' => $itemData['unit'] ?? 'unit',
+                    'unit_price' => $price,
+                    'subtotal' => $subtotal,
+                    'notes' => $itemData['notes'] ?? null,
+                    'status' => 'PENDING',
+                ]);
+            }
+
+            // Perbarui nominal pengajuan CA proyek
+            if ($ca->status === 'PENDING_APPROVAL') {
+                $ca->requested_amount = (float) $ca->items()->sum('subtotal');
+                $ca->save();
+            }
+
+            // Catat log
+            AuditLog::record(
+                'CA_ITEMS_ADDED',
+                $ca,
+                "Karyawan {$user->name} menambahkan rincian RAB senilai Rp " . number_format($totalAdded, 0, ',', '.') . " pada CA {$ca->ca_number}",
+                null,
+                ['added_amount' => $totalAdded]
+            );
+
+            // Notifikasi ke Atasan penanggung jawab proyek
+            SystemNotification::send(
+                $ca->user_id,
+                'Rincian RAB Proyek Baru Masuk',
+                "Karyawan {$user->name} telah menambahkan rincian kebutuhan proyek senilai Rp " . number_format($totalAdded, 0, ',', '.') . " untuk {$ca->project_name}.",
+                'info',
+                route('cash-advances.show', $ca)
+            );
+
+            return redirect()->route('cash-advances.show', $ca)
+                ->with('success', "Rincian RAB sebesar Rp " . number_format($totalAdded, 0, ',', '.') . " berhasil ditambahkan ke proyek {$ca->project_name}.");
+        }
+
+        // SKENARIO 2: Pengajuan Proyek Baru beserta Rincian RAB Awal
         $validated = $request->validate([
             'project_name' => ['required', 'string', 'max:255'],
             'project_code' => ['nullable', 'string', 'max:50'],
             'purpose' => ['required', 'string'],
-            'requested_amount' => ['required', 'numeric', 'min:10000'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.item_name' => ['required', 'string', 'max:255'],
+            'items.*.category' => ['required', 'in:material,transport,sewa_alat,konsumsi,lainnya'],
+            'items.*.quantity' => ['required', 'numeric', 'min:0.01'],
+            'items.*.unit' => ['required', 'string', 'max:50'],
+            'items.*.unit_price' => ['required', 'numeric', 'min:0'],
+            'items.*.notes' => ['nullable', 'string', 'max:500'],
+            'items.*.user_id' => ['nullable', 'exists:users,id'],
         ], [
             'project_name.required' => 'Nama proyek wajib diisi.',
             'purpose.required' => 'Tujuan pengajuan wajib diisi.',
-            'requested_amount.min' => 'Nominal pengajuan minimal Rp 10.000.',
+            'items.required' => 'Minimal 1 item rincian RAB wajib diisi.',
+            'items.*.item_name.required' => 'Nama kebutuhan rincian wajib diisi.',
         ]);
 
-        // 4. Penomoran Dokumen Otomatis: CA-YYYYMM-XXXX
-        $countThisMonth = CashAdvance::whereYear('created_at', date('Y'))
-            ->whereMonth('created_at', date('m'))
-            ->count() + 1;
-        $caNumber = sprintf('CA-%s%s-%04d', date('Y'), date('m'), $countThisMonth);
+        // Hitung total RAB
+        $totalRAB = 0;
+        foreach ($validated['items'] as $it) {
+            $totalRAB += ((float)$it['quantity'] * (float)$it['unit_price']);
+        }
 
-        // 5. Simpan record Cash Advance baru
-        $ca = CashAdvance::create([
-            'ca_number' => $caNumber,
-            'user_id' => $user->id,
-            'project_name' => $validated['project_name'],
-            'project_code' => $validated['project_code'],
-            'purpose' => $validated['purpose'],
-            'requested_amount' => $validated['requested_amount'],
-            'status' => 'PENDING_APPROVAL',
-        ]);
+        if ($totalRAB < 10000) {
+            return back()->withInput()->withErrors([
+                'items' => 'Total nominal rincian RAB minimal Rp 10.000.',
+            ]);
+        }
 
-        // 6. Rekam peristiwa pembuatan CA ke Audit Log
+        try {
+            $ca = DB::transaction(function () use ($user, $validated, $totalRAB) {
+                User::where('id', $user->id)->lockForUpdate()->first();
+
+                if ($user->hasActiveLock()) {
+                    throw new \RuntimeException('Pengajuan ditolak sistem: Anda masih memiliki Cash Advance aktif yang belum berstatus CLOSED.');
+                }
+
+                // Penomoran Dokumen Otomatis: CA-YYYYMM-XXXX
+                $lastCaThisMonth = CashAdvance::whereYear('created_at', date('Y'))
+                    ->whereMonth('created_at', date('m'))
+                    ->lockForUpdate()
+                    ->orderByDesc('id')
+                    ->first();
+
+                $nextSequence = 1;
+                if ($lastCaThisMonth && preg_match('/-(\d{4})$/', $lastCaThisMonth->ca_number, $matches)) {
+                    $nextSequence = (int)$matches[1] + 1;
+                }
+
+                $caNumber = sprintf('CA-%s%s-%04d', date('Y'), date('m'), $nextSequence);
+
+                // Kode proyek otomatis bila dikosongkan
+                $projectCode = $validated['project_code'] ?: sprintf('PRJ-%s%s-%04d', date('Y'), date('m'), $nextSequence);
+
+                // Penanggung Jawab CA Proyek (Atasan jika karyawan yang menginisiasi)
+                $ownerId = ($user->isKaryawan() && $user->manager_id) ? $user->manager_id : $user->id;
+
+                $newCa = CashAdvance::create([
+                    'ca_number' => $caNumber,
+                    'user_id' => $ownerId,
+                    'project_name' => $validated['project_name'],
+                    'project_code' => $projectCode,
+                    'purpose' => $validated['purpose'],
+                    'requested_amount' => $totalRAB,
+                    'status' => 'PENDING_APPROVAL',
+                ]);
+
+                // Simpan baris-baris item RAB
+                foreach ($validated['items'] as $itemData) {
+                    $qty = (float) $itemData['quantity'];
+                    $price = (float) $itemData['unit_price'];
+                    $subtotal = $qty * $price;
+                    $assignedUserId = !empty($itemData['user_id']) ? $itemData['user_id'] : $user->id;
+
+                    CashAdvanceItem::create([
+                        'cash_advance_id' => $newCa->id,
+                        'user_id' => $assignedUserId,
+                        'category' => $itemData['category'],
+                        'item_name' => $itemData['item_name'],
+                        'quantity' => $qty,
+                        'unit' => $itemData['unit'] ?? 'unit',
+                        'unit_price' => $price,
+                        'subtotal' => $subtotal,
+                        'notes' => $itemData['notes'] ?? null,
+                        'status' => 'PENDING',
+                    ]);
+                }
+
+                return $newCa;
+            });
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        // Rekam Audit Log
         AuditLog::record(
             'CA_CREATED',
             $ca,
-            "Pengajuan CA {$ca->ca_number} dibuat dengan nominal Rp " . number_format($ca->requested_amount, 0, ',', '.'),
+            "Pengajuan CA Proyek {$ca->ca_number} dibuat dengan total RAB Rp " . number_format($ca->requested_amount, 0, ',', '.'),
             null,
             $ca->toArray()
         );
 
-        // 7. Pengiriman notifikasi persetujuan:
-        // Jika pemohon adalah Atasan atau tim Finance -> Eskalasi persetujuan ke Direktur
-        // Jika pemohon adalah Karyawan -> Notifikasi ke Atasan langsung
-        if ($user->isAtasan() || $user->isFinance()) {
+        // Notifikasi persetujuan
+        if ($user->isKaryawan() && $user->manager_id) {
+            // Notifikasi ke Atasan penanggung jawab proyek
+            SystemNotification::send(
+                $user->manager_id,
+                'Usulan Proyek & Rincian RAB Baru Masuk',
+                "Karyawan {$user->name} telah mengusulkan proyek {$ca->project_name} ({$ca->ca_number}) beserta rincian RAB senilai Rp " . number_format($ca->requested_amount, 0, ',', '.') . ". Silakan tinjau dan teruskan ke Direktur.",
+                'info',
+                route('cash-advances.show', $ca)
+            );
+        } elseif ($ca->user->isAtasan() || $ca->user->isFinance()) {
             $direkturs = User::where('role', 'direktur')->get();
             foreach ($direkturs as $dir) {
                 SystemNotification::send(
                     $dir->id,
-                    'Persetujuan Khusus Pengajuan CA',
-                    "Pengajuan {$ca->ca_number} ({$ca->project_name}) oleh {$user->name} ({$user->role}) memerlukan persetujuan Direktur.",
+                    'Persetujuan Pengajuan CA Proyek',
+                    "Pengajuan {$ca->ca_number} ({$ca->project_name}) oleh {$ca->user->name} memerlukan persetujuan Direktur.",
                     'warning',
                     route('cash-advances.show', $ca)
                 );
             }
-        } elseif ($user->manager_id) {
-            SystemNotification::send(
-                $user->manager_id,
-                'Pengajuan CA Baru Masuk',
-                "Bawahan Anda, {$user->name}, mengajukan {$ca->ca_number} untuk proyek {$ca->project_name}.",
-                'info',
-                route('cash-advances.show', $ca)
-            );
         }
 
-        // 8. Alihkan pengguna ke halaman detail CA dengan pesan konfirmasi
         return redirect()->route('cash-advances.show', $ca)
-            ->with('success', "Cash Advance {$ca->ca_number} berhasil diajukan dan sedang menunggu persetujuan.");
+            ->with('success', "Cash Advance Proyek {$ca->ca_number} berhasil diajukan dengan total RAB Rp " . number_format($ca->requested_amount, 0, ',', '.') . ".");
     }
 
     /**
@@ -259,10 +437,203 @@ class CashAdvanceController extends Controller
             'expenses.verifier',
             'expenses.voider',
             'expenses.histories.user',
+            'expenses.user',
+            'expenses.item',
+            'items.user',
+            'items.expenses',
+            'distributions.giver',
+            'distributions.receiver',
         ]);
 
-        // 3. Tampilkan halaman detail Cash Advance
-        return view('cash_advances.show', compact('cashAdvance'));
+        $user = Auth::user();
+
+        // 3. Kumpulkan seluruh anggota tim yang terlibat dalam CA ini
+        $involvedUserIds = collect([$cashAdvance->user_id])
+            ->merge($cashAdvance->items->pluck('user_id'))
+            ->merge($cashAdvance->distributions->pluck('receiver_id'))
+            ->unique();
+        $teamMembers = User::whereIn('id', $involvedUserIds)->get();
+
+        // 4. Daftar bawahan aktif jika user adalah Atasan
+        $subordinates = $user->isAtasan() ? $user->subordinates()->where('is_active', true)->get() : collect();
+
+        // 5. Tampilkan halaman detail Cash Advance
+        return view('cash_advances.show', compact('cashAdvance', 'teamMembers', 'subordinates'));
+    }
+
+    /**
+     * Menambahkan baris rincian RAB baru ke Cash Advance proyek.
+     */
+    public function storeItems(Request $request, CashAdvance $cashAdvance): RedirectResponse
+    {
+        $this->authorizeView($cashAdvance);
+        $user = Auth::user();
+
+        if ($cashAdvance->status === 'CLOSED' || $cashAdvance->status === 'REJECTED') {
+            return back()->with('error', 'Tidak dapat menambah rincian RAB pada Cash Advance yang sudah ditutup atau ditolak.');
+        }
+
+        $validated = $request->validate([
+            'item_name' => ['required', 'string', 'max:255'],
+            'category' => ['required', 'in:material,transport,sewa_alat,konsumsi,lainnya'],
+            'quantity' => ['required', 'numeric', 'min:0.01'],
+            'unit' => ['required', 'string', 'max:50'],
+            'unit_price' => ['required', 'numeric', 'min:0'],
+            'notes' => ['nullable', 'string', 'max:500'],
+            'user_id' => ['nullable', 'exists:users,id'],
+        ]);
+
+        $qty = (float) $validated['quantity'];
+        $price = (float) $validated['unit_price'];
+        $subtotal = $qty * $price;
+
+        // Tentukan pemohon: jika Atasan memilih karyawan, gunakan id karyawan; jika tidak, gunakan user saat ini
+        $assignedUserId = ($user->isAtasan() && !empty($validated['user_id'])) ? $validated['user_id'] : $user->id;
+
+        $item = CashAdvanceItem::create([
+            'cash_advance_id' => $cashAdvance->id,
+            'user_id' => $assignedUserId,
+            'category' => $validated['category'],
+            'item_name' => $validated['item_name'],
+            'quantity' => $qty,
+            'unit' => $validated['unit'],
+            'unit_price' => $price,
+            'subtotal' => $subtotal,
+            'notes' => $validated['notes'] ?? null,
+            'status' => 'PENDING',
+        ]);
+
+        // Jika status masih PENDING_APPROVAL, sinkronisasikan total requested_amount
+        if ($cashAdvance->status === 'PENDING_APPROVAL') {
+            $cashAdvance->requested_amount = (float) $cashAdvance->items()->sum('subtotal');
+            $cashAdvance->save();
+        }
+
+        AuditLog::record(
+            'CA_ITEM_ADDED',
+            $cashAdvance,
+            "Item RAB '{$item->item_name}' (Rp " . number_format($subtotal, 0, ',', '.') . ") ditambahkan oleh {$user->name}",
+            null,
+            $item->toArray()
+        );
+
+        return back()->with('success', "Item RAB '{$item->item_name}' senilai Rp " . number_format($subtotal, 0, ',', '.') . " berhasil ditambahkan.");
+    }
+
+    /**
+     * Menghapus baris item RAB dari Cash Advance proyek.
+     */
+    public function destroyItem(CashAdvance $cashAdvance, CashAdvanceItem $item): RedirectResponse
+    {
+        $this->authorizeView($cashAdvance);
+        $user = Auth::user();
+
+        // Otorisasi penghapusan: pembuat item, atasan pemilik CA, atau Direktur/Finance
+        if ($item->user_id !== $user->id && $cashAdvance->user_id !== $user->id && !$user->isDirektur() && !$user->isFinance()) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki wewenang menghapus item RAB ini.');
+        }
+
+        // Cek apakah item sudah memiliki pengeluaran tercatat
+        if ($item->expenses()->whereNotIn('verification_status', ['VOID', 'REJECTED'])->exists()) {
+            return back()->with('error', 'Item RAB tidak dapat dihapus karena telah memiliki struk pengeluaran yang tercatat.');
+        }
+
+        $itemName = $item->item_name;
+        $subtotal = $item->subtotal;
+        $item->delete();
+
+        // Perbarui nominal pengajuan jika masih PENDING_APPROVAL
+        if ($cashAdvance->status === 'PENDING_APPROVAL') {
+            $cashAdvance->requested_amount = (float) $cashAdvance->items()->sum('subtotal');
+            $cashAdvance->save();
+        }
+
+        AuditLog::record(
+            'CA_ITEM_DELETED',
+            $cashAdvance,
+            "Item RAB '{$itemName}' (Rp " . number_format($subtotal, 0, ',', '.') . ") dihapus oleh {$user->name}",
+            ['deleted_item' => $itemName, 'subtotal' => $subtotal],
+            null
+        );
+
+        return back()->with('success', "Item RAB '{$itemName}' berhasil dihapus.");
+    }
+
+    /**
+     * Mencatat pembagian dana (distribusi kas) dari Atasan ke Karyawan.
+     * Sesuai alur: Setelah uang CA cair dari Direktur/Finance ke Atasan,
+     * Atasan membagi uang kas tersebut ke setiap karyawan sesuai rincian RAB mereka.
+     */
+    public function distributeFunds(Request $request, CashAdvance $cashAdvance): RedirectResponse
+    {
+        $user = Auth::user();
+
+        // Otorisasi: Hanya penanggung jawab CA (Atasan), Direktur, atau Finance yang berhak mendistribusikan kas
+        if ($cashAdvance->user_id !== $user->id && !$user->isDirektur() && !$user->isFinance()) {
+            abort(403, 'Akses ditolak: Hanya penanggung jawab Cash Advance atau Direktur/Finance yang dapat membagikan kas.');
+        }
+
+        if ($cashAdvance->status !== 'ACTIVE') {
+            return back()->with('error', 'Distribusi kas hanya dapat dilakukan saat status Cash Advance adalah ACTIVE (Dana telah dicairkan).');
+        }
+
+        $validated = $request->validate([
+            'receiver_id' => ['required', 'exists:users,id'],
+            'amount' => ['required', 'numeric', 'min:1000'],
+            'distributed_at' => ['required', 'date'],
+            'notes' => ['nullable', 'string', 'max:500'],
+            'transfer_proof' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
+        ], [
+            'receiver_id.required' => 'Pilih karyawan penerima dana.',
+            'amount.min' => 'Nominal pembagian dana minimal Rp 1.000.',
+            'distributed_at.required' => 'Tanggal serah terima / transfer wajib diisi.',
+        ]);
+
+        $amount = (float) $validated['amount'];
+        $availableCash = $cashAdvance->undistributed_amount;
+
+        if ($amount > $availableCash) {
+            return back()->withInput()->withErrors([
+                'amount' => 'Nominal pembagian (Rp ' . number_format($amount, 0, ',', '.') . ') melebihi sisa kas yang tersedia di kas Atasan (Tersedia: Rp ' . number_format($availableCash, 0, ',', '.') . ').',
+            ]);
+        }
+
+        $proofPath = null;
+        if ($request->hasFile('transfer_proof')) {
+            $proofPath = $request->file('transfer_proof')->store('distribution_proofs', 'public');
+        }
+
+        $receiver = User::findOrFail($validated['receiver_id']);
+
+        $dist = CashAdvanceDistribution::create([
+            'cash_advance_id' => $cashAdvance->id,
+            'giver_id' => $user->id,
+            'receiver_id' => $receiver->id,
+            'amount' => $amount,
+            'distributed_at' => $validated['distributed_at'],
+            'transfer_proof' => $proofPath,
+            'notes' => $validated['notes'] ?? null,
+            'status' => 'COMPLETED',
+        ]);
+
+        AuditLog::record(
+            'FUNDS_DISTRIBUTED',
+            $cashAdvance,
+            "Dana operasional sebesar Rp " . number_format($amount, 0, ',', '.') . " diserahkan dari {$user->name} ke {$receiver->name} untuk proyek {$cashAdvance->project_name}",
+            null,
+            $dist->toArray()
+        );
+
+        // Notifikasi ke karyawan penerima dana
+        SystemNotification::send(
+            $receiver->id,
+            'Dana Operasional Proyek Diterima',
+            "Atasan {$user->name} telah menyerahkan/mentransfer dana CA sebesar Rp " . number_format($amount, 0, ',', '.') . " untuk proyek {$cashAdvance->project_name}. Anda sekarang dapat mencatat pengeluaran operasional dan mengunggah bukti struk.",
+            'success',
+            route('cash-advances.show', $cashAdvance)
+        );
+
+        return back()->with('success', "Dana sebesar Rp " . number_format($amount, 0, ',', '.') . " berhasil disalurkan kepada {$receiver->name}.");
     }
 
     /**
@@ -772,12 +1143,23 @@ class CashAdvanceController extends Controller
             return;
         }
 
-        // 4. Atasan berhak melihat dokumen bawahan langsungnya
-        if ($user->isAtasan() && $ca->user->manager_id === $user->id) {
+        // 4. Atasan berhak melihat dokumen bawahan langsungnya, atau proyek di mana bawahannya terlibat
+        if ($user->isAtasan()) {
+            if ($ca->user->manager_id === $user->id) {
+                return;
+            }
+            $subordinateIds = $user->subordinates()->pluck('id')->toArray();
+            if ($ca->items()->whereIn('user_id', $subordinateIds)->exists() || $ca->distributions()->whereIn('receiver_id', $subordinateIds)->exists()) {
+                return;
+            }
+        }
+
+        // 5. Karyawan anggota tim yang memiliki item RAB atau menerima distribusi kas pada CA ini
+        if ($ca->items()->where('user_id', $user->id)->exists() || $ca->distributions()->where('receiver_id', $user->id)->exists()) {
             return;
         }
 
-        // 5. Tolak akses jika tidak memenuhi salah satu kondisi di atas
+        // 6. Tolak akses jika tidak memenuhi salah satu kondisi di atas
         abort(403, 'Akses Ditolak: Anda tidak memiliki wewenang untuk membuka Cash Advance ini.');
     }
 }

@@ -1,13 +1,25 @@
 @extends('layouts.app')
 
 @section('title', 'Catat Pengeluaran Struk - ' . $cashAdvance->ca_number)
+@section('page_title', 'Catat Pengeluaran Struk')
 
 @section('content')
 <div class="max-w-2xl mx-auto" x-data="{
     amount: '',
     isTalangan: false,
     isLostReceipt: false,
-    currentBalance: {{ (float)$cashAdvance->current_balance }},
+    currentBalance: {{ (float)($userBalance ?? $cashAdvance->current_balance) }},
+    selectedItemId: '{{ old('cash_advance_item_id', '') }}',
+    rabItems: {{ json_encode($userRabItems ?? []) }},
+    onItemChange(itemId) {
+        let it = this.rabItems.find(x => x.id == itemId);
+        if (it) {
+            let catSelect = document.querySelector('select[name=category]');
+            if (catSelect) catSelect.value = it.category;
+            let descInput = document.querySelector('input[name=description]');
+            if (descInput && !descInput.value) descInput.value = it.item_name;
+        }
+    },
     get isOverBalance() {
         if (this.isTalangan) return false;
         return parseFloat(this.amount || 0) > this.currentBalance;
@@ -26,21 +38,49 @@
     <!-- Saldo Header Widget (PT Technodrives Navy Summary Band) -->
     <div class="mb-5 p-4 sm:p-5 rounded-[15px] bg-[#050A1E] text-white border border-cardborder shadow-md flex items-center justify-between">
         <div>
-            <span class="text-[10px] text-[#FF3C00] uppercase tracking-wider block font-head font-bold">Sisa Saldo Kas Aktif</span>
-            <span class="text-xl sm:text-2xl font-head font-bold text-white mt-0.5 block">
-                Rp {{ number_format($cashAdvance->current_balance, 0, ',', '.') }}
+            <span class="text-xs text-[#FF3C00] uppercase tracking-wider block font-head font-bold">
+                {{ $cashAdvance->user_id === auth()->id() ? 'Sisa Kas Aktif di PIC' : 'Sisa Kas dipegang Anda' }}
             </span>
+            <span class="text-xl sm:text-2xl font-head font-bold text-white mt-0.5 block">
+                Rp {{ number_format($userBalance ?? $cashAdvance->current_balance, 0, ',', '.') }}
+            </span>
+            @if($cashAdvance->user_id !== auth()->id())
+                <span class="text-xs text-slate-400 block mt-0.5 font-mono">
+                    Total diterima dari Atasan: Rp {{ number_format($cashAdvance->userDistributionTotal(auth()->id()), 0, ',', '.') }}
+                </span>
+            @endif
         </div>
         <div class="text-right">
-            <span class="text-[10px] text-slate-400 uppercase font-semibold block font-head">Proyek</span>
+            <span class="text-xs text-slate-400 uppercase font-semibold block font-head">Proyek</span>
             <span class="text-xs font-bold text-white max-w-[180px] truncate block font-head">{{ $cashAdvance->project_name }}</span>
-            <span class="text-[10px] font-mono text-[#FF3C00] block">{{ $cashAdvance->ca_number }}</span>
+            <span class="text-xs font-mono text-[#FF3C00] block">{{ $cashAdvance->ca_number }}</span>
         </div>
     </div>
 
     <div class="card-commerce p-6 sm:p-7">
         <form action="{{ route('expenses.store', $cashAdvance) }}" method="POST" enctype="multipart/form-data" class="space-y-5">
             @csrf
+
+            <!-- 0. Kaitkan dengan Pos Rincian RAB (Kebutuhan Alur Baru) -->
+            @if(isset($userRabItems) && $userRabItems->isNotEmpty())
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
+                    <label class="block text-xs font-head font-bold text-[#050A1E] uppercase tracking-wider flex items-center gap-1.5">
+                        <i data-lucide="tag" class="w-3.5 h-3.5 text-[#FF3C00]"></i>
+                        <span>Kaitkan dengan Rincian RAB Anda</span>
+                    </label>
+                    <select name="cash_advance_item_id" x-model="selectedItemId" @change="onItemChange($event.target.value)" class="w-full input-commerce text-xs">
+                        <option value="">-- Pengeluaran Tambahan / Di Luar RAB --</option>
+                        @foreach($userRabItems as $ri)
+                            <option value="{{ $ri->id }}" {{ old('cash_advance_item_id') == $ri->id ? 'selected' : '' }}>
+                                [{{ $ri->category_label }}] {{ $ri->item_name }} (RAB: Rp {{ number_format($ri->subtotal, 0, ',', '.') }} &bull; Realisasi: Rp {{ number_format($ri->realized_amount, 0, ',', '.') }})
+                            </option>
+                        @endforeach
+                    </select>
+                    <p class="text-xs text-bodygrey">
+                        Memilih pos RAB otomatis mengisi kategori dan mempermudah pencocokan bukti struk dengan anggaran yang telah diajukan.
+                    </p>
+                </div>
+            @endif
 
             <!-- 1. Tanggal Transaksi -->
             <div>
@@ -52,7 +92,7 @@
                 @endphp
                 <input type="date" name="transaction_date" value="{{ old('transaction_date', date('Y-m-d')) }}" max="{{ date('Y-m-d') }}" min="{{ $minDate }}" required
                     class="w-full input-commerce font-mono">
-                <p class="text-[11px] text-slate-400 mt-1">
+                <p class="text-xs text-slate-400 mt-1">
                     Wajib dicatat maksimal 1 hari setelah transaksi. Lewat 1 hari otomatis dilabeli <strong class="text-rose-600 font-bold">TERLAMBAT</strong>.
                 </p>
             </div>
@@ -70,7 +110,7 @@
                         placeholder="Contoh: 150000">
                 </div>
 
-                <!-- Live Saldo Guard Alert (Dokumen hal 5) -->
+                <!-- Live Saldo Guard Alert -->
                 <div x-show="isOverBalance" x-cloak 
                     x-transition:enter="transition ease-out duration-150 transform"
                     x-transition:enter-start="opacity-0 -translate-y-1"
@@ -81,7 +121,7 @@
                     class="mt-2.5 p-4 bg-rose-50 border border-rose-300 rounded-xl text-xs text-rose-900 flex items-start space-x-3">
                     <i data-lucide="alert-octagon" class="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5"></i>
                     <div class="leading-relaxed">
-                        <span class="font-bold">Saldo Tidak Cukup:</span> Nominal pengeluaran melebihi sisa kas (<strong class="font-mono">Rp {{ number_format($cashAdvance->current_balance, 0, ',', '.') }}</strong>). Sistem mengunci saldo agar tidak bernilai negatif. Gunakan opsi <strong>Talangan Pribadi (Kondisi Darurat)</strong> di bawah atau minta Top-Up ke Atasan.
+                        <span class="font-bold">Saldo Kas Anda Tidak Cukup:</span> Nominal pengeluaran melebihi sisa dana kas yang Anda pegang (<strong class="font-mono">Rp {{ number_format($userBalance ?? $cashAdvance->current_balance, 0, ',', '.') }}</strong>). Sistem mengunci saldo agar tidak negatif. Gunakan opsi <strong>Talangan Pribadi (Kondisi Darurat)</strong> di bawah atau minta Atasan Anda membagikan dana tambahan.
                     </div>
                 </div>
             </div>
@@ -115,11 +155,11 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1.5">
-                        Nama Toko / Vendor <span class="text-rose-500">*</span>
+                        Nama Toko / Vendor / SPBU <span class="text-rose-500">*</span>
                     </label>
                     <input type="text" name="vendor_name" value="{{ old('vendor_name') }}" required
                         class="w-full input-commerce"
-                        placeholder="Contoh: SPBU Pertamina 54.601 / Toko Baut Jaya">
+                        placeholder="Contoh: Toko Listrik Terang Abadi">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1.5">
@@ -127,102 +167,92 @@
                     </label>
                     <input type="text" name="vendor_tax_number" value="{{ old('vendor_tax_number') }}"
                         class="w-full input-commerce font-mono"
-                        placeholder="Contoh: 01.234.567.8-091.000">
+                        placeholder="Contoh: 01.234.567.8-901.000">
                 </div>
             </div>
 
-            <!-- 6. Catatan Tambahan -->
+            <!-- 6. Catatan Tambahan (Opsional) -->
             <div>
                 <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1.5">
-                    Catatan Tambahan (Opsional)
+                    Catatan Keperluan Lapangan (Opsional)
                 </label>
-                <textarea name="notes" rows="2" class="w-full input-commerce" placeholder="Penjelasan teknis bila diperlukan..."></textarea>
+                <textarea name="notes" rows="2"
+                    class="w-full input-commerce"
+                    placeholder="Contoh: Pembelian mendadak karena kabel bawaan kurang 15 meter...">{{ old('notes') }}</textarea>
             </div>
 
-            <!-- 7. Opsi Talangan Darurat (Dokumen hal 5) -->
-            <div class="p-4 bg-amber-50/80 border border-amber-300 rounded-xl space-y-3">
-                <label class="flex items-start space-x-3 cursor-pointer">
-                    <input type="checkbox" name="is_talangan" value="1" x-model="isTalangan" class="mt-0.5 rounded border-amber-400 text-retail-orange focus:ring-retail-orange">
+            <!-- 7. Toggle Opsi Khusus: Tanpa Struk & Talangan Pribadi -->
+            <div class="space-y-3 pt-2 border-t border-slate-100">
+                <span class="block text-xs font-bold text-retail-ink uppercase tracking-wider">Kondisi Khusus Transaksi:</span>
+
+                <!-- Checkbox Talangan Pribadi -->
+                <label class="flex items-start space-x-3 p-3 bg-amber-50/70 border border-amber-200 rounded-xl cursor-pointer hover:bg-amber-50 transition">
+                    <input type="checkbox" name="is_talangan" value="1" x-model="isTalangan"
+                        class="mt-0.5 rounded border-amber-300 text-amber-600 focus:ring-amber-500">
                     <div>
-                        <span class="block text-xs font-bold text-amber-950 uppercase tracking-wide">Gunakan Talangan Pribadi (Kondisi Darurat)</span>
-                        <span class="text-[11px] text-amber-900 leading-relaxed block mt-0.5">
-                            Centang jika Anda membayar menggunakan uang pribadi terlebih dahulu karena saldo kas tidak mencukupi di lapangan. Tidak memotong sisa saldo CA dan akan direimburse perusahaan saat settlement.
+                        <span class="text-xs font-bold text-amber-900 block font-head">Talangan Pribadi (Kondisi Darurat)</span>
+                        <span class="text-xs text-amber-800 leading-relaxed block font-body">
+                            Centang ini jika saldo kas Anda habis di lapangan dan Anda terpaksa menalangi dengan uang pribadi. Akan diganti kantor saat Settlement.
                         </span>
                     </div>
                 </label>
 
-                <div x-show="isTalangan" x-cloak 
-                    x-transition:enter="transition ease-out duration-150 transform"
-                    x-transition:enter-start="opacity-0 -translate-y-1"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-100 transform"
-                    x-transition:leave-start="opacity-100 translate-y-0"
-                    x-transition:leave-end="opacity-0 -translate-y-1"
-                    class="pt-2.5 border-t border-amber-200">
-                    <label class="block text-xs font-bold text-amber-950 uppercase mb-1">
-                        Alasan Kondisi Darurat <span class="text-rose-500">*</span>
+                <!-- Input Alasan Darurat jika Talangan dicentang -->
+                <div x-show="isTalangan" x-cloak class="p-3 bg-amber-50 rounded-xl border border-amber-300 space-y-2">
+                    <label class="block text-xs font-bold text-amber-950 uppercase">
+                        Alasan Kondisi Darurat Talangan <span class="text-rose-500">*</span>
                     </label>
-                    <input type="text" name="talangan_emergency_reason" class="w-full input-commerce bg-white" placeholder="Contoh: Toko lokal hanya menerima tunai saat malam hari & saldo habis.">
+                    <textarea name="talangan_emergency_reason" rows="2"
+                        class="w-full input-commerce bg-white"
+                        placeholder="Contoh: Pekerjaan di site malam hari butuh genset tambahan, saldo kas habis dan bank sudah cut-off...">{{ old('talangan_emergency_reason') }}</textarea>
                 </div>
-            </div>
 
-            <!-- 8. Opsi Tanpa Struk / Struk Hilang (Dokumen hal 7) -->
-            <div class="p-4 bg-slate-50 border border-retail-surface rounded-xl space-y-3">
-                <label class="flex items-start space-x-3 cursor-pointer">
-                    <input type="checkbox" name="is_lost_receipt" value="1" x-model="isLostReceipt" class="mt-0.5 rounded border-slate-300 text-retail-orange focus:ring-retail-orange">
+                <!-- Checkbox Tanpa Struk Fisik -->
+                <label class="flex items-start space-x-3 p-3 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition">
+                    <input type="checkbox" name="is_lost_receipt" value="1" x-model="isLostReceipt"
+                        class="mt-0.5 rounded border-slate-300 text-slate-800 focus:ring-slate-500">
                     <div>
-                        <span class="block text-xs font-bold text-retail-ink uppercase tracking-wide">Tanpa Struk Fisik / Struk Hilang</span>
-                        <span class="text-[11px] text-slate-600 leading-relaxed block mt-0.5">
-                            Jika struk fisik hilang atau vendor informal tidak menyediakan nota, Anda wajib mengunggah Surat Pernyataan resmi dan memerlukan persetujuan Atasan.
+                        <span class="text-xs font-bold text-slate-800 block font-head">Tanpa Struk Fisik / Struk Hilang (Darurat)</span>
+                        <span class="text-xs text-slate-600 leading-relaxed block font-body">
+                            Centang ini jika transaksi tidak memiliki struk cetak resmi (misal: ojek pangkalan lokal, warung kecil tanpa nota, kuli angkut). Wajib mengunggah surat pernyataan bermaterai/bertandatangan.
                         </span>
                     </div>
                 </label>
+            </div>
 
-                <!-- Upload Surat Pernyataan if lost receipt -->
-                <div x-show="isLostReceipt" x-cloak 
-                    x-transition:enter="transition ease-out duration-150 transform"
-                    x-transition:enter-start="opacity-0 -translate-y-1"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-100 transform"
-                    x-transition:leave-start="opacity-100 translate-y-0"
-                    x-transition:leave-end="opacity-0 -translate-y-1"
-                    class="pt-2.5 border-t border-slate-200">
-                    <label class="block text-xs font-bold text-retail-ink uppercase mb-1">
-                        Upload Surat Pernyataan Bermaterai / TTD (PDF / Foto) <span class="text-rose-500">*</span>
+            <!-- 8. Upload File: Struk Foto ATAU Surat Pernyataan -->
+            <div class="pt-2 border-t border-slate-100">
+                <!-- Jika Lost Receipt: Upload Surat Pernyataan -->
+                <div x-show="isLostReceipt" x-cloak class="space-y-2">
+                    <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider">
+                        Upload Surat Pernyataan Kehilangan Struk (Bermaterai / TTD) <span class="text-rose-500">*</span>
                     </label>
-                    <input type="file" name="lost_receipt_statement_file" accept="image/*,application/pdf"
-                        class="w-full text-xs text-slate-500 file:mr-3 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-200 file:text-retail-ink hover:file:bg-slate-300">
+                    <input type="file" name="lost_receipt_statement_file" accept="image/*,.pdf"
+                        class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#050A1E] file:text-white hover:file:bg-slate-800 cursor-pointer">
+                    <p class="text-xs text-slate-400">Format: JPG, PNG, atau PDF. Wajib disetujui Atasan / Direktur sebelum CA ditutup.</p>
+                </div>
+
+                <!-- Jika Normal: Upload Foto Struk / Nota (Maksimal 5) -->
+                <div x-show="!isLostReceipt" class="space-y-2">
+                    <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider">
+                        Foto / File Struk & Nota Transaksi <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="file" name="receipts[]" multiple accept="image/*,.pdf"
+                        class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#FF3C00] file:text-white hover:file:bg-[#e03500] cursor-pointer">
+                    <p class="text-xs text-slate-400">
+                        Pilih 1 sampai 5 foto struk yang jelas dan terbaca. Pastikan tanggal, toko, dan total nominal terlihat terang.
+                    </p>
                 </div>
             </div>
 
-            <!-- 9. Upload Foto Struk Dari HP (1 sampai 5 file) -->
-            <div x-show="!isLostReceipt">
-                <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1.5">
-                    Foto Struk / Nota Pembelian (1-5 Foto / PDF) <span class="text-rose-500">*</span>
-                </label>
-                <div class="border-2 border-dashed border-cardborder hover:border-[#FF3C00] rounded-[15px] p-6 text-center transition bg-[#F4F4F4]/50">
-                    <div class="flex flex-col items-center justify-center space-y-2.5">
-                        <div class="w-12 h-12 rounded-full bg-white text-[#FF3C00] border border-cardborder flex items-center justify-center shadow-sm">
-                            <i data-lucide="camera" class="w-6 h-6"></i>
-                        </div>
-                        <div>
-                            <span class="text-sm font-head font-bold text-[#050A1E] block">Ambil Foto Langsung dari HP atau Pilih File</span>
-                            <span class="text-xs font-mono text-bodygrey block mt-0.5">JPG, PNG, atau PDF (Maks. 5 file, maks 10MB/file)</span>
-                        </div>
-                        <input type="file" name="receipts[]" multiple accept="image/*,application/pdf" capture="environment"
-                            class="text-xs text-bodygrey file:mr-3 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-head file:font-semibold file:bg-[#050A1E] file:text-white hover:file:bg-[#FF3B00] cursor-pointer pt-2 transition">
-                    </div>
-                </div>
-            </div>
-
-            <div class="pt-4 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 border-t border-slate-100">
-                <a href="{{ route('cash-advances.show', $cashAdvance) }}" class="btn-secondary py-2.5 px-5 text-xs text-center justify-center">
+            <!-- Tombol Aksi -->
+            <div class="pt-3 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 border-t border-slate-100">
+                <a href="{{ route('cash-advances.show', $cashAdvance) }}" class="btn-secondary py-2.5 px-4 text-xs text-center justify-center">
                     Batal
                 </a>
-                <button type="submit" :disabled="isOverBalance"
-                    class="btn-primary py-2.5 px-6 text-xs justify-center disabled:opacity-50 disabled:cursor-not-allowed">
-                    <i data-lucide="save" class="w-4 h-4"></i>
-                    <span>Simpan Pengeluaran</span>
+                <button type="submit" class="btn-primary py-2.5 px-6 justify-center" :disabled="isOverBalance">
+                    <i data-lucide="check" class="w-4 h-4"></i>
+                    <span>Simpan & Potong Saldo Kas</span>
                 </button>
             </div>
         </form>

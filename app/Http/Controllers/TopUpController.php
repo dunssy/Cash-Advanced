@@ -61,6 +61,15 @@ class TopUpController extends Controller
             return back()->with('error', 'Top-Up hanya dapat diajukan untuk Cash Advance yang berstatus ACTIVE.');
         }
 
+        // Cegah pengajuan ganda / bypass eskalasi bertingkat (hanya boleh 1 Top-Up pending dalam satu waktu)
+        $hasPendingTopup = $cashAdvance->topUps()
+            ->whereIn('status', ['PENDING_ATASAN', 'PENDING_FINANCE', 'PENDING_DIREKTUR', 'APPROVED'])
+            ->exists();
+
+        if ($hasPendingTopup) {
+            return back()->with('error', 'Pengajuan ditolak: Masih terdapat pengajuan Top-Up sebelumnya yang sedang dalam proses persetujuan atau pencairan.');
+        }
+
         // 3. Validasi input nominal dan alasan kebutuhan
         $validated = $request->validate([
             'amount' => ['required', 'numeric', 'min:50000'],
@@ -147,6 +156,13 @@ class TopUpController extends Controller
         // 2. Otorisasi peran
         if (!$user->isAtasan() && !$user->isDirektur()) {
             abort(403, 'Akses ditolak: Hanya Atasan atau Direktur yang dapat menyetujui tahap ini.');
+        }
+
+        // Verifikasi hierarki manajerial: Jika Atasan, wajib merupakan atasan langsung pemohon
+        if ($user->isAtasan() && !$user->isDirektur()) {
+            if ($topUp->user->manager_id !== $user->id) {
+                abort(403, 'Akses ditolak: Anda bukan atasan langsung dari pemohon Top-Up ini.');
+            }
         }
 
         // 3. Validasi status transisi
@@ -316,7 +332,21 @@ class TopUpController extends Controller
 
         // 1. Pemisahan tugas
         if ($topUp->user_id === $user->id) {
-            abort(403, 'Akses ditolak.');
+            abort(403, 'Akses ditolak: Anda tidak dapat menolak pengajuan milik sendiri.');
+        }
+
+        // Otorisasi penolakan sesuai tahapan
+        $canReject = false;
+        if ($user->isDirektur()) {
+            $canReject = true;
+        } elseif ($user->isFinance() && in_array($topUp->status, ['PENDING_FINANCE', 'APPROVED'])) {
+            $canReject = true;
+        } elseif ($user->isAtasan() && $topUp->status === 'PENDING_ATASAN' && $topUp->user->manager_id === $user->id) {
+            $canReject = true;
+        }
+
+        if (!$canReject) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki wewenang untuk menolak pengajuan Top-Up ini.');
         }
 
         // 2. Validasi alasan penolakan

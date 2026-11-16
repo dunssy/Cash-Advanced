@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Pengaturan Batasan Sistem')
+@section('page_title', 'Pengaturan Batasan Sistem')
 
 @section('content')
 <div class="max-w-3xl mx-auto space-y-6">
@@ -24,9 +25,9 @@
                     <div class="py-4 first:pt-0 last:pb-0 grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
                         <div class="md:col-span-1">
                             <label class="block text-xs font-bold text-retail-ink">{{ $setting->label }}</label>
-                            <span class="text-[10px] text-slate-400 font-mono">{{ $setting->key }}</span>
+                            <span class="text-xs text-slate-400 font-mono">{{ $setting->key }}</span>
                             @if($setting->description)
-                                <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">{{ $setting->description }}</p>
+                                <p class="text-xs text-slate-500 mt-1 leading-relaxed">{{ $setting->description }}</p>
                             @endif
                         </div>
 
