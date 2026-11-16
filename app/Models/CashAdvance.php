@@ -13,9 +13,12 @@ class CashAdvance extends Model
     protected $fillable = [
         'ca_number',
         'user_id',
+        'manager_id',
         'project_name',
         'project_code',
+        'department',
         'purpose',
+        'items_detail',
         'requested_amount',
         'approved_amount',
         'status',
@@ -64,6 +67,11 @@ class CashAdvance extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function manager()
+    {
+        return $this->belongsTo(User::class, 'manager_id');
     }
 
     public function approver()

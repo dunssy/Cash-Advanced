@@ -56,7 +56,7 @@
                     <i data-lucide="camera" class="w-4 h-4 text-[#FF3C00]"></i>
                     <span>Foto Profil & Status Akun</span>
                 </h2>
-                <span class="text-[11px] font-mono text-slate-400">ID Pengguna: #{{ $user->id }}</span>
+                <span class="text-[11px] font-mono text-slate-400"></span>
             </div>
 
             <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
@@ -84,7 +84,7 @@
                         <input type="file" name="avatar" accept="image/*"
                             @change="const file = $event.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => avatarPreview = e.target.result; reader.readAsDataURL(file); }"
                             class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#161A2B] file:text-white hover:file:bg-[#FF3C00] file:cursor-pointer file:transition border border-cardborder rounded-xl p-1.5 bg-slate-50">
-                        <p class="text-[11px] text-slate-400 mt-1 font-body">Disarankan menggunakan foto potret kerja formal / <em>headshot</em> profesional (maks. 5MB).</p>
+                        <p class="text-[11px] text-slate-400 mt-1 font-body">Disarankan menggunakan foto potret kerja formal.</p>
                     </div>
 
                     @if($user->avatar)
@@ -192,7 +192,7 @@
                 <!-- Clean limit badge using # -->
                 <span class="text-xs font-mono font-bold px-3 py-1 rounded-full border transition"
                     :class="tags.length >= maxTags ? 'bg-amber-50 text-amber-700 border-amber-300' : 'bg-slate-100 text-slate-700 border-slate-200'"
-                    x-text="'# ' + tags.length + ' / ' + maxTags + ' Divisi'">
+                    x-text="'# ' + tags.length + ' Divisi'">
                 </span>
             </div>
 
@@ -234,7 +234,7 @@
             </div>
 
             <p class="text-[11px] text-slate-400 font-body">
-                Gunakan simbol <code class="text-[#FF3C00] font-bold font-mono">#</code> untuk mengidentifikasi kelompok divisi (maksimal 10 divisi). Tekan <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-[10px] font-mono">Enter</kbd> atau klik tombol Tambah Tag.
+                Gunakan simbol <code class="text-[#FF3C00] font-bold font-mono">#</code> untuk mengidentifikasi kelompok divisi. Tekan <kbd class="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-[10px] font-mono">Enter</kbd> atau klik tombol Tambah Tag.
             </p>
         </div>
 

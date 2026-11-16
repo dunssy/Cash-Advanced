@@ -9,6 +9,7 @@ use App\Models\ExpenseAttachment;
 use App\Models\ExpenseHistory;
 use App\Models\SystemNotification;
 use App\Models\SystemSetting;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,6 +37,133 @@ use Illuminate\View\View;
  */
 class ExpenseController extends Controller
 {
+    /**
+     * Menampilkan Riwayat / History Penggunaan Dana & Tracking Pembelian Barang.
+     *
+     * Berbasis peran:
+     * - Karyawan: Melihat history pengeluaran dan barang yang telah dibeli sendiri.
+     * - Atasan: Tracking pengeluaran dan barang apa saja yang telah dibeli oleh akun karyawan di divisinya.
+     * - Finance/Direktur/Super Admin: Memantau pengeluaran seluruh perusahaan dengan filter lengkap.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\View\View
+     */
+    public function history(Request $request): View
+    {
+        $user = Auth::user();
+
+        // 1. Inisialisasi kueri pengeluaran
+        $query = Expense::with(['cashAdvance.user', 'user', 'attachments', 'verifier'])
+            ->orderByDesc('transaction_date')
+            ->orderByDesc('id');
+
+        // 2. Pembatasan cakupan berdasarkan peran (Role Scoping)
+        $subordinateIds = [];
+        if ($user->isKaryawan()) {
+            $query->where('user_id', $user->id);
+        } elseif ($user->isAtasan()) {
+            $subordinateIds = $user->subordinates()->pluck('id')->toArray();
+            $query->where(function ($q) use ($user, $subordinateIds) {
+                $q->where('user_id', $user->id)
+                  ->orWhereIn('user_id', $subordinateIds)
+                  ->orWhereHas('cashAdvance', function ($caQuery) use ($user) {
+                      $caQuery->where('manager_id', $user->id);
+                  });
+            });
+        }
+
+        // 3. Filter berdasarkan Karyawan (untuk Atasan / Finance / Direktur)
+        if ($request->filled('user_id') && !$user->isKaryawan()) {
+            $query->where('user_id', $request->user_id);
+        }
+
+        // 4. Filter berdasarkan Cash Advance / Proyek
+        if ($request->filled('cash_advance_id')) {
+            $query->where('cash_advance_id', $request->cash_advance_id);
+        }
+
+        // 5. Filter berdasarkan Kategori Pengeluaran
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
+
+        // 6. Filter berdasarkan Status Validasi
+        if ($request->filled('verification_status')) {
+            $query->where('verification_status', $request->verification_status);
+        }
+
+        // 7. Filter Rentang Tanggal
+        if ($request->filled('date_from')) {
+            $query->whereDate('transaction_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('transaction_date', '<=', $request->date_to);
+        }
+
+        // 8. Filter Pencarian Teks (Nama barang / vendor / nomor CA / proyek / nama karyawan)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('description', 'like', "%{$search}%")
+                  ->orWhere('vendor_name', 'like', "%{$search}%")
+                  ->orWhere('notes', 'like', "%{$search}%")
+                  ->orWhereHas('cashAdvance', function ($caQ) use ($search) {
+                      $caQ->where('ca_number', 'like', "%{$search}%")
+                          ->orWhere('project_name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('user', function ($uQ) use ($search) {
+                      $uQ->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // 9. Kalkulasi Ringkasan Statistik atas data hasil filter
+        $statsQuery = clone $query;
+        $totalSpent = (clone $statsQuery)->whereNotIn('verification_status', ['VOID', 'REJECTED'])->sum('amount');
+        $totalItems = (clone $statsQuery)->count();
+        $totalValid = (clone $statsQuery)->where('verification_status', 'VALID')->sum('amount');
+        $pendingCount = (clone $statsQuery)->where('verification_status', 'PENDING')->count();
+
+        // 10. Data Paginasi 10 data per halaman
+        $expenses = $query->paginate(10)->withQueryString();
+
+        // 11. Opsi filter dropdown
+        $karyawanList = collect();
+        if ($user->isAtasan()) {
+            $karyawanList = User::whereIn('id', $subordinateIds)
+                ->orWhere('manager_id', $user->id)
+                ->orderBy('name')
+                ->get();
+        } elseif ($user->isFinance() || $user->isDirektur() || $user->isSuperAdmin()) {
+            $karyawanList = User::whereIn('role', ['karyawan', 'atasan', 'finance'])
+                ->orderBy('name')
+                ->get();
+        }
+
+        // Daftar CA untuk filter
+        $caQuery = CashAdvance::orderByDesc('created_at');
+        if ($user->isKaryawan()) {
+            $caQuery->where('user_id', $user->id);
+        } elseif ($user->isAtasan()) {
+            $caQuery->where(function ($q) use ($user, $subordinateIds) {
+                $q->where('user_id', $user->id)
+                  ->orWhereIn('user_id', $subordinateIds)
+                  ->orWhere('manager_id', $user->id);
+            });
+        }
+        $availableCAs = $caQuery->get(['id', 'ca_number', 'project_name']);
+
+        return view('expenses.history', compact(
+            'expenses',
+            'totalSpent',
+            'totalItems',
+            'totalValid',
+            'pendingCount',
+            'karyawanList',
+            'availableCAs'
+        ));
+    }
+
     /**
      * Menampilkan formulir pencatatan transaksi pengeluaran baru.
      *

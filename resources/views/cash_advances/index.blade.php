@@ -59,7 +59,7 @@
                     class="w-full pl-9 input-commerce text-xs sm:text-sm"
                     placeholder="Cari nomor CA, nama proyek, atau nama karyawan...">
             </div>
-
+            {{-- Untuk filter status --}}
             <div class="w-full sm:w-56 flex-shrink-0">
                 <select name="status" onchange="this.form.submit()" class="w-full input-commerce text-xs font-head font-semibold text-slate-800">
                     <option value="">Semua Status</option>

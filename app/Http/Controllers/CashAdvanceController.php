@@ -60,11 +60,12 @@ class CashAdvanceController extends Controller
             // Karyawan hanya melihat data miliknya
             $query->where('user_id', $user->id);
         } elseif ($user->isAtasan()) {
-            // Atasan melihat data pribadi dan data bawahan langsungnya
+            // Atasan melihat data pribadi dan data bawahan langsungnya / CA yang diarahkan padanya
             $subordinateIds = $user->subordinates()->pluck('id')->toArray();
             $query->where(function ($q) use ($user, $subordinateIds) {
                 $q->where('user_id', $user->id)
-                  ->orWhereIn('user_id', $subordinateIds);
+                  ->orWhereIn('user_id', $subordinateIds)
+                  ->orWhere('manager_id', $user->id);
             });
         }
         // Finance, Direktur, dan Super Admin dapat memantau seluruh CA perusahaan tanpa filter pemilik
@@ -129,8 +130,50 @@ class CashAdvanceController extends Controller
             return view('cash_advances.locked', compact('lockingCA'));
         }
 
-        // 3. Render antarmuka pembuatan pengajuan CA baru
-        return view('cash_advances.create');
+        // 3. Ambil daftar Atasan/Manager untuk pilihan dropdown
+        // Hak akses: Karyawan HANYA dapat memilih role 'atasan' (Direktur tidak boleh dipilih oleh karyawan).
+        // Atasan dan Finance dapat memilih 'direktur'.
+        if ($user->isKaryawan()) {
+            $managers = User::where('role', 'atasan')
+                ->where('id', '!=', $user->id)
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get();
+        } else {
+            $managers = User::whereIn('role', ['atasan', 'direktur'])
+                ->where('id', '!=', $user->id)
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get();
+        }
+
+        // Daftar divisi/departemen standar
+        $divisions = [
+            'Engineering & Commissioning',
+            'Instalasi Lapangan',
+            'Operasional & Maintenance',
+            'Field Service',
+            'Perencanaan Proyek',
+            'Finance & Accounting',
+            'IT & Systems',
+        ];
+
+        // Daftar kategori pengeluaran / proyek
+        $categories = [
+            'Instalasi & Komisioning Lapangan',
+            'Pengadaan Material & Sparepart Mendesak',
+            'Operasional & Transportasi Dinas Lapangan',
+            'Sewa Alat Berat & Scaffolding',
+            'Pemeliharaan & Troubleshooting Inverter',
+            'Akomodasi & Konsumsi Tim Lapangan',
+            'Lainnya / Khusus Proyek',
+        ];
+
+        // Daftar kode proyek resmi yang aktif dibuat oleh Atasan
+        $projectCodes = \App\Models\ProjectCode::where('is_active', true)->orderBy('code')->get();
+
+        // 4. Render antarmuka pembuatan pengajuan CA baru
+        return view('cash_advances.create', compact('managers', 'divisions', 'categories', 'projectCodes'));
     }
 
     /**
@@ -164,14 +207,60 @@ class CashAdvanceController extends Controller
         // 3. Validasi formulir pengajuan
         $validated = $request->validate([
             'project_name' => ['required', 'string', 'max:255'],
-            'project_code' => ['nullable', 'string', 'max:50'],
+            'project_code' => ['required', 'string', 'max:50'],
+            'project_category' => ['nullable', 'string', 'max:100'],
+            'department' => ['nullable', 'string', 'max:100'],
+            'manager_id' => ['nullable', 'exists:users,id'],
             'purpose' => ['required', 'string'],
+            'items_detail' => ['nullable', 'string', 'max:5000'],
             'requested_amount' => ['required', 'numeric', 'min:10000'],
         ], [
-            'project_name.required' => 'Nama proyek wajib diisi.',
+            'project_name.required' => 'Nama proyek wajib diisi manual.',
+            'project_code.required' => 'Pilih kode proyek dari dropdown yang disediakan Atasan.',
             'purpose.required' => 'Tujuan pengajuan wajib diisi.',
             'requested_amount.min' => 'Nominal pengajuan minimal Rp 10.000.',
+            'manager_id.exists' => 'Atasan yang dipilih tidak valid.',
         ]);
+
+        // Pembatasan hak akses pilih atasan:
+        // Direktur hanya dapat diakses atau dipilih oleh Atasan, BUKAN oleh Karyawan.
+        if ($user->isKaryawan() && !empty($validated['manager_id'])) {
+            $selectedManager = User::find($validated['manager_id']);
+            if ($selectedManager && $selectedManager->isDirektur()) {
+                return back()
+                    ->withInput()
+                    ->withErrors(['manager_id' => 'Karyawan hanya dapat memilih Atasan langsung, bukan Direktur. Direktur hanya dapat diakses atau dipilih oleh Atasan.']);
+            }
+        }
+
+        // Tentukan Atasan Penyetuju dari dropdown atau fallback ke manager profil
+        $targetManagerId = $validated['manager_id'] ?? $user->manager_id;
+
+        // Jika user belum memiliki manager atau memilih atasan berbeda, sinkronkan ke profil user
+        if ($targetManagerId && $user->manager_id !== (int) $targetManagerId) {
+            $user->update(['manager_id' => $targetManagerId]);
+        }
+
+        // Divisi pemohon:
+        // Divisi pemohon hanya dapat ditentukan oleh Atasan. Karyawan hanya bisa memilih kode proyek,
+        // sehingga divisi untuk karyawan diambil secara otomatis dari kode proyek Atasan tersebut (atau profil).
+        $projectCodeObj = !empty($validated['project_code'])
+            ? \App\Models\ProjectCode::where('code', $validated['project_code'])->first()
+            : null;
+
+        if ($user->isKaryawan()) {
+            $department = $projectCodeObj?->department ?: (!empty($user->departments) ? $user->departments[0] : ($user->department ?: null));
+        } else {
+            $department = $validated['department'] ?: ($projectCodeObj?->department ?: (!empty($user->departments) ? $user->departments[0] : ($user->department ?: null)));
+        }
+
+        // Gabungkan kategori proyek ke dalam keterangan / purpose jika dipilih
+        $purpose = $validated['purpose'];
+        if (!empty($validated['project_category'])) {
+            $purpose = "[Kategori: " . $validated['project_category'] . "]\n" . $purpose;
+        }
+
+        $itemsDetail = $validated['items_detail'] ?? $request->input('items_detail');
 
         // 4. Penomoran Dokumen Otomatis: CA-YYYYMM-XXXX
         $countThisMonth = CashAdvance::whereYear('created_at', date('Y'))
@@ -179,13 +268,16 @@ class CashAdvanceController extends Controller
             ->count() + 1;
         $caNumber = sprintf('CA-%s%s-%04d', date('Y'), date('m'), $countThisMonth);
 
-        // 5. Simpan record Cash Advance baru
+        // 5. Simpan record Cash Advance baru dengan pemisahan Tujuan & Rincian Barang
         $ca = CashAdvance::create([
             'ca_number' => $caNumber,
             'user_id' => $user->id,
+            'manager_id' => $targetManagerId,
             'project_name' => $validated['project_name'],
-            'project_code' => $validated['project_code'],
-            'purpose' => $validated['purpose'],
+            'project_code' => $validated['project_code'] ?? null,
+            'department' => $department,
+            'purpose' => $purpose,
+            'items_detail' => $itemsDetail,
             'requested_amount' => $validated['requested_amount'],
             'status' => 'PENDING_APPROVAL',
         ]);
@@ -194,14 +286,14 @@ class CashAdvanceController extends Controller
         AuditLog::record(
             'CA_CREATED',
             $ca,
-            "Pengajuan CA {$ca->ca_number} dibuat dengan nominal Rp " . number_format($ca->requested_amount, 0, ',', '.'),
+            "Pengajuan CA {$ca->ca_number} dibuat dengan nominal Rp " . number_format($ca->requested_amount, 0, ',', '.') . ($targetManagerId ? " diarahkan ke Atasan ID: {$targetManagerId}" : ""),
             null,
             $ca->toArray()
         );
 
         // 7. Pengiriman notifikasi persetujuan:
         // Jika pemohon adalah Atasan atau tim Finance -> Eskalasi persetujuan ke Direktur
-        // Jika pemohon adalah Karyawan -> Notifikasi ke Atasan langsung
+        // Jika pemohon adalah Karyawan -> Notifikasi ke Atasan langsung yang dipilih
         if ($user->isAtasan() || $user->isFinance()) {
             $direkturs = User::where('role', 'direktur')->get();
             foreach ($direkturs as $dir) {
@@ -213,11 +305,11 @@ class CashAdvanceController extends Controller
                     route('cash-advances.show', $ca)
                 );
             }
-        } elseif ($user->manager_id) {
+        } elseif ($targetManagerId) {
             SystemNotification::send(
-                $user->manager_id,
+                $targetManagerId,
                 'Pengajuan CA Baru Masuk',
-                "Bawahan Anda, {$user->name}, mengajukan {$ca->ca_number} untuk proyek {$ca->project_name}.",
+                "Bawahan Anda, {$user->name}, mengajukan {$ca->ca_number} ({$ca->project_name}) sebesar Rp " . number_format($ca->requested_amount, 0, ',', '.'),
                 'info',
                 route('cash-advances.show', $ca)
             );

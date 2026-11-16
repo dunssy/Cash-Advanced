@@ -55,57 +55,8 @@
                 </a>
             </div>
 
-            <!-- Current User Profile in Sidebar (Expanded & Collapsed) -->
-            <a href="{{ route('profile.edit') }}" class="p-3 mx-3 my-2.5 bg-[#161A2B] hover:bg-[#1f243b] rounded-xl border border-white/5 flex items-center space-x-3 transition group cursor-pointer" x-show="!sidebarCollapsed" x-transition title="Klik untuk edit profil & biodata">
-                @if(auth()->user()->avatar_url)
-                    <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" class="w-9 h-9 rounded-full object-cover shadow-sm flex-shrink-0 border border-white/20">
-                @else
-                    <div class="w-9 h-9 rounded-full bg-[#FF3C00] text-white flex items-center justify-center font-head font-bold text-xs uppercase shadow-sm flex-shrink-0">
-                        {{ auth()->user()->initials }}
-                    </div>
-                @endif
-                <div class="min-w-0 flex-1">
-                    <div class="font-head font-bold text-xs text-white truncate group-hover:text-[#FF3C00] transition flex items-center justify-between">
-                        <span class="truncate">{{ auth()->user()->name }}</span>
-                        <i data-lucide="user-cog" class="w-3.5 h-3.5 text-slate-400 group-hover:text-[#FF3C00] flex-shrink-0 ml-1"></i>
-                    </div>
-                    <div class="flex items-center flex-wrap gap-1 mt-1">
-                        <span class="text-[9px] font-head uppercase font-bold px-2 py-0.5 rounded-full
-                            {{ auth()->user()->role === 'direktur' ? 'bg-[#FFC704] text-[#050A1E]' : '' }}
-                            {{ auth()->user()->role === 'finance' ? 'bg-white/20 text-white' : '' }}
-                            {{ auth()->user()->role === 'atasan' ? 'bg-[#050A1E] text-white border border-white/20' : '' }}
-                            {{ auth()->user()->role === 'karyawan' ? 'bg-white/10 text-slate-300' : '' }}
-                            {{ auth()->user()->role === 'super_admin' ? 'bg-[#FF3C00] text-white' : '' }}
-                        ">{{ auth()->user()->role }}</span>
-                        @if(!empty(auth()->user()->departments))
-                            @foreach(array_slice(auth()->user()->departments, 0, 2) as $dept)
-                                <span class="text-[9px] text-slate-300 bg-white/10 px-1.5 py-0.5 rounded font-mono truncate max-w-[110px]" title="# {{ $dept }}"># {{ $dept }}</span>
-                            @endforeach
-                            @if(count(auth()->user()->departments) > 2)
-                                <span class="text-[8px] text-slate-400 font-mono font-bold">+{{ count(auth()->user()->departments) - 2 }}</span>
-                            @endif
-                        @else
-                            <span class="text-[9px] font-mono text-slate-400 bg-white/5 px-1.5 py-0.5 rounded" title="Tidak ada tag">#</span>
-                        @endif
-                    </div>
-                </div>
-            </a>
-
-            <!-- Collapsed User Avatar -->
-            <div class="py-2.5 flex justify-center" x-show="sidebarCollapsed" x-transition>
-                <a href="{{ route('profile.edit') }}" title="Pengaturan Profil: {{ auth()->user()->name }} ({{ auth()->user()->role }})" class="cursor-pointer">
-                    @if(auth()->user()->avatar_url)
-                        <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" class="w-9 h-9 rounded-full object-cover shadow-sm border border-white/20 hover:scale-105 transition">
-                    @else
-                        <div class="w-9 h-9 rounded-full bg-[#FF3C00] text-white flex items-center justify-center font-head font-bold text-xs uppercase shadow-sm hover:scale-105 transition">
-                            {{ auth()->user()->initials }}
-                        </div>
-                    @endif
-                </a>
-            </div>
-
             <!-- Scrollable Navigation Items -->
-            <div class="flex-1 overflow-y-auto px-3 py-2 space-y-4 text-xs font-head scrollbar-thin">
+            <div class="flex-1 overflow-y-auto px-3 py-4 space-y-4 text-xs font-head scrollbar-thin">
                 <!-- Group: Menu Utama -->
                 <div>
                     <p class="px-3 text-[10px] font-head font-bold uppercase tracking-wider text-slate-400 mb-1" x-show="!sidebarCollapsed">Menu Utama</p>
@@ -135,6 +86,14 @@
                                 <span x-show="!sidebarCollapsed">Ajukan CA Baru</span>
                             </a>
                         @endif
+
+                        <a href="{{ route('expenses.history') }}" 
+                            class="flex items-center space-x-3 px-3 py-2.5 rounded-xl transition {{ request()->routeIs('expenses.history') ? 'bg-[#FF3C00] text-white font-bold shadow-md shadow-[#FF3C00]/20' : 'text-slate-300 hover:text-white hover:bg-white/5' }}" 
+                            :class="sidebarCollapsed ? 'justify-center' : ''"
+                            title="{{ auth()->user()->isAtasan() ? 'Tracking Dana Divisi' : 'History Dana Terpakai' }}">
+                            <i data-lucide="receipt-text" class="w-4 h-4 flex-shrink-0"></i>
+                            <span x-show="!sidebarCollapsed">{{ auth()->user()->isAtasan() ? 'Tracking Dana Divisi' : 'History Dana Terpakai' }}</span>
+                        </a>
                     </div>
                 </div>
 
@@ -186,6 +145,20 @@
                     </div>
                 @endif
 
+                <!-- Group: Manajemen Proyek (Atasan, Direktur, SuperAdmin) -->
+                @if(auth()->user()->isAtasan() || auth()->user()->isDirektur() || auth()->user()->isSuperAdmin())
+                    <div class="pt-2 border-t border-white/5">
+                        <p class="px-3 text-[10px] font-head font-bold uppercase tracking-wider text-slate-400 mb-1" x-show="!sidebarCollapsed">Manajemen Proyek</p>
+                        <a href="{{ route('project-codes.index') }}" 
+                            class="flex items-center space-x-3 px-3 py-2.5 rounded-xl transition {{ request()->routeIs('project-codes.*') ? 'bg-[#FF3C00] text-white font-bold shadow-md shadow-[#FF3C00]/20' : 'text-slate-300 hover:text-white hover:bg-white/5' }}" 
+                            :class="sidebarCollapsed ? 'justify-center' : ''"
+                            title="Master Kode Proyek">
+                            <i data-lucide="folder-kanban" class="w-4 h-4 flex-shrink-0"></i>
+                            <span x-show="!sidebarCollapsed">Master Kode Proyek</span>
+                        </a>
+                    </div>
+                @endif
+
                 <!-- Group: Audit Trail (Direktur, Finance, SuperAdmin) -->
                 @if(auth()->user()->isDirektur() || auth()->user()->isFinance() || auth()->user()->isSuperAdmin())
                     <div class="pt-2 border-t border-white/5">
@@ -222,8 +195,6 @@
                         </div>
                     </div>
                 @endif
-
-
             </div>
 
             <!-- Sidebar Footer: Logout Button -->
@@ -469,39 +440,6 @@
                         </button>
                     </div>
 
-                    <!-- Current User Profile in Drawer -->
-                    <a href="{{ route('profile.edit') }}" @click="mobileNavOpen = false" class="p-4 bg-slate-50 hover:bg-slate-100 border-b border-slate-200 flex items-center space-x-3 transition group cursor-pointer" title="Edit Profil & Biodata">
-                        @if(auth()->user()->avatar_url)
-                            <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" class="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-sm flex-shrink-0">
-                        @else
-                            <div class="w-10 h-10 rounded-full bg-[#FF3C00] text-white flex items-center justify-center font-head font-bold text-xs uppercase shadow-sm flex-shrink-0">
-                                {{ auth()->user()->initials }}
-                            </div>
-                        @endif
-                        <div class="min-w-0 flex-1">
-                            <div class="font-head font-bold text-sm text-[#050A1E] group-hover:text-[#FF3C00] transition flex items-center justify-between">
-                                <span class="truncate">{{ auth()->user()->name }}</span>
-                                <i data-lucide="user-cog" class="w-3.5 h-3.5 text-slate-400 group-hover:text-[#FF3C00] flex-shrink-0 ml-1"></i>
-                            </div>
-                            <div class="flex flex-wrap items-center gap-1 mt-1">
-                                <span class="badge-retail text-[10px] uppercase font-bold
-                                    {{ auth()->user()->role === 'direktur' ? 'bg-[#FFC704] text-[#050A1E]' : '' }}
-                                    {{ auth()->user()->role === 'finance' ? 'bg-[#161A2B] text-white' : '' }}
-                                    {{ auth()->user()->role === 'atasan' ? 'bg-[#050A1E] text-white' : '' }}
-                                    {{ auth()->user()->role === 'karyawan' ? 'bg-[#F4F4F4] text-[#7A7A7A] border border-[#E1E1E1]' : '' }}
-                                    {{ auth()->user()->role === 'super_admin' ? 'bg-[#FF3C00] text-white' : '' }}
-                                ">
-                                    {{ auth()->user()->role }}
-                                </span>
-                                @forelse(auth()->user()->departments as $dept)
-                                    <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-[#050A1E] border border-slate-200"># {{ $dept }}</span>
-                                @empty
-                                    <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-400 border border-slate-200" title="Tidak ada tag">#</span>
-                                @endforelse
-                            </div>
-                        </div>
-                    </a>
-
                     <!-- Drawer Navigation Links -->
                     <nav class="p-3 space-y-1 text-sm font-semibold font-body">
                         <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl transition {{ request()->routeIs('dashboard') ? 'bg-[#161A2B] text-[#FF3C00] font-bold shadow-sm' : 'text-slate-700 hover:bg-slate-100 hover:text-[#050A1E]' }}">
@@ -519,6 +457,11 @@
                                 <span>Ajukan CA Baru</span>
                             </a>
                         @endif
+
+                        <a href="{{ route('expenses.history') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl transition {{ request()->routeIs('expenses.history') ? 'bg-[#161A2B] text-[#FF3C00] font-bold shadow-sm' : 'text-slate-700 hover:bg-slate-100 hover:text-[#050A1E]' }}">
+                            <i data-lucide="receipt-text" class="w-4 h-4 text-[#FF3C00]"></i>
+                            <span>{{ auth()->user()->isAtasan() ? 'Tracking Dana Divisi' : 'History Dana Terpakai' }}</span>
+                        </a>
 
                         @if(auth()->user()->isFinance() || auth()->user()->isDirektur() || auth()->user()->isAtasan())
                             <div class="pt-2">
@@ -544,6 +487,13 @@
                                     @endif
                                 </div>
                             </div>
+                        @endif
+
+                        @if(auth()->user()->isAtasan() || auth()->user()->isDirektur() || auth()->user()->isSuperAdmin())
+                            <a href="{{ route('project-codes.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl transition {{ request()->routeIs('project-codes.*') ? 'bg-[#161A2B] text-[#FF3C00] font-bold shadow-sm' : 'text-slate-700 hover:bg-slate-100 hover:text-[#050A1E]' }}">
+                                <i data-lucide="folder-kanban" class="w-4 h-4 text-[#FF3C00]"></i>
+                                <span>Master Kode Proyek</span>
+                            </a>
                         @endif
 
                         @if(auth()->user()->isDirektur() || auth()->user()->isFinance() || auth()->user()->isSuperAdmin())
@@ -772,6 +722,7 @@
     <!-- Dedicated Load Loader Script -->
     <script src="{{ asset('assets/js/loader.js') }}"
         data-logo="{{ asset('assets/images/logo.png') }}"
+        data-show-on-load="{{ $isJustLoggedIn ? 'true' : 'false' }}"
         data-just-logged-in="{{ $isJustLoggedIn ? 'true' : 'false' }}"
         data-user-name="{{ auth()->user()?->name }}"
         data-user-role="{{ auth()->user()?->role }}"></script>

@@ -251,7 +251,7 @@ class User extends Authenticatable
             return true;
         }
 
-        return $this->isAtasan() && $ca->user->manager_id === $this->id;
+        return $this->isAtasan() && ($ca->manager_id === $this->id || $ca->user->manager_id === $this->id);
     }
 
     // Who can verify receipts & close CA

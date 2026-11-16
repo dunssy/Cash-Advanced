@@ -57,14 +57,37 @@ class DashboardController extends Controller
             ->where('status', 'ACTIVE')
             ->first();
 
+        // Cari juga pengajuan CA pengguna yang sedang dalam status PENDING_APPROVAL
+        $pendingMyCA = CashAdvance::where('user_id', $user->id)
+            ->where('status', 'PENDING_APPROVAL')
+            ->latest()
+            ->first();
+
         $lockingCA = $user->getActiveLockingCA();
         $hasLock = $user->hasActiveLock();
+
+        // Saldo Keuangan Pengguna (Personal Cash Advance Wallet)
+        // Jika belum ada pengajuan atau belum cair -> Saldo Nol (Rp 0)
+        // Jika ada pengajuan aktif -> Saldo terisi sesuai sisa saldo real-time
+        $userBalance = 0;
+        $userPlafon = 0;
+        $userSpent = 0;
+
+        if ($activeCA) {
+            $userBalance = (float) $activeCA->current_balance;
+            $userPlafon = (float) ($activeCA->approved_amount ?: $activeCA->requested_amount) + (float) $activeCA->disbursed_topups_total;
+            $userSpent = (float) $activeCA->recorded_expenses_total;
+        }
 
         // 3. Inisialisasi struktur array metrik dashboard
         $stats = [
             'my_active_ca' => $activeCA,
             'my_locking_ca' => $lockingCA,
             'has_lock' => $hasLock,
+            'user_balance' => $userBalance,
+            'user_plafon' => $userPlafon,
+            'user_spent' => $userSpent,
+            'pending_my_ca' => $pendingMyCA,
             'pending_approval_count' => 0,
             'pending_verification_count' => 0,
             'pending_disbursement_count' => 0,
@@ -77,17 +100,50 @@ class DashboardController extends Controller
         $subordinateIds = $user->subordinates()->pluck('id')->toArray();
 
         // 4. Kalkulasi metrik spesifik untuk peran Atasan (Managerial View)
+        $recentDivisionExpenses = collect();
         if ($user->isAtasan()) {
             // Jumlah pengajuan CA bawahan yang menanti persetujuan Atasan
-            $stats['pending_approval_count'] = CashAdvance::whereIn('user_id', $subordinateIds)
-                ->where('status', 'PENDING_APPROVAL')
-                ->whereNull('approved_by')
-                ->count();
+            $stats['pending_approval_count'] = CashAdvance::where(function ($q) use ($user, $subordinateIds) {
+                $q->whereIn('user_id', $subordinateIds)
+                  ->orWhere('manager_id', $user->id);
+            })
+            ->where('status', 'PENDING_APPROVAL')
+            ->whereNull('approved_by')
+            ->count();
 
             // Jumlah pengajuan Top-Up bawahan yang menanti persetujuan Atasan
             $stats['pending_topup_count'] = TopUp::whereIn('user_id', $subordinateIds)
                 ->where('status', 'PENDING_ATASAN')
                 ->count();
+
+            // Tracking Pengeluaran & Pembelian Barang oleh Karyawan Divisi
+            $stats['division_expense_total'] = Expense::where(function ($q) use ($user, $subordinateIds) {
+                $q->whereIn('user_id', $subordinateIds)
+                  ->orWhereHas('cashAdvance', fn($ca) => $ca->where('manager_id', $user->id));
+            })->whereNotIn('verification_status', ['VOID', 'REJECTED'])->sum('amount');
+
+            $stats['division_expense_count'] = Expense::where(function ($q) use ($user, $subordinateIds) {
+                $q->whereIn('user_id', $subordinateIds)
+                  ->orWhereHas('cashAdvance', fn($ca) => $ca->where('manager_id', $user->id));
+            })->count();
+
+            // 5 Transaksi Pembelian Barang Terbaru oleh Karyawan Divisi
+            $recentDivisionExpenses = Expense::with(['user', 'cashAdvance', 'attachments'])
+                ->where(function ($q) use ($user, $subordinateIds) {
+                    $q->whereIn('user_id', $subordinateIds)
+                      ->orWhereHas('cashAdvance', fn($ca) => $ca->where('manager_id', $user->id));
+                })
+                ->orderByDesc('transaction_date')
+                ->orderByDesc('id')
+                ->take(5)
+                ->get();
+        }
+
+        // Kalkulasi metrik spesifik untuk peran Karyawan
+        if ($user->isKaryawan()) {
+            $stats['karyawan_total_spent'] = Expense::where('user_id', $user->id)->whereNotIn('verification_status', ['VOID', 'REJECTED'])->sum('amount');
+            $stats['karyawan_valid_receipts'] = Expense::where('user_id', $user->id)->where('verification_status', 'VALID')->count();
+            $stats['karyawan_ca_count'] = CashAdvance::where('user_id', $user->id)->count();
         }
 
         // 5. Kalkulasi metrik spesifik untuk peran Finance (Treasury & Verification View)
@@ -165,6 +221,6 @@ class DashboardController extends Controller
         $notifications = $user->unreadNotifications()->take(5)->get();
 
         // 9. Kirimkan seluruh data analitik ke antarmuka dashboard
-        return view('dashboard.index', compact('stats', 'recentCAs', 'notifications'));
+        return view('dashboard.index', compact('stats', 'recentCAs', 'notifications', 'recentDivisionExpenses'));
     }
 }

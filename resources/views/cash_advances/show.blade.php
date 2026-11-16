@@ -83,14 +83,44 @@
                     <h1 class="text-xl sm:text-2xl font-bold text-retail-ink tracking-tight leading-snug">
                         {{ $cashAdvance->project_name }}
                     </h1>
-                    @if($cashAdvance->project_code)
-                        <span class="text-xs font-mono font-semibold text-slate-500 uppercase tracking-wider block">
-                            Kode Proyek: {{ $cashAdvance->project_code }}
-                        </span>
+                    <div class="flex flex-wrap items-center gap-2 pt-1">
+                        @if($cashAdvance->project_code)
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                Kode: {{ $cashAdvance->project_code }}
+                            </span>
+                        @endif
+                        @if($cashAdvance->department)
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-head font-semibold bg-blue-50 text-[#2E3087] border border-blue-200">
+                                Divisi: {{ $cashAdvance->department }}
+                            </span>
+                        @endif
+                    </div>
+
+                    <!-- 1. Tujuan Pengajuan -->
+                    <div class="pt-2">
+                        <span class="text-[10px] font-head font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Tujuan Pengajuan:</span>
+                        <p class="text-xs sm:text-sm text-slate-700 leading-relaxed font-body">
+                            {{ $cashAdvance->purpose }}
+                        </p>
+                    </div>
+
+                    <!-- 2. Rincian Barang yang Dibeli (Jika Tersedia) -->
+                    @if($cashAdvance->items_detail)
+                        <div class="mt-3 p-3.5 rounded-xl bg-orange-50/60 border border-orange-200 space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-head font-bold text-[#050A1E] uppercase tracking-wider flex items-center gap-1.5">
+                                    <i data-lucide="shopping-bag" class="w-4 h-4 text-[#FF3C00]"></i>
+                                    <span>Rincian Barang yang Dibeli</span>
+                                </span>
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-white text-[#FF3C00] font-bold border border-orange-200 shadow-2xs">
+                                    Estimasi Awal Pemohon
+                                </span>
+                            </div>
+                            <div class="text-xs text-slate-800 font-mono whitespace-pre-line leading-relaxed bg-white p-3 rounded-lg border border-orange-100/80">
+                                {{ $cashAdvance->items_detail }}
+                            </div>
+                        </div>
                     @endif
-                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed pt-1">
-                        {{ $cashAdvance->purpose }}
-                    </p>
 
                     <!-- User metadata -->
                     <div class="pt-3 flex flex-wrap items-center gap-4 text-xs text-slate-500 border-t border-slate-100 font-mono">

@@ -9,6 +9,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProjectCodeController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TopUpController;
 use App\Http\Controllers\VerificationController;
@@ -45,7 +46,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/cash-advances/{cashAdvance}/close', [CashAdvanceController::class, 'close'])->name('cash-advances.close');
     Route::post('/cash-advances/{cashAdvance}/unlock-gembok', [CashAdvanceController::class, 'unlockGembok'])->name('cash-advances.unlock-gembok');
 
-    // Expense Tracking
+    // Expense Tracking & History
+    Route::get('/expenses/history', [ExpenseController::class, 'history'])->name('expenses.history');
     Route::get('/cash-advances/{cashAdvance}/expenses/create', [ExpenseController::class, 'create'])->name('expenses.create');
     Route::post('/cash-advances/{cashAdvance}/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
     Route::get('/expenses/{expense}/edit', [ExpenseController::class, 'edit'])->name('expenses.edit');
@@ -72,6 +74,12 @@ Route::middleware('auth')->group(function () {
 
     // Audit Trail
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+
+    // Master Kode Proyek (Atasan & Manajemen)
+    Route::get('/project-codes', [ProjectCodeController::class, 'index'])->name('project-codes.index');
+    Route::post('/project-codes', [ProjectCodeController::class, 'store'])->name('project-codes.store');
+    Route::post('/project-codes/{projectCode}/toggle-status', [ProjectCodeController::class, 'toggleStatus'])->name('project-codes.toggle-status');
+    Route::delete('/project-codes/{projectCode}', [ProjectCodeController::class, 'destroy'])->name('project-codes.destroy');
 
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
