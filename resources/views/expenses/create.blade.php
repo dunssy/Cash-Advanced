@@ -25,14 +25,16 @@
         return parseFloat(this.amount || 0) > this.currentBalance;
     }
 }">
-    <!-- Top Breadcrumb -->
-    <div class="mb-5">
-        <a href="{{ route('cash-advances.show', $cashAdvance) }}" class="text-xs font-semibold text-bodygrey hover:text-[#050A1E] inline-flex items-center space-x-1 mb-2 font-head">
-            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+    <!-- Top Navigation -->
+    <div class="mb-4 pb-2 border-b border-slate-200">
+        <a href="{{ route('cash-advances.show', $cashAdvance) }}" class="btn-secondary btn-sm px-3.5 py-1.5 d-inline-flex align-items-center gap-1.5 fw-semibold shadow-xs rounded-full text-xs font-head transition active:scale-95">
+            <i data-lucide="arrow-left" class="w-4 h-4 text-slate-500"></i>
             <span>Kembali ke CA {{ $cashAdvance->ca_number }}</span>
         </a>
+    </div>
+
+    <div class="mb-5">
         <h1 class="text-xl sm:text-2xl font-head font-bold text-[#050A1E] tracking-tight">Catat Pengeluaran Real-Time</h1>
-        <p class="text-xs text-bodygrey mt-1">Unggah foto struk saat transaksi terjadi agar saldo kas terpotong langsung secara akurat.</p>
     </div>
 
     <!-- Saldo Header Widget (PT Technodrives Navy Summary Band) -->
@@ -69,16 +71,13 @@
                         <span>Kaitkan dengan Rincian RAB Anda</span>
                     </label>
                     <select name="cash_advance_item_id" x-model="selectedItemId" @change="onItemChange($event.target.value)" class="w-full input-commerce text-xs">
-                        <option value="">-- Pengeluaran Tambahan / Di Luar RAB --</option>
+                        <option value="">-- Pengeluaran Di Luar RAB --</option>
                         @foreach($userRabItems as $ri)
                             <option value="{{ $ri->id }}" {{ old('cash_advance_item_id') == $ri->id ? 'selected' : '' }}>
                                 [{{ $ri->category_label }}] {{ $ri->item_name }} (RAB: Rp {{ number_format($ri->subtotal, 0, ',', '.') }} &bull; Realisasi: Rp {{ number_format($ri->realized_amount, 0, ',', '.') }})
                             </option>
                         @endforeach
                     </select>
-                    <p class="text-xs text-bodygrey">
-                        Memilih pos RAB otomatis mengisi kategori dan mempermudah pencocokan bukti struk dengan anggaran yang telah diajukan.
-                    </p>
                 </div>
             @endif
 
@@ -92,9 +91,6 @@
                 @endphp
                 <input type="date" name="transaction_date" value="{{ old('transaction_date', date('Y-m-d')) }}" max="{{ date('Y-m-d') }}" min="{{ $minDate }}" required
                     class="w-full input-commerce font-mono">
-                <p class="text-xs text-slate-400 mt-1">
-                    Wajib dicatat maksimal 1 hari setelah transaksi. Lewat 1 hari otomatis dilabeli <strong class="text-rose-600 font-bold">TERLAMBAT</strong>.
-                </p>
             </div>
 
             <!-- 2. Nominal Pengeluaran -->
@@ -134,8 +130,8 @@
                 <select name="category" required class="w-full input-commerce">
                     <option value="" disabled selected>-- Pilih Kategori --</option>
                     <option value="material" {{ old('category') === 'material' ? 'selected' : '' }}>Material & Perlengkapan</option>
-                    <option value="transport" {{ old('category') === 'transport' ? 'selected' : '' }}>Transportasi & Bensin / Tol</option>
-                    <option value="sewa_alat" {{ old('category') === 'sewa_alat' ? 'selected' : '' }}>Sewa Alat / Kendaraan / Scaffolding</option>
+                    <option value="transport" {{ old('category') === 'transport' ? 'selected' : '' }}>Transportasi & Bensin</option>
+                    <option value="sewa_alat" {{ old('category') === 'sewa_alat' ? 'selected' : '' }}>Sewa Alat</option>
                     <option value="konsumsi" {{ old('category') === 'konsumsi' ? 'selected' : '' }}>Konsumsi & Penginapan Tim</option>
                     <option value="lainnya" {{ old('category') === 'lainnya' ? 'selected' : '' }}>Lain-lain Operasional</option>
                 </select>
@@ -151,11 +147,11 @@
                     placeholder="Contoh: Beli kabel ducting & konektor MC4 10 pcs">
             </div>
 
-            <!-- 5. Nama Vendor / Toko & No Faktur/NPWP -->
+            <!-- 5. Nama Vendor & No Faktur -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1.5">
-                        Nama Toko / Vendor / SPBU <span class="text-rose-500">*</span>
+                        Nama Vendor <span class="text-rose-500">*</span>
                     </label>
                     <input type="text" name="vendor_name" value="{{ old('vendor_name') }}" required
                         class="w-full input-commerce"
@@ -163,7 +159,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1.5">
-                        No. Faktur / NPWP Vendor (Opsional)
+                        No. Faktur Vendor (Opsional)
                     </label>
                     <input type="text" name="vendor_tax_number" value="{{ old('vendor_tax_number') }}"
                         class="w-full input-commerce font-mono"
@@ -171,17 +167,7 @@
                 </div>
             </div>
 
-            <!-- 6. Catatan Tambahan (Opsional) -->
-            <div>
-                <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1.5">
-                    Catatan Keperluan Lapangan (Opsional)
-                </label>
-                <textarea name="notes" rows="2"
-                    class="w-full input-commerce"
-                    placeholder="Contoh: Pembelian mendadak karena kabel bawaan kurang 15 meter...">{{ old('notes') }}</textarea>
-            </div>
-
-            <!-- 7. Toggle Opsi Khusus: Tanpa Struk & Talangan Pribadi -->
+            <!-- 6. Toggle Opsi Khusus: Tanpa Struk & Talangan Pribadi -->
             <div class="space-y-3 pt-2 border-t border-slate-100">
                 <span class="block text-xs font-bold text-retail-ink uppercase tracking-wider">Kondisi Khusus Transaksi:</span>
 
@@ -212,45 +198,41 @@
                     <input type="checkbox" name="is_lost_receipt" value="1" x-model="isLostReceipt"
                         class="mt-0.5 rounded border-slate-300 text-slate-800 focus:ring-slate-500">
                     <div>
-                        <span class="text-xs font-bold text-slate-800 block font-head">Tanpa Struk Fisik / Struk Hilang (Darurat)</span>
+                        <span class="text-xs font-bold text-slate-800 block font-head">Tanpa Struk Fisik (Darurat)</span>
                         <span class="text-xs text-slate-600 leading-relaxed block font-body">
-                            Centang ini jika transaksi tidak memiliki struk cetak resmi (misal: ojek pangkalan lokal, warung kecil tanpa nota, kuli angkut). Wajib mengunggah surat pernyataan bermaterai/bertandatangan.
+                            Centang ini jika transaksi tidak memiliki struk cetak resmi (misal: ojek pangkalan lokal, warung kecil tanpa nota, kuli angkut). Wajib mengunggah surat pernyataan bermaterai atau bertandatangan.
                         </span>
                     </div>
                 </label>
             </div>
 
-            <!-- 8. Upload File: Struk Foto ATAU Surat Pernyataan -->
+            <!-- 7. Upload File: Struk Foto ATAU Surat Pernyataan -->
             <div class="pt-2 border-t border-slate-100">
                 <!-- Jika Lost Receipt: Upload Surat Pernyataan -->
                 <div x-show="isLostReceipt" x-cloak class="space-y-2">
                     <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider">
-                        Upload Surat Pernyataan Kehilangan Struk (Bermaterai / TTD) <span class="text-rose-500">*</span>
+                        Upload Surat Pernyataan Kehilangan Struk (Bermaterai) <span class="text-rose-500">*</span>
                     </label>
                     <input type="file" name="lost_receipt_statement_file" accept="image/*,.pdf"
                         class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#050A1E] file:text-white hover:file:bg-slate-800 cursor-pointer">
-                    <p class="text-xs text-slate-400">Format: JPG, PNG, atau PDF. Wajib disetujui Atasan / Direktur sebelum CA ditutup.</p>
                 </div>
 
                 <!-- Jika Normal: Upload Foto Struk / Nota (Maksimal 5) -->
                 <div x-show="!isLostReceipt" class="space-y-2">
                     <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider">
-                        Foto / File Struk & Nota Transaksi <span class="text-rose-500">*</span>
+                        Foto Struk Transaksi <span class="text-rose-500">*</span>
                     </label>
                     <input type="file" name="receipts[]" multiple accept="image/*,.pdf"
                         class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#FF3C00] file:text-white hover:file:bg-[#e03500] cursor-pointer">
-                    <p class="text-xs text-slate-400">
-                        Pilih 1 sampai 5 foto struk yang jelas dan terbaca. Pastikan tanggal, toko, dan total nominal terlihat terang.
-                    </p>
                 </div>
             </div>
 
             <!-- Tombol Aksi -->
             <div class="pt-3 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 border-t border-slate-100">
-                <a href="{{ route('cash-advances.show', $cashAdvance) }}" class="btn-secondary py-2.5 px-4 text-xs text-center justify-center">
+                <a href="{{ route('cash-advances.show', $cashAdvance) }}" class="btn-secondary py-2.5 px-5 text-xs text-center justify-center rounded-full">
                     Batal
                 </a>
-                <button type="submit" class="btn-primary py-2.5 px-6 justify-center" :disabled="isOverBalance">
+                <button type="submit" class="btn-brand py-2.5 px-6 justify-center rounded-full" :disabled="isOverBalance">
                     <i data-lucide="check" class="w-4 h-4"></i>
                     <span>Simpan & Potong Saldo Kas</span>
                 </button>

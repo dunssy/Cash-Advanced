@@ -1,11 +1,10 @@
 <!--begin::Sidebar-->
-<aside class="app-sidebar shadow" data-bs-theme="dark" style="background-color: #050A1E !important;">
+<aside class="app-sidebar shadow no-print" data-bs-theme="dark" style="background-color: #050A1E !important;">
     <!--begin::Sidebar Brand-->
-    <div class="sidebar-brand border-bottom" style="border-color: #161A2B !important; height: 65px; display: flex; align-items: center; justify-content: center;">
-        <a href="{{ route('dashboard') }}" class="brand-link d-flex align-items-center justify-content-center py-2 px-3 text-decoration-none">
-            <div class="bg-white rounded-2 px-2.5 py-1 d-flex align-items-center justify-content-center shadow-sm">
-                <img src="{{ asset('assets/images/logo.png') }}" alt="PT Technodrives" style="height: 28px; width: auto; object-fit: contain;">
-            </div>
+    <div class="sidebar-brand border-bottom px-3.5" style="border-color: #161A2B !important; height: 52px; display: flex; align-items: center; justify-content: flex-start;">
+        <a href="{{ route('dashboard') }}" class="brand-link d-flex align-items-center justify-content-start text-start text-decoration-none w-100" title="PT Technodrives Indonesia">
+            <img src="{{ asset('assets/images/logo.png') }}" alt="PT Technodrives" class="brand-image-full d-inline-block" style="height: 28px; width: auto; object-fit: contain; max-width: 175px;">
+            <img src="{{ asset('assets/images/logo-icon-white.png') }}" alt="PT Technodrives" class="brand-image-compact d-none" style="height: 28px; width: 28px; object-fit: contain;">
         </a>
     </div>
     <!--end::Sidebar Brand-->
@@ -13,7 +12,7 @@
     <!--begin::Sidebar Wrapper-->
     <div class="sidebar-wrapper">
         <!--begin::User Panel-->
-        <div class="user-panel mt-3 pb-3 mb-2 d-flex align-items-center px-3 border-bottom" style="border-color: #161A2B !important;">
+        <div class="user-panel mt-1.5 pb-2.5 mb-1.5 d-flex align-items-center px-3.5 border-bottom" style="border-color: #161A2B !important;">
             <div class="image me-2 flex-shrink-0">
                 @if(auth()->user()->avatar_url)
                     <img src="{{ auth()->user()->avatar_url }}" class="rounded-circle shadow-sm border border-secondary" style="width: 38px; height: 38px; object-fit: cover;" alt="{{ auth()->user()->name }}">

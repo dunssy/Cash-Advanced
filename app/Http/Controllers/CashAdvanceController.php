@@ -54,6 +54,7 @@ class CashAdvanceController extends Controller
         $user = Auth::user();
 
         // 1. Inisialisasi kueri dasar dengan eager loading relasi pendukung
+        // Status ACTIVE selalu diprioritaskan berada di paling atas
         $query = CashAdvance::with([
             'user', 
             'approver', 
@@ -62,7 +63,9 @@ class CashAdvanceController extends Controller
             'topUps', 
             'items.user', 
             'distributions.receiver'
-        ])->orderByDesc('created_at');
+        ])
+        ->orderByRaw("CASE WHEN status = 'ACTIVE' THEN 0 ELSE 1 END ASC")
+        ->orderByDesc('created_at');
 
         // 2. Pembatasan cakupan data sesuai peran pengguna (Data Scoping)
         if ($user->isKaryawan()) {

@@ -1,30 +1,21 @@
 @extends('layouts.app')
 
-@section('title', 'Laporan 3: CA Menggantung (Outstanding)')
-@section('page_title', 'Laporan 3: CA Menggantung (Outstanding)')
+@section('title', 'CA Menggantung (Outstanding)')
+@section('page_title', 'CA Menggantung (Outstanding)')
 
 @section('content')
-<div class="space-y-6">
+<div class="space-y-4">
 
-    @include('reports._report_nav')
-
-    <!-- Header & Action (Design.md) -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 no-print">
-        <div>
-            <h1 class="text-xl sm:text-2xl font-bold text-retail-ink tracking-tight">Laporan 3: CA Menggantung (Outstanding)</h1>
-            <p class="text-xs text-slate-500 mt-0.5">Untuk Finance dan Direktur. Memantau seluruh Cash Advance yang belum CLOSED, sisa saldo kas, dan penanda OVERDUE.</p>
-        </div>
-
-        <div class="flex items-center space-x-2">
-            <a href="{{ route('reports.outstanding', ['export' => 'csv']) }}" class="btn-primary text-xs py-2 px-3.5">
-                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
-                <span>Ekspor CSV / Excel</span>
-            </a>
-            <button onclick="window.print()" class="btn-dark text-xs py-2 px-3.5">
-                <i data-lucide="printer" class="w-4 h-4"></i>
-                <span>Cetak Dokumen</span>
-            </button>
-        </div>
+    <!-- Tombol Aksi Dokumen (Ekspor Excel & Cetak Dokumen) -->
+    <div class="flex items-center justify-end space-x-2 no-print">
+        <a href="{{ route('reports.outstanding', ['export' => 'csv']) }}" class="btn-primary text-xs py-2 px-3.5 shadow-xs">
+            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+            <span>Ekspor Excel</span>
+        </a>
+        <button onclick="window.print()" class="btn-dark text-xs py-2 px-3.5 shadow-xs">
+            <i data-lucide="printer" class="w-4 h-4"></i>
+            <span>Cetak Dokumen</span>
+        </button>
     </div>
 
     <!-- Outstanding Paper -->
@@ -57,7 +48,7 @@
                 <span class="text-base sm:text-lg font-bold text-amber-800 block mt-1">
                     {{ $outstandingCAs->where('status', 'NEED_SETTLEMENT')->count() }} Proyek
                 </span>
-                <span class="text-xs text-slate-400 block mt-0.5 font-sans">Proyek tuntas / wajib transfer sisa</span>
+                <span class="text-xs text-slate-400 block mt-0.5 font-sans">Proyek tuntas, wajib transfer sisa kas</span>
             </div>
 
             <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
@@ -70,9 +61,9 @@
         </div>
 
         <!-- Table -->
-        <div class="border border-slate-200 rounded-xl overflow-hidden table-responsive">
-            <table class="w-full text-left text-xs font-mono min-w-[700px]">
-                <thead class="bg-slate-50 text-slate-700 font-bold uppercase border-b border-retail-surface font-sans">
+        <div class="border border-slate-200 rounded-[15px] overflow-hidden table-responsive">
+            <table class="w-full text-left text-xs font-mono min-w-[700px] table-technodrives">
+                <thead>
                     <tr>
                         <th class="px-3 py-2.5">No. CA</th>
                         <th class="px-3 py-2.5">Karyawan</th>
@@ -121,7 +112,7 @@
                                 Rp {{ number_format($ca->current_balance, 0, ',', '.') }}
                             </td>
                             <td class="px-3 py-2.5 text-center whitespace-nowrap no-print font-sans">
-                                <a href="{{ route('cash-advances.show', $ca) }}" class="btn-secondary py-1 px-2.5 text-xs">
+                                <a href="{{ route('cash-advances.show', $ca) }}" class="btn-secondary py-1 px-3 text-xs rounded-full">
                                     Detail
                                 </a>
                             </td>

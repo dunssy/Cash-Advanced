@@ -6,6 +6,14 @@
 @section('content')
 <div class="max-w-3xl mx-auto space-y-6">
 
+    <!-- Top Navigation -->
+    <div class="mb-4 pb-2 border-b border-slate-200">
+        <a href="{{ route('dashboard') }}" class="btn-secondary btn-sm px-3.5 py-1.5 d-inline-flex align-items-center gap-1.5 fw-semibold shadow-xs rounded-full text-xs font-head transition active:scale-95">
+            <i data-lucide="arrow-left" class="w-4 h-4 text-slate-500"></i>
+            <span>Kembali ke Dashboard</span>
+        </a>
+    </div>
+
     <!-- Header -->
     <div>
         <div class="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
@@ -45,7 +53,7 @@
             </div>
 
             <div class="pt-5 border-t border-slate-100 flex justify-end">
-                <button type="submit" class="btn-primary">
+                <button type="submit" class="btn-brand py-2.5 px-6 text-xs rounded-full">
                     <i data-lucide="save" class="w-4 h-4"></i>
                     <span>Simpan Pengaturan Sistem</span>
                 </button>

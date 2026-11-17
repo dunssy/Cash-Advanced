@@ -18,7 +18,7 @@
         <!--begin::App Main Content-->
         <main class="app-main">
             <!--begin::App Content Header (Breadcrumbs & Title)-->
-            <div class="app-content-header py-3 no-print">
+            <div class="app-content-header pt-2.5 pb-1 no-print">
                 <div class="container-fluid">
                     <div class="row align-items-center">
                         <div class="col-sm-6">
@@ -42,7 +42,7 @@
             <!--end::App Content Header-->
 
             <!--begin::App Content-->
-            <div class="app-content py-2 pb-5">
+            <div class="app-content pt-1 pb-5">
                 <div class="container-fluid">
                     <!-- Flash Alerts Partition -->
                     @include('layouts.partials.alerts')

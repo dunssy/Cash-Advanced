@@ -17,7 +17,7 @@
             <p class="text-xs text-slate-500 mt-0.5">Mengatur akun karyawan (~25 orang), hak akses peran (role), dan hierarki atasan langsung.</p>
         </div>
 
-        <a href="{{ route('admin.users.create') }}" class="btn-primary">
+        <a href="{{ route('admin.users.create') }}" class="btn-brand rounded-full">
             <i data-lucide="user-plus" class="w-4 h-4"></i>
             <span>Tambah User Baru</span>
         </a>
@@ -26,8 +26,8 @@
     <!-- User Table -->
     <div class="card-commerce overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-                <thead class="bg-slate-50 text-slate-700 font-bold uppercase tracking-wider border-b border-retail-surface font-sans">
+            <table class="w-full text-left text-xs table-technodrives">
+                <thead>
                     <tr>
                         <th class="px-4 py-3">Nama & Email</th>
                         <th class="px-4 py-3">Peran (Role)</th>
@@ -106,7 +106,7 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-center whitespace-nowrap">
-                                <a href="{{ route('admin.users.edit', $u) }}" class="btn-secondary py-1 px-2.5 text-xs">
+                                <a href="{{ route('admin.users.edit', $u) }}" class="btn-secondary py-1 px-3.5 text-xs rounded-full">
                                     <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
                                     <span>Edit</span>
                                 </a>

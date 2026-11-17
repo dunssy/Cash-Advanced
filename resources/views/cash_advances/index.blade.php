@@ -4,13 +4,13 @@
 @section('page_title', auth()->user()->isKaryawan() ? 'Cash Advance Saya' : 'Daftar Cash Advance')
 
 @section('content')
-<div class="space-y-6">
+<div class="space-y-3.5 -mt-2">
 
     <!-- Print Only Header -->
     <div class="hidden print:block mb-6 border-b-2 border-[#050A1E] pb-3">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <img src="{{ asset('assets/images/logo.png') }}" alt="PT Technodrives" class="h-8 w-auto">
+                <img src="{{ asset('assets/images/logo-original.png') }}" alt="PT Technodrives" class="h-8 w-auto">
                 <div>
                     <h1 class="text-base font-bold font-head text-[#050A1E]">PT TECHNODRIVES INDONESIA</h1>
                     <h2 class="text-xs font-semibold font-head text-[#FF3C00]">Laporan {{ auth()->user()->isKaryawan() ? 'Cash Advance Saya' : 'Daftar Cash Advance' }}</h2>
@@ -24,47 +24,22 @@
         </div>
     </div>
 
-    <!-- Header Screen -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 no-print">
-        <div>
-            <h1 class="text-xl sm:text-2xl font-head font-bold text-[#050A1E] tracking-tight">
-                {{ auth()->user()->isKaryawan() ? 'Cash Advance Saya' : 'Daftar Cash Advance' }}
-            </h1>
-            <p class="text-xs text-bodygrey mt-0.5 font-body">
-                @if(auth()->user()->isKaryawan())
-                    Menampilkan seluruh riwayat Cash Advance milik Anda.
-                @elseif(auth()->user()->isAtasan())
-                    Menampilkan Cash Advance milik Anda dan tim bawahan langsung.
-                @else
-                    Menampilkan seluruh Cash Advance perusahaan (PT Technodrives Indonesia).
-                @endif
-            </p>
-        </div>
-
-        @if(auth()->user()->isKaryawan() || auth()->user()->isAtasan())
-            <a href="{{ route('cash-advances.create') }}" class="btn-primary">
-                <i data-lucide="plus" class="w-4 h-4"></i>
-                <span>Ajukan CA Baru</span>
-            </a>
-        @endif
-    </div>
-
-    <!-- Filter Status & Search Form (Ringkas & Dropdown) -->
-    <div class="card-commerce p-4 no-print">
-        <form action="{{ route('cash-advances.index') }}" method="GET" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+    <!-- Filter Status & Search Form (Clean & Tanpa Background Putih) -->
+    <div class="no-print">
+        <form action="{{ route('cash-advances.index') }}" method="GET" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5">
             <div class="relative flex-grow">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 pointer-events-none">
                     <i data-lucide="search" class="w-4 h-4"></i>
                 </span>
                 <input type="text" name="search" value="{{ request('search') }}"
-                    class="w-full pl-9 input-commerce text-xs sm:text-sm"
+                    class="w-full pl-10 input-commerce text-xs sm:text-sm bg-white border border-slate-300 rounded-[12px] shadow-2xs focus:border-[#FF3C00]"
                     placeholder="Cari nomor CA, nama proyek, atau nama karyawan...">
             </div>
 
             <div class="w-full sm:w-56 flex-shrink-0">
-                <select name="status" onchange="this.form.submit()" class="w-full input-commerce text-xs font-head font-semibold text-slate-800">
+                <select name="status" onchange="this.form.submit()" class="w-full input-commerce text-xs font-head font-semibold text-slate-800 bg-white border border-slate-300 rounded-[12px] shadow-2xs">
                     <option value="">Semua Status</option>
-                    <option value="PENDING_APPROVAL" {{ request('status') === 'PENDING_APPROVAL' ? 'selected' : '' }}>Menunggu Approval / Pencairan</option>
+                    <option value="PENDING_APPROVAL" {{ request('status') === 'PENDING_APPROVAL' ? 'selected' : '' }}>Menunggu Persetujuan</option>
                     <option value="ACTIVE" {{ request('status') === 'ACTIVE' ? 'selected' : '' }}>Aktif (Berjalan)</option>
                     <option value="NEED_SETTLEMENT" {{ request('status') === 'NEED_SETTLEMENT' ? 'selected' : '' }}>Butuh Settlement</option>
                     <option value="PENDING_VERIFICATION" {{ request('status') === 'PENDING_VERIFICATION' ? 'selected' : '' }}>Verifikasi Finance</option>
@@ -74,14 +49,18 @@
             </div>
 
             <div class="flex items-center space-x-2">
-                <button type="submit" class="btn-dark py-2.5 px-4 flex-1 sm:flex-initial text-xs">
+                <button type="submit" class="btn-dark py-2 px-5 flex-1 sm:flex-initial text-xs rounded-full shadow-2xs">
                     Cari
                 </button>
                 @if(request('search') || request('status'))
-                    <a href="{{ route('cash-advances.index') }}" class="btn-secondary py-2.5 px-3 text-xs">
+                    <a href="{{ route('cash-advances.index') }}" class="btn-secondary py-2 px-4 text-xs rounded-full shadow-2xs">
                         Reset
                     </a>
                 @endif
+                <button type="button" onclick="window.print()" class="btn-secondary py-2 px-4 text-xs inline-flex items-center gap-1.5 rounded-full shadow-2xs" title="Cetak Laporan">
+                    <i data-lucide="printer" class="w-3.5 h-3.5 text-slate-500"></i>
+                    <span>Cetak Laporan</span>
+                </button>
             </div>
         </form>
     </div>
@@ -111,7 +90,7 @@
                             @if($ca->status === 'ACTIVE') Aktif @endif
                             @if($ca->status === 'NEED_SETTLEMENT') Wajib Settlement @endif
                             @if($ca->status === 'PENDING_VERIFICATION') Verifikasi Akhir @endif
-                            @if($ca->status === 'CLOSED') Closed / Selesai @endif
+                            @if($ca->status === 'CLOSED') Selesai @endif
                         </span>
                     </div>
 
@@ -155,7 +134,7 @@
                                 <span class="text-slate-400 text-xs">-</span>
                             @endif
                         </div>
-                        <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#050A1E] text-white text-xs font-head font-bold shadow-sm group-hover:bg-[#FF3C00] transition">
+                        <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#050A1E] text-white text-xs font-head font-bold shadow-sm group-hover:bg-[#FF3C00] transition">
                             <span>Buka CA</span>
                             <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                         </span>
@@ -253,11 +232,11 @@
                                     @if($ca->status === 'ACTIVE') Aktif @endif
                                     @if($ca->status === 'NEED_SETTLEMENT') Wajib Settlement @endif
                                     @if($ca->status === 'PENDING_VERIFICATION') Verifikasi Akhir @endif
-                                    @if($ca->status === 'CLOSED') Closed / Selesai @endif
+                                    @if($ca->status === 'CLOSED') Selesai @endif
                                 </span>
                             </td>
                             <td class="text-center whitespace-nowrap no-print">
-                                <a href="{{ route('cash-advances.show', $ca) }}" class="btn-secondary py-1.5 px-4 text-xs inline-flex items-center space-x-1">
+                                <a href="{{ route('cash-advances.show', $ca) }}" class="btn-secondary py-1.5 px-4 text-xs inline-flex items-center space-x-1 rounded-full">
                                     <span>Detail</span>
                                     <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                                 </a>

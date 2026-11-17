@@ -7,7 +7,7 @@
 <div class="container-fluid px-0">
 
     <!-- Executive Welcome Card -->
-    <div class="card border-0 text-white mb-4 shadow-sm" style="background-color: #050A1E; border-radius: 12px;">
+    <div class="card border-0 text-white mb-4 shadow-sm" style="background-color: #050A1E; border-radius: 15px;">
         <div class="card-body p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
             <div>
                 <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
@@ -22,41 +22,6 @@
                     Sistem Manajemen Cash Advance & Settlement Operasional Proyek &bull; <strong class="text-white">PT. Technodrives Indonesia</strong>
                 </p>
             </div>
-
-            <!-- Quick Action Buttons -->
-            <div class="d-flex flex-wrap align-items-center gap-2">
-                @if(auth()->user()->isFinance() || auth()->user()->isDirektur())
-                    <a href="{{ route('reports.rincian-ca') }}" class="btn btn-primary btn-sm px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-sm">
-                        <i class="bi bi-bar-chart-line"></i>
-                        <span>Menu Laporan</span>
-                    </a>
-                    <a href="{{ route('audit-logs.index') }}" class="btn btn-dark btn-sm px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1.5 border border-secondary shadow-sm">
-                        <i class="bi bi-clock-history" style="color: #FF3C00;"></i>
-                        <span>Audit Trail</span>
-                    </a>
-                @endif
-
-                @if(auth()->user()->canSubmitCashAdvance() && !auth()->user()->isFinance() && !auth()->user()->isDirektur())
-                    @if($stats['has_lock'])
-                        <a href="{{ route('cash-advances.create') }}" class="btn btn-dark btn-sm px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1.5 border border-secondary shadow-sm">
-                            <i class="bi bi-lock-fill" style="color: #FF3C00;"></i>
-                            <span>Gembok CA</span>
-                        </a>
-                    @else
-                        <a href="{{ route('cash-advances.create') }}" class="btn btn-primary btn-sm px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-sm">
-                            <i class="bi bi-plus-circle"></i>
-                            <span>Ajukan CA Baru</span>
-                        </a>
-                    @endif
-                @endif
-
-                @if($stats['my_active_ca'])
-                    <a href="{{ route('expenses.create', $stats['my_active_ca']) }}" class="btn btn-light btn-sm px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-sm">
-                        <i class="bi bi-camera text-danger"></i>
-                        <span>Catat Struk</span>
-                    </a>
-                @endif
-            </div>
         </div>
     </div>
 
@@ -67,7 +32,7 @@
             $daysLeft = $myCa->days_remaining;
             $isOverdue = $myCa->is_overdue;
         @endphp
-        <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px; overflow: hidden;">
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px; overflow: hidden;">
             <div class="card-header bg-light border-bottom py-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <div class="d-flex align-items-center gap-2">
                     <span class="rounded-circle bg-success d-inline-block" style="width: 10px; height: 10px;"></span>
@@ -109,7 +74,7 @@
                                     Rp {{ number_format($myCa->current_balance, 0, ',', '.') }}
                                 </span>
                             </div>
-                            <a href="{{ route('expenses.create', $myCa) }}" class="btn btn-primary btn-sm px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-sm">
+                            <a href="{{ route('expenses.create', $myCa) }}" class="btn-brand btn-sm px-3.5 py-2 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-sm rounded-full">
                                 <i class="bi bi-camera"></i>
                                 <span>Catat Struk</span>
                             </a>
@@ -138,13 +103,13 @@
                         <i class="bi bi-exclamation-triangle-fill"></i>
                         <span>Peringatan: Saldo CA Anda tersisa kurang dari 20%.</span>
                     </span>
-                    <a href="{{ route('cash-advances.show', $myCa) }}#topup" class="fw-bold text-danger text-decoration-underline">Ajukan Top-Up</a>
+                    <a href="{{ route('cash-advances.show', $myCa) }}#topup" class="fw-bold text-danger text-decoration-none">Ajukan Top-Up</a>
                 </div>
             @endif
         </div>
     @elseif(auth()->user()->isKaryawan())
         <!-- Clean Empty State for Karyawan when no active CA -->
-        <div class="card border-0 shadow-sm mb-4 text-center py-5 px-4" style="border-radius: 12px;">
+        <div class="card border-0 shadow-sm mb-4 text-center py-5 px-4" style="border-radius: 15px;">
             <div class="rounded-circle bg-light text-secondary d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width: 56px; height: 56px;">
                 <i class="bi bi-receipt fs-3"></i>
             </div>
@@ -154,7 +119,7 @@
             </p>
             @if(auth()->user()->canSubmitCashAdvance())
                 <div>
-                    <a href="{{ route('cash-advances.create') }}" class="btn btn-primary btn-sm px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2 shadow-sm">
+                    <a href="{{ route('cash-advances.create') }}" class="btn-brand btn-sm px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2 shadow-sm rounded-full">
                         <i class="bi bi-plus-circle"></i>
                         <span>Ajukan CA Baru Sekarang</span>
                     </a>
@@ -165,7 +130,7 @@
 
     <!-- EXECUTIVE FINANCIAL SUMMARY: TOTAL DANA CA BEREDAR (FLOAT) -->
     @if(auth()->user()->isFinance() || auth()->user()->isDirektur())
-        <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px;">
             <div class="card-body p-4 d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
                 <div>
                     <div class="d-flex align-items-center gap-2 mb-1">
@@ -182,16 +147,6 @@
                     <p class="text-muted small mb-0">
                         Total saldo kas operasional aktif yang sedang dipegang oleh PIC lapangan proyek di seluruh unit perusahaan.
                     </p>
-                </div>
-                <div class="d-flex flex-wrap align-items-center gap-2 border-top border-lg-start pt-3 pt-lg-0 ps-lg-4">
-                    <a href="{{ route('reports.rekap-bulanan') }}" class="btn btn-outline-secondary btn-sm px-3 py-2 d-inline-flex align-items-center gap-1.5 fw-semibold shadow-xs">
-                        <i class="bi bi-calendar-check text-danger"></i>
-                        <span>Rekap Bulanan</span>
-                    </a>
-                    <a href="{{ route('reports.rincian-ca') }}" class="btn btn-dark btn-sm px-3 py-2 d-inline-flex align-items-center gap-1.5 fw-semibold shadow-xs">
-                        <i class="bi bi-file-earmark-text"></i>
-                        <span>Rincian Buku Saldo</span>
-                    </a>
                 </div>
             </div>
         </div>
@@ -266,7 +221,7 @@
                             <div class="inner p-3">
                                 <p class="text-secondary small fw-bold text-uppercase mb-1">Top-Up Menunggu</p>
                                 <h3 class="fw-bold text-dark font-head mb-1">{{ $stats['pending_topup_count'] }}</h3>
-                                <span class="text-muted small">Approval / pencairan top-up</span>
+                                <span class="text-muted small">Persetujuan top-up</span>
                             </div>
                             <i class="small-box-icon bi bi-arrow-up-circle text-danger"></i>
                             <a href="{{ route('cash-advances.index') }}" class="small-box-footer bg-light text-dark text-decoration-none py-2 px-3 border-top d-flex align-items-center justify-content-between small fw-semibold">
@@ -316,39 +271,41 @@
 
     <!-- ADMIN PANEL FOR SUPER ADMIN -->
     @if(auth()->user()->isSuperAdmin())
-        <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px;">
             <div class="card-body p-4 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
                 <div>
                     <h5 class="fw-bold text-dark font-head mb-1">Konfigurasi & Pengguna Sistem</h5>
                     <p class="text-muted small mb-0">Super Admin bertugas mengelola user master, relasi departemen, dan parameter global sistem.</p>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <a href="{{ route('admin.users.index') }}" class="btn btn-primary btn-sm px-3 py-2 fw-semibold shadow-xs">Kelola User</a>
-                    <a href="{{ route('admin.settings.index') }}" class="btn btn-outline-secondary btn-sm px-3 py-2 fw-semibold shadow-xs">Pengaturan Global</a>
+                    <a href="{{ route('admin.users.index') }}" class="btn-brand btn-sm px-3.5 py-2 fw-semibold shadow-xs rounded-full">Kelola User</a>
+                    <a href="{{ route('admin.settings.index') }}" class="btn-secondary btn-sm px-3.5 py-2 fw-semibold shadow-xs rounded-full">Pengaturan Global</a>
                 </div>
             </div>
         </div>
     @endif
 
     <!-- RECENT TRANSACTIONS TABLE (ADMINLTE CARD) -->
-    <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px; overflow: hidden;">
-        <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px; overflow: hidden;">
+        <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between w-100 flex-wrap gap-2">
             <div>
                 <h5 class="h6 fw-bold text-dark font-head mb-0">
                     {{ auth()->user()->isKaryawan() ? 'Pengajuan Cash Advance Terkini Anda' : 'Aktivitas Cash Advance Terbaru Perusahaan' }}
                 </h5>
                 <small class="text-muted">Memantau perkembangan status kasbon operasional yang sedang berjalan.</small>
             </div>
-            <a href="{{ route('cash-advances.index') }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 fw-semibold">
-                <span>Lihat Semua</span>
-                <i class="bi bi-arrow-right"></i>
-            </a>
+            <div class="ms-auto">
+                <a href="{{ route('cash-advances.index') }}" class="btn-secondary btn-sm px-3 py-1.5 d-inline-flex align-items-center gap-1 fw-semibold rounded-full">
+                    <span>Lihat Semua</span>
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
         </div>
 
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" style="font-size: 13px;">
-                    <thead class="table-light text-secondary small text-uppercase">
+                <table class="table align-middle mb-0 table-technodrives" style="font-size: 13px;">
+                    <thead>
                         <tr>
                             <th class="ps-4">No. CA</th>
                             @if(!auth()->user()->isKaryawan())
@@ -403,12 +360,12 @@
                                         @elseif($ca->status === 'PENDING_VERIFICATION')
                                             Verifikasi Akhir
                                         @elseif($ca->status === 'CLOSED')
-                                            Closed / Lunas
+                                            Selesai
                                         @endif
                                     </span>
                                 </td>
                                 <td class="text-center pe-4">
-                                    <a href="{{ route('cash-advances.show', $ca) }}" class="btn btn-sm btn-outline-dark px-2.5 py-1 fw-semibold d-inline-flex align-items-center gap-1">
+                                    <a href="{{ route('cash-advances.show', $ca) }}" class="btn-secondary btn-sm px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1 rounded-full">
                                         <span>Detail</span>
                                         <i class="bi bi-arrow-right"></i>
                                     </a>

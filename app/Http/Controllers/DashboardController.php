@@ -53,8 +53,16 @@ class DashboardController extends Controller
 
         // 2. Status CA aktif dan status Gembok Pengajuan milik pengguna saat ini
         // Sesuai SOP PT Technodrive: Satu karyawan hanya boleh memiliki satu CA aktif sekaligus.
-        $activeCA = CashAdvance::where('user_id', $user->id)
-            ->where('status', 'ACTIVE')
+        $activeCA = CashAdvance::where('status', 'ACTIVE')
+            ->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhereHas('items', function ($iq) use ($user) {
+                      $iq->where('user_id', $user->id);
+                  })
+                  ->orWhereHas('distributions', function ($dq) use ($user) {
+                      $dq->where('receiver_id', $user->id);
+                  });
+            })
             ->first();
 
         $lockingCA = $user->getActiveLockingCA();
@@ -146,11 +154,22 @@ class DashboardController extends Controller
         }
 
         // 7. Pengambilan data pengajuan Cash Advance terbaru sesuai pembatasan akses data (Data Scoping)
-        $recentCAsQuery = CashAdvance::with(['user', 'approver', 'disburser'])->orderByDesc('created_at');
+        // CA yang berstatus ACTIVE selalu diutamakan berada di paling atas
+        $recentCAsQuery = CashAdvance::with(['user', 'approver', 'disburser'])
+            ->orderByRaw("CASE WHEN status = 'ACTIVE' THEN 0 ELSE 1 END ASC")
+            ->orderByDesc('created_at');
 
         if ($user->isKaryawan()) {
-            // Karyawan hanya dapat melihat pengajuan miliknya sendiri
-            $recentCAsQuery->where('user_id', $user->id);
+            // Karyawan melihat data miliknya atau CA proyek di mana ia terlibat sebagai anggota tim
+            $recentCAsQuery->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhereHas('items', function ($iq) use ($user) {
+                      $iq->where('user_id', $user->id);
+                  })
+                  ->orWhereHas('distributions', function ($dq) use ($user) {
+                      $dq->where('receiver_id', $user->id);
+                  });
+            });
         } elseif ($user->isAtasan()) {
             // Atasan dapat melihat pengajuan miliknya dan seluruh bawahan langsungnya
             $recentCAsQuery->where(function ($q) use ($user, $subordinateIds) {

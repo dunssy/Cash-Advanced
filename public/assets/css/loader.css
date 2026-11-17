@@ -54,30 +54,29 @@
 
 .app-loader-halo {
     position: absolute;
-    inset: -0.75rem;
+    inset: -0.5rem;
     border-radius: 1rem;
     background-color: #FF3C00;
-    opacity: 0.35;
-    filter: blur(20px);
+    opacity: 0.25;
+    filter: blur(24px);
     animation: loader-pulse-ring 2.2s infinite ease-in-out;
 }
 
 .app-loader-logo-box {
     position: relative;
-    background-color: #FFFFFF;
-    padding: 0.875rem 1.25rem;
-    border-radius: 1rem;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background-color: transparent;
+    padding: 0.5rem 1rem;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .app-loader-logo-img {
-    height: 2.5rem;
+    height: 3rem;
     width: auto;
     object-fit: contain;
+    filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.4));
+}
 }
 
 /* Modern Dual Ring Spinner (Brand Orange & Yellow Accent) */

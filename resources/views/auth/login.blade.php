@@ -22,8 +22,8 @@
     <div class="max-w-md w-full my-6">
         <!-- Logo and Header -->
         <div class="text-center mb-6">
-            <div class="inline-flex items-center justify-center p-3.5 bg-white rounded-2xl shadow-xl border border-cardborder mb-3">
-                <img src="{{ asset('assets/images/logo.png') }}" alt="PT Technodrives Logo" class="h-9 w-auto object-contain">
+            <div class="inline-flex items-center justify-center mb-3">
+                <img src="{{ asset('assets/images/logo.png') }}" alt="PT Technodrives Logo" class="h-11 w-auto object-contain drop-shadow-md">
             </div>
             <h1 class="text-xl sm:text-2xl font-heading font-bold text-white tracking-tight">PT Technodrives</h1>
             <p class="text-xs text-slate-300 mt-1 font-medium">Sistem Cash Advance & Settlement</p>

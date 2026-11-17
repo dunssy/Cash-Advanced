@@ -35,13 +35,13 @@
 }">
 
     <!-- Top Navigation Breadcrumb & Actions (Responsive & Anti-Overlap) -->
-    <div class="flex flex-wrap items-center justify-between gap-2.5 pb-1">
-        <a href="{{ route('cash-advances.index') }}" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-retail-ink hover:bg-slate-100 transition active:scale-95">
+    <div class="flex flex-wrap items-center justify-between gap-2.5 pb-2 border-b border-slate-200">
+        <a href="{{ route('cash-advances.index') }}" class="btn-secondary btn-sm px-3.5 py-1.5 d-inline-flex align-items-center gap-1.5 fw-semibold shadow-xs rounded-full text-xs font-head transition active:scale-95">
             <i data-lucide="arrow-left" class="w-4 h-4 text-slate-500"></i>
             <span>Kembali ke Daftar CA</span>
         </a>
         <div class="flex items-center gap-2">
-            <a href="{{ route('reports.rincian-ca', ['ca_id' => $cashAdvance->id]) }}" class="btn-secondary py-1.5 px-3 text-xs inline-flex items-center gap-1.5 rounded-lg shadow-2xs active:scale-95 transition">
+            <a href="{{ route('reports.rincian-ca', ['ca_id' => $cashAdvance->id]) }}" class="btn-secondary btn-sm py-1.5 px-3.5 text-xs inline-flex items-center gap-1.5 font-head font-semibold shadow-xs rounded-full transition active:scale-95">
                 <i data-lucide="printer" class="w-3.5 h-3.5 text-slate-500"></i>
                 <span>Cetak Laporan</span>
             </a>
@@ -75,7 +75,7 @@
                             @if($cashAdvance->status === 'ACTIVE') Aktif (Berjalan) @endif
                             @if($cashAdvance->status === 'NEED_SETTLEMENT') Wajib Settlement @endif
                             @if($cashAdvance->status === 'PENDING_VERIFICATION') Verifikasi Akhir @endif
-                            @if($cashAdvance->status === 'CLOSED') Closed / Selesai @endif
+                            @if($cashAdvance->status === 'CLOSED') Selesai @endif
                         </span>
 
                         @if($cashAdvance->is_unlocked)
@@ -292,7 +292,7 @@
                             @else
                                 <span class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-head font-medium">
                                     <i data-lucide="clock" class="w-4 h-4 text-amber-400"></i>
-                                    <span>Menunggu Approval {{ $cashAdvance->user->isAtasan() || $cashAdvance->user->isFinance() ? 'Direktur' : 'Atasan / Direktur' }}</span>
+                                    <span>Menunggu Persetujuan {{ $cashAdvance->user->isAtasan() || $cashAdvance->user->isFinance() ? 'Direktur' : 'Atasan' }}</span>
                                 </span>
                             @endif
                         @else
@@ -701,15 +701,12 @@
                     <i data-lucide="receipt-text" class="w-4 h-4 text-[#FF3C00]"></i>
                     <span>Rincian Anggaran Biaya (RAB) Proyek Tim</span>
                 </h3>
-                <p class="text-xs text-slate-500 mt-0.5">
-                    Kompilasi estimasi kebutuhan dari seluruh anggota tim pelaksana proyek di bawah Atasan.
-                </p>
             </div>
             <div class="flex items-center gap-2">
                 @if($cashAdvance->status !== 'CLOSED' && $cashAdvance->status !== 'REJECTED')
                     <button type="button" @click="showAddItemModal = true" class="btn-secondary text-xs py-1.5 px-3 inline-flex items-center gap-1.5 active:scale-95 transition">
                         <i data-lucide="plus" class="w-3.5 h-3.5 text-[#FF3C00]"></i>
-                        <span>+ Tambah Pos RAB</span>
+                        <span>Tambah Pos RAB</span>
                     </button>
                 @endif
             </div>
@@ -719,19 +716,19 @@
             <div class="p-6 text-center text-xs text-slate-400 italic bg-slate-50 rounded-xl border border-dashed border-slate-200">
                 Belum ada rincian RAB yang dicatat untuk proyek ini.
                 @if($cashAdvance->status !== 'CLOSED')
-                    <button type="button" @click="showAddItemModal = true" class="text-[#FF3C00] font-bold hover:underline block mt-1">
+                    <button type="button" @click="showAddItemModal = true" class="text-[#FF3C00] font-bold hover:text-[#e03500] block mt-1">
                         + Tambah Rincian RAB Sekarang
                     </button>
                 @endif
             </div>
         @else
-            <div class="overflow-x-auto rounded-xl border border-slate-200">
-                <table class="w-full text-xs text-left">
-                    <thead class="bg-slate-50 text-xs font-head font-bold uppercase text-slate-500 tracking-wider border-b border-slate-200">
+            <div class="overflow-x-auto rounded-[15px] border border-slate-200">
+                <table class="w-full text-xs text-left table-technodrives">
+                    <thead>
                         <tr>
-                            <th class="py-2.5 px-3">Anggota Tim / PIC</th>
+                            <th class="py-2.5 px-3">Anggota Tim</th>
                             <th class="py-2.5 px-3">Kategori</th>
-                            <th class="py-2.5 px-3">Nama Kebutuhan / Spesifikasi</th>
+                            <th class="py-2.5 px-3">Nama Kebutuhan</th>
                             <th class="py-2.5 px-3 text-center">Volume</th>
                             <th class="py-2.5 px-3 text-right">Harga Satuan</th>
                             <th class="py-2.5 px-3 text-right">Subtotal RAB</th>
@@ -749,7 +746,7 @@
                                         </div>
                                         <div>
                                             <span class="font-head font-bold text-slate-800 block text-xs">{{ $it->user->name }}</span>
-                                            <span class="text-xs text-slate-400">{{ $it->user->role === 'atasan' ? 'Atasan / PIC' : 'Karyawan' }}</span>
+                                            <span class="text-xs text-slate-400">{{ $it->user->role === 'atasan' ? 'Atasan' : 'Karyawan' }}</span>
                                         </div>
                                     </div>
                                 </td>
@@ -822,9 +819,6 @@
                         <i data-lucide="split" class="w-4 h-4 text-emerald-600"></i>
                         <span>Pembagian Kas ke Anggota Tim Proyek (Distribusi Dana)</span>
                     </h3>
-                    <p class="text-xs text-slate-500 mt-0.5">
-                        Dana CA yang dicairkan ke Atasan dibagikan kepada setiap karyawan sesuai rincian kebutuhan lapangan.
-                    </p>
                 </div>
                 @if($cashAdvance->status === 'ACTIVE' && ($cashAdvance->user_id === auth()->id() || auth()->user()->isDirektur() || auth()->user()->isFinance()))
                     <button type="button" @click="showDistributeModal = true" class="btn-brand text-xs py-1.5 px-3.5 inline-flex items-center gap-1.5 active:scale-95 transition shadow-xs">
@@ -857,9 +851,9 @@
             </div>
 
             <!-- Tabel Status Saldo per Anggota Tim -->
-            <div class="overflow-x-auto rounded-xl border border-slate-200">
-                <table class="w-full text-xs text-left">
-                    <thead class="bg-slate-50 text-xs font-head font-bold uppercase text-slate-500 tracking-wider border-b border-slate-200">
+            <div class="overflow-x-auto rounded-[15px] border border-slate-200">
+                <table class="w-full text-xs text-left table-technodrives">
+                    <thead>
                         <tr>
                             <th class="py-2.5 px-3">Anggota Tim</th>
                             <th class="py-2.5 px-3 text-right">Total RAB Diajukan</th>
@@ -891,7 +885,7 @@
                                                 @if($member->id === auth()->id()) <span class="text-[#FF3C00]">(Saya)</span> @endif
                                             </span>
                                             <span class="text-xs text-slate-400">
-                                                {{ $isPic ? 'PIC Proyek / Atasan' : ($member->department ?: 'Pelaksana') }}
+                                                {{ $isPic ? 'PIC Proyek' : ($member->department ?: 'Pelaksana') }}
                                             </span>
                                         </div>
                                     </div>
@@ -960,7 +954,7 @@
                                     </span>
                                 </div>
                                 @if($d->transfer_proof)
-                                    <a href="{{ $d->transfer_proof_url }}" target="_blank" class="text-xs text-[#FF3C00] font-bold hover:underline inline-flex items-center gap-1 self-start sm:self-auto">
+                                    <a href="{{ $d->transfer_proof_url }}" target="_blank" class="text-xs text-[#FF3C00] font-bold hover:text-[#e03500] inline-flex items-center gap-1 self-start sm:self-auto">
                                         <i data-lucide="paperclip" class="w-3.5 h-3.5"></i>
                                         <span>Bukti Serah Terima</span>
                                     </a>
@@ -974,21 +968,20 @@
     @endif
 
     <!-- EXPENSES LIST SECTION (Design.md: Card commerce, 1px border #DDDDDD) -->
-    <div class="card-commerce overflow-hidden">
-        <div class="p-5 border-b border-retail-surface bg-slate-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div class="card-commerce p-5 sm:p-6 space-y-4" id="daftar-pengeluaran-struk">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
             <div>
                 <h3 class="text-xs font-bold uppercase tracking-wider text-retail-ink flex items-center space-x-2 font-head">
-                    <i data-lucide="receipt" class="w-4 h-4 text-retail-cyan"></i>
+                    <i data-lucide="receipt" class="w-4 h-4 text-[#FF3C00]"></i>
                     <span>Daftar Pengeluaran & Verifikasi Struk</span>
                 </h3>
-                <p class="text-xs text-slate-500 mt-0.5">Saldo kas langsung terpotong saat transaksi dicatat, diverifikasi oleh Finance.</p>
             </div>
             <!-- Filter Anggota Tim -->
             <div class="flex items-center gap-2">
                 <label class="text-xs font-head font-bold uppercase text-slate-500 whitespace-nowrap">Filter Anggota:</label>
                 <select x-model="selectedMemberFilter" class="input-commerce text-xs py-1.5 px-3 font-head font-medium text-slate-800">
                     <option value="all">Semua Anggota Tim ({{ $cashAdvance->expenses->count() }} Struk)</option>
-                    @foreach($teamMembers as $tm)
+                    @foreach($teamMembers ?? [] as $tm)
                         <option value="{{ $tm->id }}">{{ $tm->name }} ({{ $cashAdvance->expenses->where('user_id', $tm->id)->count() }} Struk)</option>
                     @endforeach
                 </select>
@@ -996,7 +989,7 @@
         </div>
 
         <!-- Mobile Card List View (md:hidden - Tidak perlu geser horizontal) -->
-        <div class="md:hidden divide-y divide-slate-100">
+        <div class="md:hidden divide-y divide-slate-100 rounded-xl border border-slate-200 overflow-hidden">
             @forelse($cashAdvance->expenses as $exp)
                 <div x-show="selectedMemberFilter === 'all' || selectedMemberFilter == '{{ $exp->user_id }}'" class="p-4 space-y-3 {{ $exp->verification_status === 'VOID' ? 'opacity-40 bg-slate-50 line-through' : 'bg-white' }}">
                     <!-- Baris Info Pemohon & RAB -->
@@ -1092,14 +1085,14 @@
                                     Tanpa Struk Fisik
                                 </span>
                                 @if($exp->lost_receipt_statement_file)
-                                    <a href="{{ asset('storage/' . $exp->lost_receipt_statement_file) }}" target="_blank" class="text-xs text-[#FF3C00] hover:underline font-bold font-head">
+                                    <a href="{{ asset('storage/' . $exp->lost_receipt_statement_file) }}" target="_blank" class="text-xs text-[#FF3C00] hover:text-[#e03500] font-bold font-head">
                                         Pernyataan
                                     </a>
                                 @endif
                                 @if(!$exp->lost_receipt_approved_by && (auth()->user()->isAtasan() || auth()->user()->isDirektur()) && auth()->id() !== $exp->user_id)
                                     <form action="{{ route('expenses.approve-lost-receipt', $exp) }}" method="POST" class="inline">
                                         @csrf
-                                        <button type="submit" class="text-xs text-sky-700 hover:underline font-bold">
+                                        <button type="submit" class="text-xs text-sky-700 hover:text-sky-900 font-bold">
                                             Acc Pernyataan
                                         </button>
                                     </form>
@@ -1158,25 +1151,24 @@
         </div>
 
         <!-- Desktop Table View (hidden md:block) -->
-        <div class="hidden md:block table-responsive">
-            <table class="w-full text-left text-sm table-technodrives whitespace-nowrap">
+        <div class="hidden md:block overflow-x-auto rounded-[15px] border border-slate-200">
+            <table class="w-full text-xs text-left table-technodrives">
                 <thead>
                     <tr>
-                        <th>Tanggal</th>
-                        <th>Pemohon Struk</th>
-                        <th>Keterangan, Vendor & Pos RAB</th>
-                        <th>Kategori</th>
-                        <th class="text-right">Nominal</th>
-                        <th class="text-center">Struk / Bukti</th>
-                        <th class="text-center">Status Verifikasi</th>
-                        <th class="text-center">Aksi / Tindakan</th>
+                        <th class="py-2.5 px-3">Tanggal</th>
+                        <th class="py-2.5 px-3">Pemohon Struk</th>
+                        <th class="py-2.5 px-3">Keterangan, Vendor & Kategori</th>
+                        <th class="py-2.5 px-3 text-right">Nominal</th>
+                        <th class="py-2.5 px-3 text-center">Struk</th>
+                        <th class="py-2.5 px-3 text-center">Status Verifikasi</th>
+                        <th class="py-2.5 px-3 text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-slate-100">
                     @forelse($cashAdvance->expenses as $exp)
-                        <tr x-show="selectedMemberFilter === 'all' || selectedMemberFilter == '{{ $exp->user_id }}'" class="hover:bg-slate-50/80 transition {{ $exp->verification_status === 'VOID' ? 'opacity-40 bg-slate-50 line-through' : '' }}">
+                        <tr x-show="selectedMemberFilter === 'all' || selectedMemberFilter == '{{ $exp->user_id }}'" class="hover:bg-slate-50/70 transition {{ $exp->verification_status === 'VOID' ? 'opacity-40 bg-slate-50 line-through' : '' }}">
                             <!-- Tanggal -->
-                            <td class="px-4 py-3 whitespace-nowrap">
+                            <td class="py-2.5 px-3 whitespace-nowrap">
                                 <span class="font-mono font-bold text-slate-900 block">{{ $exp->transaction_date->format('d/m/Y') }}</span>
                                 @if($exp->is_late)
                                     <span class="badge-retail bg-rose-50 text-rose-700 border-rose-300 text-xs">
@@ -1188,7 +1180,7 @@
                             </td>
 
                             <!-- Pemohon Struk -->
-                            <td class="px-4 py-3 whitespace-nowrap">
+                            <td class="py-2.5 px-3 whitespace-nowrap">
                                 <div class="flex items-center space-x-1.5">
                                     <div class="w-6 h-6 rounded-full bg-[#050A1E] text-white flex items-center justify-center text-xs font-bold">
                                         {{ $exp->user->initials }}
@@ -1197,8 +1189,8 @@
                                 </div>
                             </td>
 
-                            <!-- Keterangan, Vendor & Pos RAB -->
-                            <td class="px-4 py-3 max-w-xs">
+                            <!-- Keterangan, Vendor & Kategori -->
+                            <td class="py-2.5 px-3 max-w-xs">
                                 <div class="font-bold text-slate-800">{{ $exp->description }}</div>
                                 <div class="text-xs text-slate-500 flex items-center space-x-1 mt-0.5">
                                     <i data-lucide="store" class="w-3 h-3 text-slate-400"></i>
@@ -1207,14 +1199,11 @@
                                         <span class="font-mono text-slate-400">({{ $exp->vendor_tax_number }})</span>
                                     @endif
                                 </div>
-                                @if($exp->item)
-                                    <div class="mt-1">
-                                        <span class="inline-flex items-center gap-1 text-xs font-head text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                                            <i data-lucide="tag" class="w-2.5 h-2.5"></i>
-                                            <span>RAB: {{ $exp->item->item_name }}</span>
-                                        </span>
-                                    </div>
-                                @endif
+                                <div class="mt-1">
+                                    <span class="badge-retail bg-slate-100 text-slate-700 border-slate-300 text-xs">
+                                        {{ $exp->category_label }}
+                                    </span>
+                                </div>
                                 @if($exp->notes)
                                     <div class="text-xs text-slate-400 italic mt-0.5">"{{ $exp->notes }}"</div>
                                 @endif
@@ -1225,16 +1214,9 @@
                                 @endif
                             </td>
 
-                            <!-- Kategori -->
-                            <td class="px-4 py-3 whitespace-nowrap">
-                                <span class="badge-retail bg-slate-100 text-slate-700 border-slate-300">
-                                    {{ $exp->category_label }}
-                                </span>
-                            </td>
-
                             <!-- Nominal -->
-                            <td class="px-4 py-3 text-right whitespace-nowrap">
-                                <span class="font-mono font-bold text-sm {{ $exp->is_talangan ? 'text-amber-800' : 'text-retail-ink' }}">
+                            <td class="py-2.5 px-3 text-right whitespace-nowrap">
+                                <span class="font-mono font-bold text-xs {{ $exp->is_talangan ? 'text-amber-800' : 'text-retail-ink' }}">
                                     Rp {{ number_format($exp->amount, 0, ',', '.') }}
                                 </span>
                                 @if($exp->is_talangan)
@@ -1243,21 +1225,21 @@
                             </td>
 
                             <!-- Foto Struk -->
-                            <td class="px-4 py-3 text-center whitespace-nowrap">
+                            <td class="py-2.5 px-3 text-center whitespace-nowrap">
                                 @if($exp->is_lost_receipt)
                                     <div class="space-y-1">
                                         <span class="badge-retail bg-amber-50 text-amber-900 border-amber-300 text-xs">
                                             Tanpa Struk Fisik
                                         </span>
                                         @if($exp->lost_receipt_statement_file)
-                                            <a href="{{ asset('storage/' . $exp->lost_receipt_statement_file) }}" target="_blank" class="block text-xs text-retail-cyan hover:underline font-semibold">
+                                            <a href="{{ asset('storage/' . $exp->lost_receipt_statement_file) }}" target="_blank" class="block text-xs text-retail-cyan hover:text-cyan-800 font-semibold">
                                                 Lihat Pernyataan
                                             </a>
                                         @endif
                                         @if(!$exp->lost_receipt_approved_by && (auth()->user()->isAtasan() || auth()->user()->isDirektur()))
                                             <form action="{{ route('expenses.approve-lost-receipt', $exp) }}" method="POST">
                                                 @csrf
-                                                <button type="submit" class="text-xs text-sky-700 hover:underline font-bold">
+                                                <button type="submit" class="text-xs text-sky-700 hover:text-sky-900 font-bold">
                                                     Acc Pernyataan
                                                 </button>
                                             </form>
@@ -1284,7 +1266,7 @@
                             </td>
 
                             <!-- Status Verifikasi -->
-                            <td class="px-4 py-3 text-center whitespace-nowrap">
+                            <td class="py-2.5 px-3 text-center whitespace-nowrap">
                                 <span class="badge-retail text-xs uppercase font-bold
                                     {{ $exp->verification_status === 'VALID' ? 'bg-[#16A34A] text-white shadow-sm' : '' }}
                                     {{ $exp->verification_status === 'PENDING' ? 'bg-[#FFC704] text-[#050A1E]' : '' }}
@@ -1302,7 +1284,7 @@
                             </td>
 
                             <!-- Aksi -->
-                            <td class="px-4 py-3 text-center whitespace-nowrap">
+                            <td class="py-2.5 px-3 text-center whitespace-nowrap">
                                 <div class="flex items-center justify-center space-x-1.5">
                                     <!-- Edit for Karyawan before Valid/Void -->
                                     @if($exp->user_id === auth()->id() && in_array($exp->verification_status, ['PENDING', 'NEEDS_REVISION']) && $cashAdvance->status === 'ACTIVE')
@@ -1339,6 +1321,15 @@
                         </tr>
                     @endforelse
                 </tbody>
+                <tfoot class="bg-slate-50 font-head font-bold border-t border-slate-200">
+                    <tr>
+                        <td colspan="3" class="py-2.5 px-3 text-right uppercase text-xs text-slate-600">Total Pengeluaran Struk (Non-Void):</td>
+                        <td class="py-2.5 px-3 text-right font-mono text-xs text-[#FF3C00]">
+                            Rp {{ number_format($cashAdvance->expenses->where('verification_status', '!=', 'VOID')->sum('amount'), 0, ',', '.') }}
+                        </td>
+                        <td colspan="3"></td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
     </div>
@@ -1446,7 +1437,7 @@
                         class="w-full input-commerce font-mono">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-retail-ink uppercase mb-1">No. Ref Transfer / Voucher Bank <span class="text-rose-500">*</span></label>
+                    <label class="block text-xs font-bold text-retail-ink uppercase mb-1">No. Referensi Transfer <span class="text-rose-500">*</span></label>
                     <input type="text" name="disbursement_ref" required placeholder="Contoh: TRF-BCA-992102"
                         class="w-full input-commerce font-mono">
                 </div>
@@ -1535,7 +1526,7 @@
                         class="w-full input-commerce font-mono">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-retail-ink uppercase mb-1">Foto / File Bukti Transfer (JPG, PNG, PDF) <span class="text-rose-500">*</span></label>
+                    <label class="block text-xs font-bold text-retail-ink uppercase mb-1">Bukti Transfer (JPG, PNG, PDF) <span class="text-rose-500">*</span></label>
                     <input type="file" name="settlement_refund_proof" required accept="image/*,application/pdf"
                         class="w-full text-xs text-slate-500 file:mr-3 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-200 file:text-retail-ink hover:file:bg-slate-300 cursor-pointer">
                 </div>
@@ -1686,7 +1677,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-retail-ink uppercase mb-1">Catatan / Alasan Evaluasi</label>
+                    <label class="block text-xs font-bold text-retail-ink uppercase mb-1">Catatan Evaluasi</label>
                     <textarea name="verification_notes" rows="3" class="w-full input-commerce text-xs" placeholder="Catatan pemeriksa struk..."></textarea>
                 </div>
                 <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
@@ -1793,9 +1784,9 @@
 
                 @if(auth()->user()->isAtasan() && $subordinates->isNotEmpty())
                     <div>
-                        <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Pilih Anggota Tim / Pemohon:</label>
+                        <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Pilih Anggota Tim:</label>
                         <select name="user_id" class="w-full input-commerce text-xs">
-                            <option value="{{ auth()->id() }}">{{ auth()->user()->name }} (Saya / Atasan)</option>
+                            <option value="{{ auth()->id() }}">{{ auth()->user()->name }} (Saya)</option>
                             @foreach($subordinates as $sub)
                                 <option value="{{ $sub->id }}">{{ $sub->name }} ({{ $sub->department ?: 'Karyawan' }})</option>
                             @endforeach
@@ -1810,8 +1801,8 @@
                         <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Kategori <span class="text-rose-500">*</span></label>
                         <select name="category" required class="w-full input-commerce text-xs">
                             <option value="material">Material & Perlengkapan</option>
-                            <option value="transport">Transportasi & Bensin / Tol</option>
-                            <option value="sewa_alat">Sewa Alat / Kendaraan</option>
+                            <option value="transport">Transportasi & Bensin</option>
+                            <option value="sewa_alat">Sewa Alat</option>
                             <option value="konsumsi">Konsumsi & Penginapan Tim</option>
                             <option value="lainnya">Lain-lain Operasional</option>
                         </select>
@@ -1821,24 +1812,19 @@
                         <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Qty & Satuan <span class="text-rose-500">*</span></label>
                         <div class="flex items-center gap-1">
                             <input type="number" name="quantity" required min="0.01" step="any" value="1" class="w-20 input-commerce text-xs text-center font-mono">
-                            <input type="text" name="unit" required value="unit" class="w-full input-commerce text-xs text-center" placeholder="unit/hari">
+                            <input type="text" name="unit" required value="unit" class="w-full input-commerce text-xs text-center" placeholder="unit, hari, pcs">
                         </div>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Nama Kebutuhan / Spesifikasi <span class="text-rose-500">*</span></label>
+                    <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Nama Kebutuhan <span class="text-rose-500">*</span></label>
                     <input type="text" name="item_name" required class="w-full input-commerce text-xs" placeholder="Contoh: Penginapan Teknisi 4 Malam">
                 </div>
 
                 <div>
                     <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Estimasi Harga Satuan (Rp) <span class="text-rose-500">*</span></label>
                     <input type="number" name="unit_price" required min="0" step="1000" class="w-full input-commerce text-xs font-mono font-bold" placeholder="Contoh: 350000">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Catatan / Keterangan (Opsional)</label>
-                    <textarea name="notes" rows="2" class="w-full input-commerce text-xs" placeholder="Keterangan tambahan keperluan..."></textarea>
                 </div>
 
                 <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
@@ -1890,25 +1876,25 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Nominal yang Diserahkan / Ditransfer (Rp) <span class="text-rose-500">*</span></label>
+                    <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Nominal yang Diserahkan (Rp) <span class="text-rose-500">*</span></label>
                     <input type="number" name="amount" x-model="distributeAmount" required min="1000" max="{{ (int)$cashAdvance->undistributed_amount }}" step="1"
                         class="w-full input-commerce text-xs font-mono font-bold text-slate-900" placeholder="Contoh: 3500000">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Tanggal Serah Terima / Transfer <span class="text-rose-500">*</span></label>
+                    <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Tanggal Serah Terima <span class="text-rose-500">*</span></label>
                     <input type="date" name="distributed_at" value="{{ date('Y-m-d') }}" max="{{ date('Y-m-d') }}" required class="w-full input-commerce text-xs font-mono">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Bukti Transfer / Serah Terima (Opsional)</label>
+                    <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Bukti Serah Terima (Opsional)</label>
                     <input type="file" name="transfer_proof" accept="image/*,.pdf" class="w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-head file:bg-slate-100 file:text-slate-800 hover:file:bg-slate-200">
                     <p class="text-xs text-slate-400 mt-0.5">Format: JPG, PNG, atau PDF (Maks. 10MB)</p>
                 </div>
 
                 <div>
                     <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Catatan Serah Terima (Opsional)</label>
-                    <textarea name="notes" rows="2" class="w-full input-commerce text-xs" placeholder="Contoh: Transfer termin 1 via BCA / Tunai di kantor..."></textarea>
+                    <textarea name="notes" rows="2" class="w-full input-commerce text-xs" placeholder="Contoh: Transfer termin 1 via BCA atau tunai di kantor..."></textarea>
                 </div>
 
                 <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">

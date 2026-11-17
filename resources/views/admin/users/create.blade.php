@@ -5,11 +5,15 @@
 
 @section('content')
 <div class="max-w-2xl mx-auto">
-    <div class="mb-5">
-        <a href="{{ route('admin.users.index') }}" class="text-xs font-semibold text-slate-500 hover:text-retail-ink inline-flex items-center space-x-1 mb-2">
-            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+    <!-- Top Navigation -->
+    <div class="mb-4 pb-2 border-b border-slate-200">
+        <a href="{{ route('admin.users.index') }}" class="btn-secondary btn-sm px-3.5 py-1.5 d-inline-flex align-items-center gap-1.5 fw-semibold shadow-xs rounded-full text-xs font-head transition active:scale-95">
+            <i data-lucide="arrow-left" class="w-4 h-4 text-slate-500"></i>
             <span>Kembali ke Daftar User</span>
         </a>
+    </div>
+
+    <div class="mb-5">
         <h1 class="text-xl sm:text-2xl font-bold text-retail-ink tracking-tight">Tambah Pengguna Baru</h1>
         <p class="text-xs text-slate-500 mt-1">Daftarkan akun karyawan, atasan, atau finance PT Technodrives Indonesia.</p>
     </div>
@@ -40,7 +44,7 @@
                 <div>
                     <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1">Peran (Role) <span class="text-rose-500">*</span></label>
                     <select name="role" required class="w-full input-commerce font-bold">
-                        <option value="karyawan">Karyawan (Pegawai Lapangan/Staff)</option>
+                        <option value="karyawan">Karyawan (Lapangan)</option>
                         <option value="atasan">Atasan (Manager Langsung)</option>
                         <option value="finance">Finance (Admin Keuangan & Pajak)</option>
                         <option value="direktur">Direktur (Pimpinan Perusahaan)</option>
@@ -60,7 +64,7 @@
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1">Nomor WhatsApp / HP</label>
+                <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1">Nomor WhatsApp</label>
                 <input type="text" name="phone" value="{{ old('phone') }}"
                     class="w-full input-commerce font-mono" placeholder="08123456789">
             </div>
@@ -86,7 +90,7 @@
                 <input type="hidden" name="departments" value="">
                 <div class="flex items-center justify-between">
                     <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider">
-                        Tag Departemen / Divisi <span class="text-[#FF3C00] font-normal normal-case text-xs">(Maks. 10 Divisi)</span>
+                        Departemen <span class="text-[#FF3C00] font-normal normal-case text-xs">(Maks. 10 Divisi)</span>
                     </label>
                     <span class="text-xs font-mono px-2 py-0.5 rounded-full font-bold"
                         :class="tags.length >= maxTags ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'"
@@ -131,11 +135,11 @@
             </div>
 
             <!-- Bank Details for Reimbursements -->
-            <div class="p-4 bg-slate-50 rounded-[6px] border border-retail-surface space-y-2">
+            <div class="p-4 bg-slate-50 rounded-[15px] border border-retail-surface space-y-2">
                 <span class="text-xs font-bold text-retail-ink uppercase block tracking-wide">Rekening Bank Karyawan (Reimbursement)</span>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     <div>
-                        <input type="text" name="bank_name" value="{{ old('bank_name') }}" placeholder="Bank (BCA/Mandiri)" class="w-full input-commerce text-xs py-1.5 font-mono">
+                        <input type="text" name="bank_name" value="{{ old('bank_name') }}" placeholder="Bank (BCA, Mandiri, BNI)" class="w-full input-commerce text-xs py-1.5 font-mono">
                     </div>
                     <div>
                         <input type="text" name="bank_account_number" value="{{ old('bank_account_number') }}" placeholder="No. Rekening" class="w-full input-commerce text-xs py-1.5 font-mono">
@@ -147,8 +151,8 @@
             </div>
 
             <div class="pt-3 flex justify-end space-x-2 border-t border-slate-100">
-                <a href="{{ route('admin.users.index') }}" class="btn-secondary py-2 px-4 text-xs">Batal</a>
-                <button type="submit" class="btn-primary">Simpan User</button>
+                <a href="{{ route('admin.users.index') }}" class="btn-secondary py-2 px-5 text-xs rounded-full">Batal</a>
+                <button type="submit" class="btn-brand py-2 px-6 text-xs rounded-full">Simpan User</button>
             </div>
         </form>
     </div>

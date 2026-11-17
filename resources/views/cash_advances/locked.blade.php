@@ -32,7 +32,7 @@
                         @if($lockingCA->status === 'PENDING_APPROVAL') Menunggu Approval @endif
                         @if($lockingCA->status === 'NEED_SETTLEMENT') Wajib Settlement @endif
                         @if($lockingCA->status === 'PENDING_VERIFICATION') Verifikasi Akhir @endif
-                        @if($lockingCA->status === 'CLOSED') Closed / Selesai @endif
+                        @if($lockingCA->status === 'CLOSED') Selesai @endif
                         @if($lockingCA->status === 'REJECTED') Ditolak @endif
                     </span>
                 </div>
@@ -48,7 +48,7 @@
                         <span class="font-head font-bold text-[#050A1E] text-sm">Rp {{ number_format($lockingCA->current_balance, 0, ',', '.') }}</span>
                     </div>
                     <div>
-                        <span class="text-bodygrey block text-xs font-head font-bold uppercase">Masa Berlaku / Sisa:</span>
+                        <span class="text-bodygrey block text-xs font-head font-bold uppercase">Sisa Waktu:</span>
                         <span class="font-head font-bold {{ $lockingCA->is_overdue ? 'text-[#FF3C00]' : 'text-[#050A1E]' }} text-sm">
                             {{ $lockingCA->is_overdue ? 'OVERDUE' : ($lockingCA->days_remaining . ' Hari Tersisa') }}
                         </span>
@@ -65,7 +65,8 @@
                 </a>
             @endif
 
-            <a href="{{ route('dashboard') }}" class="btn-secondary w-full sm:w-auto">
+            <a href="{{ route('dashboard') }}" class="btn-secondary btn-sm px-4 py-2 text-xs font-head font-semibold rounded-full w-full sm:w-auto inline-flex items-center justify-center gap-1.5 shadow-xs transition active:scale-95">
+                <i data-lucide="arrow-left" class="w-4 h-4 text-slate-500"></i>
                 <span>Kembali ke Dashboard</span>
             </a>
         </div>

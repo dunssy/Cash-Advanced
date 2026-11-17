@@ -5,13 +5,16 @@
 
 @section('content')
 <div class="max-w-2xl mx-auto">
-    <div class="mb-5">
-        <a href="{{ route('cash-advances.show', $cashAdvance) }}" class="text-xs font-semibold text-bodygrey hover:text-[#050A1E] inline-flex items-center space-x-1 mb-2 font-head">
-            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+    <!-- Top Navigation -->
+    <div class="mb-4 pb-2 border-b border-slate-200">
+        <a href="{{ route('cash-advances.show', $cashAdvance) }}" class="btn-secondary btn-sm px-3.5 py-1.5 d-inline-flex align-items-center gap-1.5 fw-semibold shadow-xs rounded-full text-xs font-head transition active:scale-95">
+            <i data-lucide="arrow-left" class="w-4 h-4 text-slate-500"></i>
             <span>Kembali ke CA {{ $cashAdvance->ca_number }}</span>
         </a>
+    </div>
+
+    <div class="mb-5">
         <h1 class="text-xl sm:text-2xl font-head font-bold text-[#050A1E] tracking-tight">Edit Transaksi Pengeluaran</h1>
-        <p class="text-xs text-bodygrey mt-1">Perubahan data sebelum verifikasi Finance akan dicatat otomatis dalam riwayat audit log.</p>
     </div>
 
     @if($expense->verification_status === 'NEEDS_REVISION')
@@ -61,8 +64,8 @@
                 </label>
                 <select name="category" required class="w-full input-commerce">
                     <option value="material" {{ $expense->category === 'material' ? 'selected' : '' }}>Material & Perlengkapan</option>
-                    <option value="transport" {{ $expense->category === 'transport' ? 'selected' : '' }}>Transportasi & Bensin / Tol</option>
-                    <option value="sewa_alat" {{ $expense->category === 'sewa_alat' ? 'selected' : '' }}>Sewa Alat / Kendaraan</option>
+                    <option value="transport" {{ $expense->category === 'transport' ? 'selected' : '' }}>Transportasi & Bensin</option>
+                    <option value="sewa_alat" {{ $expense->category === 'sewa_alat' ? 'selected' : '' }}>Sewa Alat</option>
                     <option value="konsumsi" {{ $expense->category === 'konsumsi' ? 'selected' : '' }}>Konsumsi & Penginapan Tim</option>
                     <option value="lainnya" {{ $expense->category === 'lainnya' ? 'selected' : '' }}>Lain-lain</option>
                 </select>
@@ -81,26 +84,18 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1.5">
-                        Nama Vendor / Toko <span class="text-rose-500">*</span>
+                        Nama Vendor <span class="text-rose-500">*</span>
                     </label>
                     <input type="text" name="vendor_name" value="{{ old('vendor_name', $expense->vendor_name) }}" required
                         class="w-full input-commerce">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1.5">
-                        No. Faktur / NPWP Vendor
+                        No. Faktur Vendor
                     </label>
                     <input type="text" name="vendor_tax_number" value="{{ old('vendor_tax_number', $expense->vendor_tax_number) }}"
                         class="w-full input-commerce font-mono">
                 </div>
-            </div>
-
-            <!-- Catatan -->
-            <div>
-                <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1.5">
-                    Catatan Tambahan
-                </label>
-                <textarea name="notes" rows="2" class="w-full input-commerce">{{ old('notes', $expense->notes) }}</textarea>
             </div>
 
             <!-- Struk Sebelumnya -->
@@ -122,7 +117,7 @@
                                 @endif
                             </a>
                             <div class="pr-2">
-                                <a href="{{ $att->url }}" target="_blank" class="text-xs font-semibold text-slate-900 hover:text-retail-orange hover:underline truncate max-w-[200px] block" title="{{ $att->file_name }}">
+                                <a href="{{ $att->url }}" target="_blank" class="text-xs font-semibold text-slate-900 hover:text-retail-orange truncate max-w-[200px] block" title="{{ $att->file_name }}">
                                     {{ $att->file_name }}
                                 </a>
                                 <span class="text-xs text-slate-500 block font-mono mt-0.5">
@@ -139,17 +134,17 @@
             <!-- Upload Tambahan Foto Struk Baru -->
             <div>
                 <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1.5">
-                    Unggah Struk Pengganti / Tambahan (Opsional)
+                    Unggah Struk Tambahan (Opsional)
                 </label>
                 <input type="file" name="receipts[]" multiple accept="image/*,application/pdf"
                     class="w-full text-xs text-slate-500 file:mr-3 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-200 file:text-retail-ink hover:file:bg-slate-300 cursor-pointer">
             </div>
 
             <div class="pt-4 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 border-t border-slate-100">
-                <a href="{{ route('cash-advances.show', $cashAdvance) }}" class="btn-secondary py-2.5 px-5 text-xs text-center justify-center">
+                <a href="{{ route('cash-advances.show', $cashAdvance) }}" class="btn-secondary py-2.5 px-5 text-xs text-center justify-center rounded-full">
                     Batal
                 </a>
-                <button type="submit" class="btn-primary py-2.5 px-6 text-xs justify-center">
+                <button type="submit" class="btn-brand py-2.5 px-6 text-xs justify-center rounded-full">
                     <i data-lucide="save" class="w-4 h-4"></i>
                     <span>Simpan Perubahan</span>
                 </button>

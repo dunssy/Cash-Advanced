@@ -1,30 +1,21 @@
 @extends('layouts.app')
 
-@section('title', 'Laporan 4: Rekap Kepatuhan Karyawan')
+@section('title', 'Rekap Kepatuhan Karyawan')
 @section('page_title', 'Rekap Kepatuhan Karyawan')
 
 @section('content')
-<div class="space-y-6">
+<div class="space-y-4">
 
-    @include('reports._report_nav')
-
-    <!-- Header & Action -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 no-print">
-        <div>
-            <h1 class="text-xl sm:text-2xl font-bold text-retail-ink tracking-tight">Laporan 4: Rekap Kepatuhan Karyawan</h1>
-            <p class="text-xs text-slate-500 mt-0.5">Untuk Finance dan Direktur. Memantau kedisiplinan pencatatan struk tepat waktu dan pengembalian sisa dana per karyawan.</p>
-        </div>
-
-        <div class="flex items-center space-x-2">
-            <a href="{{ route('reports.rekap-karyawan', ['export' => 'csv']) }}" class="btn-primary text-xs py-2 px-3.5">
-                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
-                <span>Ekspor CSV / Excel</span>
-            </a>
-            <button onclick="window.print()" class="btn-dark text-xs py-2 px-3.5">
-                <i data-lucide="printer" class="w-4 h-4"></i>
-                <span>Cetak Rekap</span>
-            </button>
-        </div>
+    <!-- Tombol Aksi Dokumen (Ekspor Excel & Cetak Dokumen) -->
+    <div class="flex items-center justify-end space-x-2 no-print">
+        <a href="{{ route('reports.rekap-karyawan', ['export' => 'csv']) }}" class="btn-primary text-xs py-2 px-3.5 shadow-xs">
+            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+            <span>Ekspor Excel</span>
+        </a>
+        <button onclick="window.print()" class="btn-dark text-xs py-2 px-3.5 shadow-xs">
+            <i data-lucide="printer" class="w-4 h-4"></i>
+            <span>Cetak Dokumen</span>
+        </button>
     </div>
 
     <!-- Paper Card -->
@@ -43,9 +34,9 @@
         </div>
 
         <!-- Table -->
-        <div class="border border-slate-200 rounded-xl overflow-hidden table-responsive">
-            <table class="w-full text-left text-xs font-mono min-w-[700px]">
-                <thead class="bg-slate-50 text-slate-700 font-bold uppercase border-b border-retail-surface font-sans">
+        <div class="border border-slate-200 rounded-[15px] overflow-hidden table-responsive">
+            <table class="w-full text-left text-xs font-mono min-w-[700px] table-technodrives">
+                <thead>
                     <tr>
                         <th class="px-3.5 py-2.5">Nama Karyawan</th>
                         <th class="px-3.5 py-2.5">Departemen</th>
@@ -111,15 +102,6 @@
                     @endforelse
                 </tbody>
             </table>
-        </div>
-
-        <div class="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 space-y-1">
-            <span class="font-bold text-retail-ink block text-xs uppercase tracking-wide">Keterangan Indikator Kepatuhan:</span>
-            <ul class="list-disc list-inside text-xs text-slate-500 space-y-0.5">
-                <li><strong>Telat Catat Struk:</strong> Transaksi dicatat lebih dari 1 hari kalender sejak transaksi terjadi (label TERLAMBAT).</li>
-                <li><strong>Telat Refund Sisa:</strong> Sisa kas ditransfer melewati batas 3 hari kerja setelah status NEED_SETTLEMENT.</li>
-                <li><strong>Overdue:</strong> Cash Advance yang belum tuntas melewati batas maksimal 2 bulan (60 hari) sejak pencairan dana.</li>
-            </ul>
         </div>
     </div>
 

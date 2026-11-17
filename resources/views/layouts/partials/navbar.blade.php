@@ -1,11 +1,11 @@
 <!--begin::Header-->
-<nav class="app-header navbar navbar-expand bg-white border-bottom shadow-xs">
+<nav class="app-header navbar navbar-expand bg-white border-bottom shadow-xs no-print">
     <!--begin::Container-->
     <div class="container-fluid">
         <!--begin::Start Navbar Links (Sidebar Toggle & Title)-->
         <ul class="navbar-nav align-items-center">
             <li class="nav-item">
-                <a class="nav-link text-dark py-1 px-2" data-lte-toggle="sidebar" href="#" role="button" title="Ciutkan / Perluas Sidebar">
+                <a class="nav-link text-dark py-1 px-2" data-lte-toggle="sidebar" href="#" role="button" title="Menu Navigasi">
                     <i class="bi bi-list fs-4"></i>
                 </a>
             </li>

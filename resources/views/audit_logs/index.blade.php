@@ -4,51 +4,39 @@
 @section('page_title', 'Audit Trail Sistem')
 
 @section('content')
-<div class="space-y-6">
+<div class="space-y-4">
 
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-            <div class="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                <i data-lucide="shield" class="w-4 h-4 text-retail-cyan"></i>
-                <span>Keamanan & Kepatuhan (Prinsip 5: Tidak Ada Data Yang Dihapus)</span>
-            </div>
-            <h1 class="text-xl sm:text-2xl font-bold text-retail-ink tracking-tight">Audit Trail Sistem</h1>
-            <p class="text-xs text-slate-500 mt-0.5">Catatan permanen (immutable) seluruh aksi, persetujuan, verifikasi, void, pembukaan gembok, dan perubahan konfigurasi.</p>
-        </div>
-    </div>
-
-    <!-- Filter & Search -->
-    <div class="card-commerce p-4">
-        <form action="{{ route('audit-logs.index') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+    <!-- Filter & Search (Clean & Tanpa Background) -->
+    <div class="no-print">
+        <form action="{{ route('audit-logs.index') }}" method="GET" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5">
             <!-- Search -->
-            <div class="sm:col-span-2">
+            <div class="relative flex-grow">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 pointer-events-none">
+                    <i data-lucide="search" class="w-4 h-4"></i>
+                </span>
                 <input type="text" name="search" value="{{ request('search') }}"
-                    class="w-full input-commerce"
+                    class="w-full pl-10 input-commerce text-xs sm:text-sm bg-white border border-slate-300 rounded-[12px] shadow-2xs focus:border-[#FF3C00]"
                     placeholder="Cari deskripsi aksi, nama pengguna, IP address...">
             </div>
 
-            <!-- Action Filter -->
-            <div>
-                <select name="action" class="w-full input-commerce">
-                    <option value="">-- Semua Jenis Aksi --</option>
+            <!-- Action Filter Dropdown (Otomatis onchange) -->
+            <div class="w-full sm:w-64 flex-shrink-0">
+                <select name="action" onchange="this.form.submit()" class="w-full input-commerce text-xs font-head font-semibold text-slate-800 bg-white border border-slate-300 rounded-[12px] shadow-2xs">
+                    <option value="">Semua Jenis Aksi</option>
                     @foreach($actions as $act)
                         <option value="{{ $act }}" {{ request('action') === $act ? 'selected' : '' }}>{{ $act }}</option>
                     @endforeach
                 </select>
             </div>
 
-            <!-- Submit & Reset -->
-            <div class="flex items-center space-x-2">
-                <button type="submit" class="btn-dark py-2 px-4 flex-grow">
-                    Filter
-                </button>
-                @if(request('search') || request('action'))
-                    <a href="{{ route('audit-logs.index') }}" class="btn-secondary py-2 px-3 text-xs">
-                        Reset
+            @if(request('search') || request('action'))
+                <div class="flex-shrink-0">
+                    <a href="{{ route('audit-logs.index') }}" class="btn-secondary btn-sm px-4 py-2 text-xs rounded-full shadow-2xs inline-flex items-center gap-1 font-head font-semibold">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                        <span>Reset</span>
                     </a>
-                @endif
-            </div>
+                </div>
+            @endif
         </form>
     </div>
 
@@ -86,7 +74,7 @@
 
                     @if($log->old_values || $log->new_values)
                         <div class="pt-1">
-                            <button @click="openDetail = !openDetail" class="text-retail-cyan hover:underline font-bold text-xs flex items-center space-x-1">
+                            <button @click="openDetail = !openDetail" class="text-retail-cyan hover:text-cyan-800 font-bold text-xs flex items-center space-x-1">
                                 <i data-lucide="code" class="w-3.5 h-3.5"></i>
                                 <span x-text="openDetail ? 'Tutup Detail Diff' : 'Lihat Detail Perubahan Nilai (Diff)'"></span>
                             </button>
@@ -111,8 +99,8 @@
 
         <!-- Desktop Table View (Visible only on md:block and above) -->
         <div class="hidden md:block overflow-x-auto">
-            <table class="w-full text-left text-xs font-mono">
-                <thead class="bg-slate-50 text-slate-700 font-bold uppercase tracking-wider border-b border-retail-surface font-sans">
+            <table class="w-full text-left text-xs font-mono table-technodrives">
+                <thead>
                     <tr>
                         <th class="px-4 py-3">Waktu & IP</th>
                         <th class="px-4 py-3">Pelaksana</th>
@@ -152,7 +140,7 @@
                             </td>
                             <td class="px-4 py-3 text-center whitespace-nowrap font-sans">
                                 @if($log->old_values || $log->new_values)
-                                    <button @click="openDetail = !openDetail" class="text-retail-cyan hover:underline font-bold text-xs">
+                                    <button @click="openDetail = !openDetail" class="text-retail-cyan hover:text-cyan-800 font-bold text-xs">
                                         <span x-text="openDetail ? 'Tutup' : 'Lihat Diff'"></span>
                                     </button>
 

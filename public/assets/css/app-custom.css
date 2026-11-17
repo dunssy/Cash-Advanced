@@ -20,11 +20,11 @@
     --td-yellow: #FFC704;
     --td-font-head: "Poppins", sans-serif;
     --td-font-body: "Fira Sans", sans-serif;
-    --td-radius-pill: 9999px;
-    --td-radius-card: 12px;
-    --td-radius-input: 8px;
-    --td-radius-label: 6px;
-    --td-transition: 0.15s ease-out;
+    --td-radius-pill: 30px;
+    --td-radius-card: 15px;
+    --td-radius-input: 12px;
+    --td-radius-label: 20px;
+    --td-transition: 0.2s ease-out;
 }
 
 body {
@@ -43,33 +43,103 @@ h1, h2, h3, h4, h5, h6 {
     color: #0F172A;
 }
 
-/* Tombol Utama (Solutek Brand Button: Latar #FF3C00, teks putih, radius 8px, hover #E03500, transisi 0.15s) */
+/* =========================================================================
+   GLOBAL RESET: HILANGKAN SEMUA UNDERLINE
+   Semua link, tombol, nav, tabel, dan card bebas dari garis bawah (underline)
+   ========================================================================= */
+*, *::before, *::after {
+    --bs-link-decoration: none;
+    --bs-link-hover-decoration: none;
+}
+
+a,
+a:hover,
+a:focus,
+a:active,
+a:visited,
+button,
+button:hover,
+button:focus,
+.btn,
+.btn:hover,
+.btn:focus,
+.btn:active,
+.nav-link,
+.nav-link:hover,
+.nav-link:focus,
+.breadcrumb a,
+.breadcrumb a:hover,
+.breadcrumb-item a,
+.breadcrumb-item a:hover,
+.table a,
+.table a:hover,
+.dropdown-item,
+.dropdown-item:hover,
+.dropdown-item:focus,
+.text-decoration-underline,
+.text-decoration-underline:hover,
+[class*="underline"],
+.hover\:underline:hover,
+a.hover\:underline:hover,
+button.hover\:underline:hover {
+    text-decoration: none !important;
+}
+
+/* Pastikan coret (strikethrough / line-through) untuk status VOID tetap bekerja */
+.line-through, [class*="line-through"] {
+    text-decoration: line-through !important;
+}
+
+/* =========================================================================
+   PT TECHNODRIVES - DESIGN SYSTEM STANDARDIZATION
+   Tombol, Card, Tabel, Form Input, & Badge Status
+   ========================================================================= */
+
+/* Tombol Universal: Pill-shaped (border-radius: 30px / 9999px) */
+.btn:not(.btn-group > .btn):not(.input-group .btn):not(.page-link),
+.btn-brand,
+.btn-primary,
+.btn-secondary,
+.btn-dark,
+.btn-cyan,
+.btn-verify,
+.btn-blue,
+.btn-success,
+.btn-green,
+.btn-danger,
+.btn-warning,
+.btn-outline-dark,
+.btn-outline-secondary,
+.btn-outline-brand {
+    border-radius: 30px !important;
+    font-family: var(--td-font-head);
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    transition: var(--td-transition);
+    cursor: pointer;
+}
+
+/* Tombol Utama (Solutek Brand Button: Latar #FF3C00, hover #050A1E, teks putih) */
 .btn-brand, .btn-primary {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    background-color: #FF3C00;
+    background-color: #FF3C00 !important;
     color: #FFFFFF !important;
-    font-family: var(--td-font-head);
     font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.3px;
-    padding: 9px 18px;
-    border-radius: var(--td-radius-input);
-    border: 1px solid #FF3C00;
+    padding: 9px 20px;
+    border: 1px solid #FF3C00 !important;
     min-height: 40px;
     position: relative;
     z-index: 1;
-    transition: var(--td-transition);
-    cursor: pointer;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 .btn-brand:hover, .btn-primary:hover {
-    background-color: #E03500;
-    border-color: #E03500;
+    background-color: #050A1E !important;
+    border-color: #050A1E !important;
     color: #FFFFFF !important;
-    box-shadow: 0 4px 12px rgba(255, 60, 0, 0.22);
+    box-shadow: 0 4px 12px rgba(5, 10, 30, 0.22);
     transform: translateY(-1px);
 }
 .btn-brand:active, .btn-primary:active {
@@ -77,29 +147,23 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: none;
 }
 
-/* Tombol Gelap (Aksi Sekunder Kuat: Navy #050A1E) */
+/* Tombol Gelap (Navy #050A1E, hover #161A2B, teks putih) */
 .btn-dark {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    background-color: #050A1E;
+    background-color: #050A1E !important;
     color: #FFFFFF !important;
-    font-family: var(--td-font-head);
     font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.3px;
-    padding: 9px 18px;
-    border-radius: var(--td-radius-input);
-    border: 1px solid #161A2B;
+    padding: 9px 20px;
+    border: 1px solid #161A2B !important;
     min-height: 40px;
-    transition: var(--td-transition);
-    cursor: pointer;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 .btn-dark:hover {
-    background-color: #161A2B;
-    border-color: #2E3856;
+    background-color: #161A2B !important;
+    border-color: #2E3856 !important;
     color: #FFFFFF !important;
     transform: translateY(-1px);
 }
@@ -107,33 +171,66 @@ h1, h2, h3, h4, h5, h6 {
     transform: translateY(0);
 }
 
-/* Tombol Pucat / Sekunder */
-.btn-secondary {
+/* Tombol Pucat / Sekunder (Putih, border #CBD5E1, teks #050A1E) */
+.btn-secondary, .btn-outline-secondary {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    background-color: #FFFFFF;
-    color: #1E293B;
-    font-family: var(--td-font-head);
+    background-color: #FFFFFF !important;
+    color: #050A1E !important;
     font-size: 13px;
-    font-weight: 600;
     padding: 9px 18px;
-    border-radius: var(--td-radius-input);
-    border: 1px solid #CBD5E1;
+    border: 1px solid #CBD5E1 !important;
     min-height: 40px;
-    transition: var(--td-transition);
-    cursor: pointer;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
-.btn-secondary:hover {
-    background-color: #F8FAFC;
-    border-color: #94A3B8;
-    color: #0F172A;
+.btn-secondary:hover, .btn-outline-secondary:hover {
+    background-color: #F8FAFC !important;
+    border-color: #94A3B8 !important;
+    color: #050A1E !important;
     transform: translateY(-1px);
 }
-.btn-secondary:active {
+.btn-secondary:active, .btn-outline-secondary:active {
     transform: translateY(0);
+}
+
+/* Tombol Garis Luar Gelap (Outline Dark) */
+.btn-outline-dark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: transparent !important;
+    color: #050A1E !important;
+    font-size: 13px;
+    padding: 9px 18px;
+    border: 1px solid #050A1E !important;
+    min-height: 40px;
+}
+.btn-outline-dark:hover {
+    background-color: #050A1E !important;
+    color: #FFFFFF !important;
+    transform: translateY(-1px);
+}
+
+/* Tombol Garis Luar Oranye Brand */
+.btn-outline-brand {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: transparent !important;
+    color: #FF3C00 !important;
+    font-size: 13px;
+    padding: 9px 18px;
+    border: 1px solid #FF3C00 !important;
+    min-height: 40px;
+}
+.btn-outline-brand:hover {
+    background-color: #FF3C00 !important;
+    color: #FFFFFF !important;
+    transform: translateY(-1px);
 }
 
 /* Tombol Verifikasi / Biru Logo Technodrives (#2E3087) */
@@ -142,56 +239,71 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
     justify-content: center;
     gap: 0.35rem;
-    background-color: #2E3087;
+    background-color: #2E3087 !important;
     color: #FFFFFF !important;
-    font-family: var(--td-font-head);
     font-size: 12px;
     font-weight: 700;
-    padding: 7px 16px;
-    border-radius: 8px;
-    border: 1px solid #2E3087;
-    transition: all 0.25s ease;
-    cursor: pointer;
+    padding: 7px 18px;
+    border: 1px solid #2E3087 !important;
     box-shadow: 0 2px 6px rgba(46, 48, 135, 0.25);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 .btn-cyan:hover, .btn-verify:hover, .btn-blue:hover {
-    background-color: #23256C;
-    border-color: #23256C;
+    background-color: #23256C !important;
+    border-color: #23256C !important;
     color: #FFFFFF !important;
     box-shadow: 0 4px 12px rgba(46, 48, 135, 0.4);
     transform: translateY(-1px);
 }
 
-/* Tombol Sukses / Tandai Selesai (Hijau Emerald #059669) */
+/* Tombol Sukses / Selesai (Hijau Emerald #059669) */
 .btn-success, .btn-green {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    background-color: #059669;
+    background-color: #059669 !important;
     color: #FFFFFF !important;
-    font-family: var(--td-font-head);
     font-size: 13px;
-    font-weight: 600;
     padding: 8px 18px;
-    border-radius: var(--td-radius-input);
-    border: 1px solid #047857;
-    transition: var(--td-transition);
-    cursor: pointer;
+    border: 1px solid #047857 !important;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    letter-spacing: 0.3px;
 }
 .btn-success:hover, .btn-green:hover {
-    background-color: #047857;
-    border-color: #065F46;
+    background-color: #047857 !important;
+    border-color: #065F46 !important;
     color: #FFFFFF !important;
     box-shadow: 0 4px 12px rgba(4, 120, 87, 0.25);
     transform: translateY(-1px);
 }
-.btn-success:active, .btn-green:active {
-    transform: translateY(0);
+
+/* Tombol Bahaya / Tolak / Void (#FF3C00 / #DC2626) */
+.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: #FF3C00 !important;
+    color: #FFFFFF !important;
+    font-size: 13px;
+    padding: 8px 18px;
+    border: 1px solid #FF3C00 !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+.btn-danger:hover {
+    background-color: #DC2626 !important;
+    border-color: #DC2626 !important;
+    color: #FFFFFF !important;
+    transform: translateY(-1px);
+}
+
+/* Tombol Ukuran Kecil (Compact / Table Action) */
+.btn-sm, .btn-compact {
+    padding: 6px 14px !important;
+    font-size: 12px !important;
+    min-height: 32px !important;
+    border-radius: 30px !important;
 }
 
 /* Pill Label Seksi */
@@ -202,8 +314,8 @@ h1, h2, h3, h4, h5, h6 {
     color: #FF3C00;
     background-color: rgba(255, 60, 0, 0.06);
     border: 1px solid rgba(255, 60, 0, 0.2);
-    border-radius: var(--td-radius-label);
-    padding: 3px 10px;
+    border-radius: 20px;
+    padding: 3px 12px;
     display: inline-flex;
     align-items: center;
     gap: 5px;
@@ -211,11 +323,31 @@ h1, h2, h3, h4, h5, h6 {
     letter-spacing: 0.3px;
 }
 
-/* Kartu Layanan (Putih, radius 12px, border 1px #E2E8F0) */
+/* =========================================================================
+   KARTU (CARDS) - RADIUS STANDAR RESMI 15PX
+   ========================================================================= */
+.card,
+.card-commerce,
+.card-feature,
+.small-box {
+    border-radius: 15px !important;
+}
+
+.card-header:first-child {
+    border-top-left-radius: 15px !important;
+    border-top-right-radius: 15px !important;
+}
+
+.card-footer:last-child {
+    border-bottom-left-radius: 15px !important;
+    border-bottom-right-radius: 15px !important;
+}
+
+/* Kartu Layanan (Putih, radius 15px, border 1px #E1E1E1) */
 .card-commerce {
     background-color: #FFFFFF;
-    border: 1px solid #E2E8F0;
-    border-radius: var(--td-radius-card);
+    border: 1px solid #E1E1E1;
+    border-radius: 15px !important;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -224,22 +356,24 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.06);
 }
 
-/* Kartu Fitur (Latar #F8FAFC, radius 12px, border 1px #E2E8F0) */
+/* Kartu Fitur (Latar #F8FAFC, radius 15px, border 1px #E1E1E1) */
 .card-feature {
     background-color: #F8FAFC;
-    border: 1px solid #E2E8F0;
-    border-radius: var(--td-radius-card);
+    border: 1px solid #E1E1E1;
+    border-radius: 15px !important;
     transition: border-color 0.2s ease;
 }
 .card-feature:hover {
     border-color: #CBD5E1;
 }
 
-/* Form Input Resmi (Clean 42px height, 8px radius, border #CBD5E1, focus #FF3C00) */
-.input-brand, .input-commerce {
+/* =========================================================================
+   FORM INPUT RESMI - RADIUS 12PX, BORDER #CBD5E1, FOCUS #FF3C00
+   ========================================================================= */
+.input-brand, .input-commerce, .form-control, .form-select {
     border: 1px solid #CBD5E1;
     min-height: 42px;
-    border-radius: var(--td-radius-input);
+    border-radius: 12px !important;
     padding: 8px 14px;
     width: 100%;
     font-family: var(--td-font-body);
@@ -249,24 +383,26 @@ h1, h2, h3, h4, h5, h6 {
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
     outline: 0;
 }
-.input-brand:focus, .input-commerce:focus {
-    border-color: #FF3C00;
-    box-shadow: 0 0 0 3px rgba(255, 60, 0, 0.12);
-    outline: 0;
+.input-brand:focus, .input-commerce:focus, .form-control:focus, .form-select:focus {
+    border-color: #FF3C00 !important;
+    box-shadow: 0 0 0 3px rgba(255, 60, 0, 0.12) !important;
+    outline: 0 !important;
 }
-textarea.input-brand, textarea.input-commerce {
-    border-radius: var(--td-radius-input);
+textarea.input-brand, textarea.input-commerce, textarea.form-control {
+    border-radius: 12px !important;
     padding: 12px 14px;
     min-height: 100px;
 }
 
-/* 6 Badge Status Resmi PT Technodrives (Clean 6px radius, no endless pulse) */
+/* =========================================================================
+   BADGE STATUS RESMI PT TECHNODRIVES - PILL RADIUS 20PX
+   ========================================================================= */
 .badge-retail {
     font-family: var(--td-font-head), 'Poppins', sans-serif;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
-    border-radius: var(--td-radius-label);
-    padding: 3px 8px;
+    border-radius: 20px !important;
+    padding: 4px 10px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -316,38 +452,54 @@ textarea.input-brand, textarea.input-commerce {
     color: #64748B !important;
 }
 
-/* Tabel Data Resmi: Kepala Tabel Navy #050A1E Teks Putih Poppins 600 */
+/* =========================================================================
+   TABEL DATA RESMI: KEPALA TABEL NAVY #050A1E TEKS PUTIH POPPINS 600
+   ========================================================================= */
 .table-responsive {
     -webkit-overflow-scrolling: touch;
     overflow-x: auto;
 }
-.table-technodrives thead {
-    background-color: #050A1E;
-    color: #FFFFFF;
-    font-family: var(--td-font-head);
-    font-weight: 600;
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.table-technodrives, table.table-technodrives {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
 }
-.table-technodrives thead th {
-    padding: 14px 16px;
-    color: #FFFFFF;
+.table-technodrives thead,
+table.table-technodrives thead,
+thead.table-technodrives-head {
+    background-color: #050A1E !important;
+    color: #FFFFFF !important;
+}
+.table-technodrives thead th,
+table.table-technodrives thead th,
+thead.table-technodrives-head th {
+    background-color: #050A1E !important;
+    color: #FFFFFF !important;
+    font-family: var(--td-font-head) !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    padding: 13px 16px !important;
+    border-bottom: 2px solid #FF3C00 !important;
+    border-top: none !important;
+    vertical-align: middle;
 }
 .table-technodrives tbody tr {
-    border-bottom: 1px solid #E9E9E9;
-    transition: background-color 0.3s ease;
+    border-bottom: 1px solid #E9E9E9 !important;
+    transition: background-color 0.2s ease;
 }
 .table-technodrives tbody tr:nth-child(even) {
-    background-color: #F4F4F4;
+    background-color: #FBFBFC;
 }
 .table-technodrives tbody tr:hover {
-    background-color: rgba(255, 60, 0, 0.03);
+    background-color: rgba(255, 60, 0, 0.03) !important;
 }
 .table-technodrives tbody td {
-    padding: 14px 16px;
+    padding: 13px 16px;
     font-family: var(--td-font-body);
-    font-size: 15px;
+    font-size: 14px;
+    vertical-align: middle;
 }
 
 /* Reduced Motion Respect (WCAG 2.3.3) */
@@ -361,9 +513,75 @@ textarea.input-brand, textarea.input-commerce {
 }
 
 @media print {
-    .no-print { display: none !important; }
-    body { background: white !important; color: black !important; font-size: 10pt; }
-    .print-full { width: 100% !important; margin: 0 !important; box-shadow: none !important; }
+    /* Sembunyikan elemen navigasi dan layout aplikasi saat mencetak */
+    .no-print,
+    .app-sidebar,
+    aside.app-sidebar,
+    .sidebar,
+    .sidebar-wrapper,
+    .app-header,
+    header.app-header,
+    nav.app-header,
+    .app-footer,
+    footer.app-footer,
+    .sidebar-overlay {
+        display: none !important;
+        visibility: hidden !important;
+        width: 0 !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Reset background dan layout halaman agar penuh dan rapi */
+    html, body {
+        background: #FFFFFF !important;
+        color: #000000 !important;
+        font-size: 10pt !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .app-wrapper {
+        margin: 0 !important;
+        padding: 0 !important;
+        min-height: auto !important;
+        display: block !important;
+    }
+
+    .app-main,
+    main.app-main {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: auto !important;
+    }
+
+    .app-content {
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+    }
+
+    .container, .container-fluid {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    .print-full {
+        width: 100% !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
 }
 
 /* =========================================================================
@@ -387,10 +605,60 @@ textarea.input-brand, textarea.input-commerce {
 .app-sidebar .sidebar-brand {
     background-color: #050A1E !important;
     border-bottom: 1px solid #161A2B !important;
-    height: 64px !important;
+    height: 52px !important;
+    min-height: 52px !important;
     display: flex !important;
     align-items: center !important;
+    justify-content: flex-start !important;
+    padding: 0 1.25rem !important;
+}
+
+.app-sidebar .sidebar-brand .brand-link {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+    width: 100% !important;
+    transition: opacity 0.2s ease;
+}
+
+.app-sidebar .sidebar-brand .brand-link:hover {
+    opacity: 0.92;
+}
+
+.app-sidebar .sidebar-brand .brand-image-full {
+    height: 28px !important;
+    width: auto !important;
+    max-width: 175px !important;
+    object-fit: contain !important;
+    margin-left: 0 !important;
+}
+
+/* Sidebar collapse responsive switch */
+.sidebar-collapse .app-sidebar .sidebar-brand {
     justify-content: center !important;
+    padding: 0 !important;
+}
+
+.sidebar-collapse .app-sidebar .sidebar-brand .brand-link {
+    justify-content: center !important;
+}
+
+.sidebar-collapse .app-sidebar .sidebar-brand .brand-image-full {
+    display: none !important;
+}
+
+.sidebar-collapse .app-sidebar .sidebar-brand .brand-image-compact {
+    display: inline-block !important;
+    height: 28px !important;
+    width: 28px !important;
+}
+
+.app-sidebar .user-panel {
+    border-color: #161A2B !important;
+    margin-top: 6px !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 6px !important;
 }
 
 .app-sidebar .sidebar-menu .nav-link {
@@ -460,6 +728,19 @@ textarea.input-brand, textarea.input-commerce {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     margin-bottom: 1.25rem;
     transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* AdminLTE & Bootstrap Card Header Alignment Fix */
+.card-header::before,
+.card-header::after {
+    display: none !important;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
 }
 
 /* Ensure modal overlays always sit above AdminLTE navbar (z-1000) and sidebar (z-1038) */

@@ -17,8 +17,8 @@
                 Kelola informasi biodata personal, foto profil kerja, tag divisi, dan rekening operasional Anda.
             </p>
         </div>
-        <a href="{{ route('dashboard') }}" class="btn-secondary text-xs self-start sm:self-auto inline-flex items-center space-x-1.5 py-2 px-3.5 rounded-xl">
-            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+        <a href="{{ route('dashboard') }}" class="btn-secondary btn-sm px-3.5 py-1.5 d-inline-flex align-items-center gap-1.5 fw-semibold shadow-xs rounded-full text-xs font-head transition active:scale-95 self-start sm:self-auto">
+            <i data-lucide="arrow-left" class="w-4 h-4 text-slate-500"></i>
             <span>Kembali ke Dashboard</span>
         </a>
     </div>
@@ -85,7 +85,7 @@
                         <input type="file" name="avatar" accept="image/*"
                             @change="const file = $event.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => avatarPreview = e.target.result; reader.readAsDataURL(file); }"
                             class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#161A2B] file:text-white hover:file:bg-[#FF3C00] file:cursor-pointer file:transition border border-cardborder rounded-xl p-1.5 bg-slate-50">
-                        <p class="text-xs text-slate-400 mt-1 font-body">Disarankan menggunakan foto potret kerja formal / <em>headshot</em> profesional (maks. 5MB).</p>
+                        <p class="text-xs text-slate-400 mt-1 font-body">Disarankan menggunakan foto potret kerja formal (maks. 5MB).</p>
                     </div>
 
                     @if($user->avatar)
@@ -117,7 +117,7 @@
                                 @endif
                             </div>
                             <p class="text-xs text-slate-400 mt-1 font-body">
-                                Peran akun ditetapkan oleh manajemen/HRD untuk tata kelola kepatuhan (<em>Separation of Duties</em>) dan tidak dapat diubah sendiri.
+                                Peran akun ditetapkan oleh Manajemen untuk tata kelola kepatuhan (<em>Separation of Duties</em>) dan tidak dapat diubah sendiri.
                             </p>
                         </div>
                     </div>
@@ -153,7 +153,7 @@
 
                 <div class="sm:col-span-2">
                     <label class="block text-xs font-bold text-[#050A1E] uppercase tracking-wider mb-1.5 font-head">
-                        Nomor HP / WhatsApp
+                        Nomor WhatsApp
                     </label>
                     <input type="text" name="phone" value="{{ old('phone', $user->phone) }}"
                         placeholder="Contoh: 081234567890"
@@ -162,7 +162,7 @@
             </div>
         </div>
 
-        <!-- Card 3: Tag Divisi / Departemen (Maksimal 10 Divisi dengan Prefix #) -->
+        <!-- Card 3: Departemen (Maksimal 10 Divisi dengan Prefix #) -->
         <div class="card-commerce p-5 sm:p-6 bg-white border border-cardborder rounded-2xl shadow-sm space-y-4"
             x-data="{
                 tags: {{ json_encode(old('departments', $user->departments ?? [])) }},
@@ -187,7 +187,7 @@
                 <div class="flex items-center space-x-2">
                     <i data-lucide="tags" class="w-4 h-4 text-[#FF3C00]"></i>
                     <h2 class="text-sm font-bold font-head text-[#050A1E] uppercase tracking-wider">
-                        Tag Departemen / Divisi
+                        Departemen
                     </h2>
                 </div>
                 <!-- Clean limit badge using # -->
@@ -246,11 +246,11 @@
                     <i data-lucide="credit-card" class="w-4 h-4 text-[#FF3C00]"></i>
                     <span>Rekening Bank Operasional</span>
                 </h2>
-                <span class="text-xs text-slate-400 font-mono">Tujuan transfer pencairan CA / Top-Up</span>
+                <span class="text-xs text-slate-400 font-mono">Tujuan transfer pencairan dana</span>
             </div>
 
             <p class="text-xs text-slate-500 font-body">
-                Pastikan informasi rekening bank di bawah ini valid dan sesuai dengan buku tabungan Anda untuk kelancaran transfer pencairan dana oleh tim Keuangan/Finance.
+                Pastikan informasi rekening bank di bawah ini valid dan sesuai dengan buku tabungan Anda untuk kelancaran transfer pencairan dana oleh tim Finance.
             </p>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -259,7 +259,7 @@
                         Nama Bank
                     </label>
                     <input type="text" name="bank_name" value="{{ old('bank_name', $user->bank_name) }}"
-                        placeholder="Contoh: BCA / Mandiri / BNI"
+                        placeholder="Contoh: BCA, Mandiri, BNI"
                         class="w-full input-commerce rounded-xl font-mono text-xs py-2.5">
                 </div>
 
@@ -330,10 +330,10 @@
 
         <!-- Submit Button -->
         <div class="flex items-center justify-end space-x-3 pt-2">
-            <a href="{{ route('dashboard') }}" class="btn-secondary py-2.5 px-5 text-xs font-head font-bold rounded-xl">
+            <a href="{{ route('dashboard') }}" class="btn-secondary py-2.5 px-5 text-xs font-head font-bold rounded-full">
                 Batal
             </a>
-            <button type="submit" class="btn-primary py-2.5 px-6 text-xs font-head font-bold rounded-xl shadow-md hover:shadow-lg transition cursor-pointer">
+            <button type="submit" class="btn-brand py-2.5 px-6 text-xs font-head font-bold rounded-full shadow-md hover:shadow-lg transition cursor-pointer">
                 Simpan Pembaruan Profil
             </button>
         </div>

@@ -68,8 +68,13 @@ class ReportController extends Controller
 
         $allCAs = (clone $caQuery)->get();
 
-        // 3. Tentukan CA yang sedang dipilih (default: CA terbaru yang berhak diakses pengguna)
-        $selectedId = $request->input('ca_id', $allCAs->first()?->id);
+        // 3. Tentukan CA yang sedang dipilih (default: CA yang aktif, atau fallback ke status berjalan / terbaru)
+        $defaultCA = $allCAs->firstWhere('status', 'ACTIVE')
+            ?? $allCAs->firstWhere('status', 'NEED_SETTLEMENT')
+            ?? $allCAs->firstWhere('status', 'PENDING_VERIFICATION')
+            ?? $allCAs->first();
+
+        $selectedId = $request->input('ca_id', $defaultCA?->id);
         $selectedCA = null;
 
         if ($selectedId) {
