@@ -33,10 +33,6 @@
 <script src="{{ asset('assets/js/app-scripts.js') }}"></script>
 
 <!-- Dedicated Application Loader Script -->
-<script src="{{ asset('assets/js/loader.js') }}"
-    data-logo="{{ asset('assets/images/logo.png') }}"
-    data-just-logged-in="{{ session('login_loader') || session('just_logged_in') ? 'true' : 'false' }}"
-    data-user-name="{{ auth()->user()?->name }}"
-    data-user-role="{{ auth()->user()?->role }}"></script>
+@include('components.loader')
 
 @stack('scripts')

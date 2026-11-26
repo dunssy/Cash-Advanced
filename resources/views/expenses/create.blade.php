@@ -4,11 +4,37 @@
 @section('page_title', 'Catat Pengeluaran Struk')
 
 @section('content')
+<<<<<<< HEAD
 <div class="w-full" x-data="{
     amount: '',
     isTalangan: false,
     isLostReceipt: false,
     currentBalance: {{ (float)$cashAdvance->current_balance }},
+=======
+<div class="max-w-2xl mx-auto" x-data="{
+    amount: @js((string) old('amount', '')),
+    isTalangan: false,
+    isLostReceipt: false,
+    currentBalance: {{ (float)($userBalance ?? $cashAdvance->current_balance) }},
+    selectedItemId: '{{ old('cash_advance_item_id', '') }}',
+    rabItems: {{ json_encode($userRabItems ?? []) }},
+    formatAmount(value) {
+        return String(value || '').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    },
+    updateAmount(event) {
+        this.amount = event.target.value.replace(/\D/g, '');
+        event.target.value = this.formatAmount(this.amount);
+    },
+    onItemChange(itemId) {
+        let it = this.rabItems.find(x => x.id == itemId);
+        if (it) {
+            let catSelect = document.querySelector('select[name=category]');
+            if (catSelect) catSelect.value = it.category;
+            let descInput = document.querySelector('input[name=description]');
+            if (descInput && !descInput.value) descInput.value = it.item_name;
+        }
+    },
+>>>>>>> 4416a1cb4ead5cd08fc956c49373ebdbe21a903f
     get isOverBalance() {
         if (this.isTalangan) return false;
         return parseFloat(this.amount || 0) > this.currentBalance;
@@ -65,10 +91,11 @@
                 </label>
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-xs font-mono font-bold text-slate-400">Rp</span>
-                    <input type="number" name="amount" x-model="amount" value="{{ old('amount') }}" required min="1" step="1"
+                    <input type="hidden" name="amount" :value="amount">
+                    <input type="text" inputmode="numeric" autocomplete="off" :value="formatAmount(amount)" @input="updateAmount($event)" required
                         class="w-full pl-11 input-commerce font-mono font-bold text-sm sm:text-base text-retail-ink"
                         :class="isOverBalance ? 'border-rose-500 bg-rose-50/50' : ''"
-                        placeholder="Contoh: 150000">
+                        placeholder="Contoh: 150.000">
                 </div>
 
                 <!-- Live Saldo Guard Alert -->

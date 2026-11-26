@@ -44,8 +44,8 @@ class ExpenseController extends Controller
      * 2. Memastikan status CA adalah ACTIVE.
      * 3. Menampilkan view form pencatatan pengeluaran beserta info sisa saldo berjalan.
      *
-     * @param  \App\Models\CashAdvance  $cashAdvance Model Cash Advance yang sedang aktif.
-     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+    * @param  \App\Models\CashAdvance  $cashAdvance Model Cash Advance yang sedang aktif.
+    * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
     public function create(CashAdvance $cashAdvance): View|RedirectResponse
     {
@@ -81,9 +81,9 @@ class ExpenseController extends Controller
      * 9. Mencatat aktivitas ke Audit Log.
      * 10. Memeriksa ambang batas peringatan saldo menipis (< 20%) dan menerbitkan notifikasi jika terpicu.
      *
-     * @param  \Illuminate\Http\Request  $request Objek HTTP Request yang memuat data pengeluaran dan lampiran.
-     * @param  \App\Models\CashAdvance  $cashAdvance Model Cash Advance terkait.
-     * @return \Illuminate\Http\RedirectResponse
+    * @param  \Illuminate\Http\Request  $request Objek HTTP Request yang memuat data pengeluaran dan lampiran.
+    * @param  \App\Models\CashAdvance  $cashAdvance Model Cash Advance terkait.
+    * @return \Illuminate\Http\RedirectResponse
      */
     public function store(Request $request, CashAdvance $cashAdvance): RedirectResponse
     {
@@ -107,7 +107,7 @@ class ExpenseController extends Controller
             'transaction_date' => ['required', 'date', 'before_or_equal:today', "after_or_equal:{$minDate}"],
             'description' => ['required', 'string', 'max:255'],
             'category' => ['required', 'in:material,transport,sewa_alat,konsumsi,lainnya'],
-            'amount' => ['required', 'numeric', 'min:1'],
+            'amount' => ['required', 'integer', 'min:1'],
             'vendor_name' => ['required', 'string', 'max:255'],
             'vendor_tax_number' => ['nullable', 'string', 'max:100'],
             'notes' => ['nullable', 'string'],
@@ -130,8 +130,13 @@ class ExpenseController extends Controller
         $validated = $request->validate($rules, $messages);
 
         $isTalangan = $request->boolean('is_talangan');
+<<<<<<< HEAD
         $amount = (float) $validated['amount'];
         $currentBalance = $cashAdvance->current_balance;
+=======
+        $amount = (int) $validated['amount'];
+        $userBalance = $cashAdvance->userCurrentBalance($user->id);
+>>>>>>> 4416a1cb4ead5cd08fc956c49373ebdbe21a903f
 
         // 4. KUNCI INPUT SALDO (SOP Dokumen hal 5)
         // Saldo yang diperiksa adalah saldo kas berjalan pada Cash Advance ini
@@ -257,8 +262,8 @@ class ExpenseController extends Controller
      * Karyawan hanya diperbolehkan merevisi transaksi selama status verifikasinya
      * belum 'VALID' dan belum 'VOID' (misal berstatus PENDING atau NEEDS_REVISION).
      *
-     * @param  \App\Models\Expense  $expense Model transaksi pengeluaran yang ingin diedit.
-     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+    * @param  \App\Models\Expense  $expense Model transaksi pengeluaran yang ingin diedit.
+    * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
     public function edit(Expense $expense): View|RedirectResponse
     {
@@ -297,9 +302,9 @@ class ExpenseController extends Controller
      * 5. Mengunggah lampiran struk tambahan jika dilampirkan.
      * 6. Merekam ke Audit Log.
      *
-     * @param  \Illuminate\Http\Request  $request Objek HTTP Request yang memuat revisi data transaksi.
-     * @param  \App\Models\Expense  $expense Model transaksi pengeluaran yang direvisi.
-     * @return \Illuminate\Http\RedirectResponse
+    * @param  \Illuminate\Http\Request  $request Objek HTTP Request yang memuat revisi data transaksi.
+    * @param  \App\Models\Expense  $expense Model transaksi pengeluaran yang direvisi.
+    * @return \Illuminate\Http\RedirectResponse
      */
     public function update(Request $request, Expense $expense): RedirectResponse
     {
@@ -329,13 +334,14 @@ class ExpenseController extends Controller
             'transaction_date' => ['required', 'date', 'before_or_equal:today', "after_or_equal:{$minDate}"],
             'description' => ['required', 'string', 'max:255'],
             'category' => ['required', 'in:material,transport,sewa_alat,konsumsi,lainnya'],
-            'amount' => ['required', 'numeric', 'min:1'],
+            'amount' => ['required', 'integer', 'min:1'],
             'vendor_name' => ['required', 'string', 'max:255'],
             'vendor_tax_number' => ['nullable', 'string', 'max:100'],
             'notes' => ['nullable', 'string'],
             'receipts' => ['nullable', 'array', 'max:5'],
             'receipts.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
         ]);
+        $validated['amount'] = (int) $validated['amount'];
 
         // Kunci Input Saldo pada saat update:
         // Saldo yang tersedia untuk pengeluaran ini = saldo berjalan saat ini + nominal lama transaksi ini
@@ -412,9 +418,9 @@ class ExpenseController extends Controller
      * Sesuai ketentuan SOP, koreksi hanya boleh dilakukan via VOID disertai alasan jelas.
      * Dana yang di-VOID akan secara otomatis dipulihkan kembali ke saldo kas aktif sistem.
      *
-     * @param  \Illuminate\Http\Request  $request Objek HTTP Request yang memuat alasan pembatalan (void_reason).
-     * @param  \App\Models\Expense  $expense Model transaksi pengeluaran yang akan di-VOID.
-     * @return \Illuminate\Http\RedirectResponse
+    * @param  \Illuminate\Http\Request  $request Objek HTTP Request yang memuat alasan pembatalan (void_reason).
+    * @param  \App\Models\Expense  $expense Model transaksi pengeluaran yang akan di-VOID.
+    * @return \Illuminate\Http\RedirectResponse
      */
     public function voidExpense(Request $request, Expense $expense): RedirectResponse
     {
@@ -471,9 +477,9 @@ class ExpenseController extends Controller
      * transaksi tersebut wajib mendapatkan persetujuan manajerial (Atasan/Direktur)
      * sebelum dapat dinilai keabsahannya oleh tim Finance.
      *
-     * @param  \Illuminate\Http\Request  $request Objek HTTP Request.
-     * @param  \App\Models\Expense  $expense Model transaksi pengeluaran dengan struk hilang.
-     * @return \Illuminate\Http\RedirectResponse
+    * @param  \Illuminate\Http\Request  $request Objek HTTP Request.
+    * @param  \App\Models\Expense  $expense Model transaksi pengeluaran dengan struk hilang.
+    * @return \Illuminate\Http\RedirectResponse
      */
     public function approveLostReceipt(Request $request, Expense $expense): RedirectResponse
     {

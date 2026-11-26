@@ -30,6 +30,8 @@
 
 <!-- Custom Application Stylesheet (PT Technodrives Design Tokens & AdminLTE Theme) -->
 <link rel="stylesheet" href="{{ asset('assets/css/app-custom.css') }}">
+@once('app-loader-css')
 <link rel="stylesheet" href="{{ asset('assets/css/loader.css') }}">
+@endonce
 
 @stack('styles')
