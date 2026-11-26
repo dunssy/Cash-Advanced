@@ -15,7 +15,9 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="{{ asset('assets/css/login.css') }}">
     <!-- Dedicated Load Loader Stylesheet -->
+    @once('app-loader-css')
     <link rel="stylesheet" href="{{ asset('assets/css/loader.css') }}">
+    @endonce
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 antialiased selection:bg-brand selection:text-white relative">
     
@@ -110,8 +112,6 @@
 
     <script src="{{ asset('assets/js/login.js') }}"></script>
     <!-- Dedicated Load Loader Script -->
-    <script src="{{ asset('assets/js/loader.js') }}"
-        data-logo="{{ asset('assets/images/logo.png') }}"
-        data-show-on-load="false"></script>
+    @include('components.loader', ['showOnLoad' => false, 'isJustLoggedIn' => false])
 </body>
 </html>

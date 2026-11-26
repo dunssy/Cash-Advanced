@@ -271,15 +271,15 @@
 
     <!-- ADMIN PANEL FOR SUPER ADMIN -->
     @if(auth()->user()->isSuperAdmin())
-        <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px;">
+        <div class="card border-0 shadow-sm mb-4 mx-3" style="border-radius: 15px;">
             <div class="card-body p-4 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
                 <div>
                     <h5 class="fw-bold text-dark font-head mb-1">Konfigurasi & Pengguna Sistem</h5>
                     <p class="text-muted small mb-0">Super Admin bertugas mengelola user master, relasi departemen, dan parameter global sistem.</p>
                 </div>
-                <div class="d-flex align-items-center gap-2">
+                <div class="ms-auto d-flex flex-wrap gap-2">
                     <a href="{{ route('admin.users.index') }}" class="btn-brand btn-sm px-3.5 py-2 fw-semibold shadow-xs rounded-full">Kelola User</a>
-                    <a href="{{ route('admin.settings.index') }}" class="btn-secondary btn-sm px-3.5 py-2 fw-semibold shadow-xs rounded-full">Pengaturan Global</a>
+                    <a href="{{ route('admin.settings.index') }}" class="btn-secondary btn-sm px-3.5 py-2 fw-semibold shadow-xs rounded-full">Pengaturan Pengajuan CA</a>
                 </div>
             </div>
         </div>
@@ -290,8 +290,8 @@
         <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between w-100 flex-wrap gap-2">
             <div>
                 <h5 class="h6 fw-bold text-dark font-head mb-0">
-                    {{ auth()->user()->isKaryawan() ? 'Pengajuan Cash Advance Terkini Anda' : 'Aktivitas Cash Advance Terbaru Perusahaan' }}
                 </h5>
+                {{ auth()->user()->isKaryawan() ? 'Pengajuan Cash Advance Terkini Anda' : 'Aktivitas Cash Advance Terbaru Perusahaan' }}
                 <small class="text-muted">Memantau perkembangan status kasbon operasional yang sedang berjalan.</small>
             </div>
             <div class="ms-auto">

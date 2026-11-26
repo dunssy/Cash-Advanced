@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\AuditLog;
 use App\Models\CashAdvance;
 use App\Models\Expense;
-use App\Models\ExpenseAttachment;
 use App\Models\SystemNotification;
 use App\Models\SystemSetting;
 use App\Models\TopUp;
@@ -114,7 +113,7 @@ class DatabaseSeeder extends Seeder
 
         $superAdmin = User::create([
             'name' => 'Super Admin IT',
-            'email' => 'superadmin@technodrives.co.id',
+            'email' => 'admin@technodrives.co.id',
             'password' => $commonPassword,
             'role' => 'super_admin',
             'department' => ['IT & Systems', 'Infrastruktur Jaringan'],
@@ -343,7 +342,7 @@ class DatabaseSeeder extends Seeder
             'title' => 'Persetujuan Khusus CA Masuk',
             'message' => 'Pengajuan CA-202611-0003 oleh Atasan (Indri Handayani) memerlukan persetujuan Direktur.',
             'type' => 'warning',
-            'link' => '/cash-advances/' . $caAtasan->id,
+            'link' => '/cash-advances/'.$caAtasan->id,
             'is_read' => false,
             'created_at' => now(),
         ]);
@@ -353,7 +352,7 @@ class DatabaseSeeder extends Seeder
             'title' => 'Verifikasi Struk Menunggu',
             'message' => 'Ada 2 struk pengeluaran baru pada CA-202611-0001 siap diverifikasi.',
             'type' => 'info',
-            'link' => '/cash-advances/' . $caActive->id,
+            'link' => '/cash-advances/'.$caActive->id,
             'is_read' => false,
             'created_at' => now(),
         ]);

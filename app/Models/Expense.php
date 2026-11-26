@@ -40,7 +40,7 @@ class Expense extends Model
     {
         return [
             'transaction_date' => 'date',
-            'amount' => 'decimal:2',
+            'amount' => 'integer',
             'is_talangan' => 'boolean',
             'is_lost_receipt' => 'boolean',
             'is_late' => 'boolean',
