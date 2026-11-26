@@ -44,7 +44,7 @@
         </a>
         <div class="flex items-center gap-2">
             @if($cashAdvance->canBeSoftDeletedBy(auth()->user()))
-                <button type="button" @click="showDeleteCaModal = true" class="btn-secondary btn-sm py-1.5 px-3.5 text-xs inline-flex items-center gap-1.5 font-head font-semibold text-rose-700 border-rose-200 hover:bg-rose-50 shadow-xs rounded-full transition active:scale-95" title="Hapus CA (Soft Delete)">
+                <button type="button" @click="showDeleteCaModal = true" class="btn-secondary btn-sm py-1.5 px-3.5 text-xs inline-flex items-center gap-1.5 font-head font-semibold text-rose-700 border-rose-200 hover:bg-rose-50 shadow-xs rounded-full transition active:scale-95" title="Hapus Cash Advance">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5 text-rose-600"></i>
                     <span>Hapus CA</span>
                 </button>
@@ -77,11 +77,11 @@
                             {{ $cashAdvance->status === 'CLOSED' ? 'badge-closed' : '' }}
                         ">
                             @if($cashAdvance->status === 'PENDING_APPROVAL')
-                                {{ $cashAdvance->approved_by ? 'Disetujui • Menunggu Pencairan' : 'Menunggu Approval' }}
+                                {{ $cashAdvance->approved_by ? 'Disetujui • Menunggu Pencairan' : 'Menunggu Persetujuan' }}
                             @endif
                             @if($cashAdvance->status === 'REJECTED') Ditolak @endif
                             @if($cashAdvance->status === 'ACTIVE') Aktif (Berjalan) @endif
-                            @if($cashAdvance->status === 'NEED_SETTLEMENT') Wajib Settlement @endif
+                            @if($cashAdvance->status === 'NEED_SETTLEMENT') Penyelesaian Kas @endif
                             @if($cashAdvance->status === 'PENDING_VERIFICATION') Verifikasi Akhir @endif
                             @if($cashAdvance->status === 'CLOSED') Selesai @endif
                         </span>
@@ -134,7 +134,7 @@
                         @if($cashAdvance->is_overdue)
                             <div class="badge-retail bg-rose-100 text-rose-800 border-rose-300 font-bold mb-2">
                                 <i data-lucide="alert-octagon" class="w-3.5 h-3.5 text-rose-600"></i>
-                                <span>OVERDUE</span>
+                                <span>Lewat Jatuh Tempo</span>
                             </div>
                             <div class="text-xs text-rose-600 font-bold">Telah Melewati Batas Waktu</div>
                         @else
@@ -684,7 +684,7 @@
 
                                 <!-- Soft Delete Top-Up -->
                                 @if($tu->canBeSoftDeletedBy(auth()->user()))
-                                    <button type="button" @click="showDeleteTopupModal = true; deleteTopupId = {{ $tu->id }}; deleteTopupAmount = '{{ number_format($tu->amount, 0, ',', '.') }}'" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-200 transition" title="Hapus Top-Up (Soft Delete)">
+                                    <button type="button" @click="showDeleteTopupModal = true; deleteTopupId = {{ $tu->id }}; deleteTopupAmount = '{{ number_format($tu->amount, 0, ',', '.') }}'" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-200 transition" title="Hapus Pengajuan Top-Up">
                                         <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                                     </button>
                                 @endif
@@ -847,7 +847,7 @@
                             @if($exp->canBeSoftDeletedBy(auth()->user()))
                                 <button type="button" @click="showDeleteExpenseModal = true; deleteExpenseId = {{ $exp->id }}; deleteExpenseDesc = {{ \Illuminate\Support\Js::from($exp->description) }}"
                                         class="p-2 text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-200 transition"
-                                        title="Hapus Transaksi (Soft Delete)">
+                                        title="Hapus Transaksi">
                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                 </button>
                             @endif
@@ -1012,7 +1012,7 @@
 
                                     <!-- Soft Delete Expense -->
                                     @if($exp->canBeSoftDeletedBy(auth()->user()))
-                                        <button type="button" @click="showDeleteExpenseModal = true; deleteExpenseId = {{ $exp->id }}; deleteExpenseDesc = {{ \Illuminate\Support\Js::from($exp->description) }}" class="p-1.5 text-rose-600 hover:text-rose-800 transition" title="Hapus Transaksi (Soft Delete)">
+                                        <button type="button" @click="showDeleteExpenseModal = true; deleteExpenseId = {{ $exp->id }}; deleteExpenseDesc = {{ \Illuminate\Support\Js::from($exp->description) }}" class="p-1.5 text-rose-600 hover:text-rose-800 transition" title="Hapus Transaksi">
                                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                                         </button>
                                     @endif
@@ -1480,10 +1480,10 @@
             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
             x-transition:leave-end="opacity-0 scale-95 translate-y-2"
             class="card-commerce max-w-md w-full p-6 shadow-2xl">
-            <h3 class="text-base font-bold text-rose-700 mb-1">Hapus Cash Advance (Soft Delete)</h3>
+            <h3 class="text-base font-bold text-rose-700 mb-1">Hapus Cash Advance</h3>
             <p class="text-xs font-mono text-slate-600 mb-2">{{ $cashAdvance->ca_number }} &mdash; {{ $cashAdvance->project_name }}</p>
             <p class="text-xs text-slate-500 mb-4 leading-relaxed">
-                Dokumen CA akan disembunyikan dari tampilan operasional frontend, namun <strong>tetap tersimpan aman di basis data backend</strong> (arsip Soft Delete) dan dapat dipulihkan kembali.
+                Data ini akan dipindahkan ke Arsip, bukan dihapus permanen. Jika diperlukan, data dapat dipulihkan dari menu Arsip.
             </p>
 
             <form action="{{ route('cash-advances.destroy', $cashAdvance) }}" method="POST" class="space-y-4">
@@ -1518,10 +1518,10 @@
             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
             x-transition:leave-end="opacity-0 scale-95 translate-y-2"
             class="card-commerce max-w-md w-full p-6 shadow-2xl">
-            <h3 class="text-base font-bold text-rose-700 mb-1">Hapus Transaksi Pengeluaran (Soft Delete)</h3>
+            <h3 class="text-base font-bold text-rose-700 mb-1">Hapus Transaksi Pengeluaran</h3>
             <p class="text-xs text-slate-600 font-semibold mb-2" x-text="deleteExpenseDesc"></p>
             <p class="text-xs text-slate-500 mb-4 leading-relaxed">
-                Transaksi akan hilang dari tampilan operasional dan saldo CA otomatis disesuaikan, namun <strong>rekaman transaksi dan bukti struk tetap tersimpan di backend</strong> (tidak terhapus permanen).
+                Data ini akan dipindahkan ke Arsip, bukan dihapus permanen, dan saldo kas akan disesuaikan otomatis. Jika diperlukan, data dapat dipulihkan dari menu Arsip.
             </p>
 
             <form :action="'/expenses/' + deleteExpenseId" method="POST" class="space-y-4">
@@ -1556,10 +1556,10 @@
             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
             x-transition:leave-end="opacity-0 scale-95 translate-y-2"
             class="card-commerce max-w-md w-full p-6 shadow-2xl">
-            <h3 class="text-base font-bold text-rose-700 mb-1">Hapus Pengajuan Top-Up (Soft Delete)</h3>
+            <h3 class="text-base font-bold text-rose-700 mb-1">Hapus Pengajuan Top-Up</h3>
             <p class="text-xs font-mono text-slate-600 mb-2" x-text="'Top-Up Sebesar Rp ' + deleteTopupAmount"></p>
             <p class="text-xs text-slate-500 mb-4 leading-relaxed">
-                Pengajuan Top-Up akan disembunyikan dari daftar frontend, namun <strong>tetap tersimpan di backend</strong> dalam arsip Soft Delete.
+                Data ini akan dipindahkan ke Arsip, bukan dihapus permanen. Jika diperlukan, data dapat dipulihkan dari menu Arsip.
             </p>
 
             <form :action="'/top-ups/' + deleteTopupId" method="POST" class="space-y-4">

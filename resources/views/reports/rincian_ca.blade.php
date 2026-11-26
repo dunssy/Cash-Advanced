@@ -17,8 +17,19 @@
                 <div class="w-full sm:max-w-xl">
                     <select id="ca_selector" name="ca_id" onchange="this.form.submit()" class="w-full input-commerce font-mono text-xs py-2 bg-white cursor-pointer hover:border-slate-400 focus:border-[#FF3C00] shadow-2xs">
                         @foreach($allCAs ?? [] as $ca)
+                            @php
+                                $caStatusLabel = match($ca->status) {
+                                    'PENDING_APPROVAL' => $ca->approved_by ? 'Disetujui • Menunggu Pencairan' : 'Menunggu Persetujuan',
+                                    'REJECTED' => 'Ditolak',
+                                    'ACTIVE' => 'Aktif',
+                                    'NEED_SETTLEMENT' => 'Penyelesaian Kas',
+                                    'PENDING_VERIFICATION' => 'Verifikasi Akhir',
+                                    'CLOSED' => 'Selesai',
+                                    default => $ca->status,
+                                };
+                            @endphp
                             <option value="{{ $ca->id }}" {{ $selectedCA && $selectedCA->id === $ca->id ? 'selected' : '' }}>
-                                {{ $ca->ca_number }} &bull; {{ $ca->project_name }} ({{ $ca->user->name }}) [{{ $ca->status }}]
+                                {{ $ca->ca_number }} &bull; {{ $ca->project_name }} ({{ $ca->user->name }}) [{{ $caStatusLabel }}]
                             </option>
                         @endforeach
                     </select>
@@ -78,8 +89,19 @@
                 <div class="sm:col-span-2 text-left sm:text-right print:text-right sm:ps-2">
                     <span class="text-slate-400 block text-xs uppercase font-bold font-sans mb-1">Status CA</span>
                     <div class="mt-1 flex justify-start sm:justify-end print:justify-end">
+                        @php
+                            $selectedStatusLabel = match($selectedCA->status) {
+                                'PENDING_APPROVAL' => $selectedCA->approved_by ? 'Disetujui • Menunggu Pencairan' : 'Menunggu Persetujuan',
+                                'REJECTED' => 'Ditolak',
+                                'ACTIVE' => 'Aktif (Berjalan)',
+                                'NEED_SETTLEMENT' => 'Penyelesaian Kas',
+                                'PENDING_VERIFICATION' => 'Verifikasi Akhir',
+                                'CLOSED' => 'Selesai',
+                                default => $selectedCA->status,
+                            };
+                        @endphp
                         <span class="badge-retail bg-white border border-slate-300 shadow-2xs">
-                            {{ $selectedCA->status }}
+                            {{ $selectedStatusLabel }}
                         </span>
                     </div>
                 </div>
@@ -140,7 +162,14 @@
                                 {{ $exp->verification_status === 'REJECTED' ? 'bg-[#DC2626] text-white shadow-sm' : '' }}
                                 {{ $exp->verification_status === 'VOID' ? 'bg-[#F4F4F4] text-[#7A7A7A] border border-[#E1E1E1] line-through' : '' }}
                             ">
-                                {{ $exp->verification_status }}
+                                {{ match($exp->verification_status) {
+                                    'VALID' => 'Sah',
+                                    'PENDING' => 'Menunggu Verifikasi',
+                                    'NEEDS_REVISION' => 'Perlu Perbaikan',
+                                    'REJECTED' => 'Ditolak',
+                                    'VOID' => 'Dibatalkan',
+                                    default => $exp->verification_status,
+                                } }}
                             </span>
                         </div>
                         <div>
@@ -211,7 +240,14 @@
                                         {{ $exp->verification_status === 'REJECTED' ? 'bg-[#DC2626] text-white shadow-sm' : '' }}
                                         {{ $exp->verification_status === 'VOID' ? 'bg-[#F4F4F4] text-[#7A7A7A] border border-[#E1E1E1] line-through' : '' }}
                                     ">
-                                        {{ $exp->verification_status }}
+                                        {{ match($exp->verification_status) {
+                                    'VALID' => 'Sah',
+                                    'PENDING' => 'Menunggu Verifikasi',
+                                    'NEEDS_REVISION' => 'Perlu Perbaikan',
+                                    'REJECTED' => 'Ditolak',
+                                    'VOID' => 'Dibatalkan',
+                                    default => $exp->verification_status,
+                                } }}
                                     </span>
                                 </td>
                             </tr>

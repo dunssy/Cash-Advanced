@@ -83,7 +83,7 @@
                     class="mt-2.5 p-4 bg-rose-50 border border-rose-300 rounded-xl text-xs text-rose-900 flex items-start space-x-3">
                     <i data-lucide="alert-octagon" class="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5"></i>
                     <div class="leading-relaxed">
-                        <span class="font-bold">Saldo Kas Tidak Cukup:</span> Nominal pengeluaran melebihi sisa saldo kas aktif (<strong class="font-mono">Rp {{ number_format($cashAdvance->current_balance, 0, ',', '.') }}</strong>). Sistem mengunci saldo agar tidak negatif. Gunakan opsi <strong>Talangan Pribadi (Kondisi Darurat)</strong> di bawah atau ajukan Top-Up dana.
+                        <span class="font-bold">Saldo Anda tidak cukup.</span> Sisa kas: <strong class="font-mono">Rp {{ number_format($cashAdvance->current_balance, 0, ',', '.') }}</strong>. Kurangi nominal, ajukan Top-Up, atau pilih <strong>Talangan Pribadi</strong> di bawah jika Anda membayar dengan uang sendiri.
                     </div>
                 </div>
             </div>
@@ -151,9 +151,9 @@
                     <input type="checkbox" name="is_talangan" value="1" x-model="isTalangan"
                         class="mt-0.5 rounded border-amber-300 text-amber-600 focus:ring-amber-500">
                     <div>
-                        <span class="text-xs font-bold text-amber-900 block font-head">Talangan Pribadi (Kondisi Darurat)</span>
+                        <span class="text-xs font-bold text-amber-900 block font-head">Talangan Pribadi (Keadaan Darurat)</span>
                         <span class="text-xs text-amber-800 leading-relaxed block font-body">
-                            Centang ini jika saldo kas Anda habis di lapangan dan Anda terpaksa menalangi dengan uang pribadi. Akan diganti kantor saat Settlement.
+                            Centang jika saldo kas habis dan Anda membayar dengan uang sendiri. Dana akan diganti kantor saat penyelesaian kas.
                         </span>
                     </div>
                 </label>
@@ -165,7 +165,7 @@
                     </label>
                     <textarea name="talangan_emergency_reason" rows="2"
                         class="w-full input-commerce bg-white"
-                        placeholder="Contoh: Pekerjaan di site malam hari butuh genset tambahan, saldo kas habis dan bank sudah cut-off...">{{ old('talangan_emergency_reason') }}</textarea>
+                        placeholder="Contoh: Pekerjaan malam hari butuh genset tambahan, saldo kas habis dan bank sudah tutup...">{{ old('talangan_emergency_reason') }}</textarea>
                 </div>
 
                 <!-- Checkbox Tanpa Struk Fisik -->
@@ -173,9 +173,9 @@
                     <input type="checkbox" name="is_lost_receipt" value="1" x-model="isLostReceipt"
                         class="mt-0.5 rounded border-slate-300 text-slate-800 focus:ring-slate-500">
                     <div>
-                        <span class="text-xs font-bold text-slate-800 block font-head">Tanpa Struk Fisik (Darurat)</span>
+                        <span class="text-xs font-bold text-slate-800 block font-head">Tanpa Struk Fisik (Keadaan Darurat)</span>
                         <span class="text-xs text-slate-600 leading-relaxed block font-body">
-                            Centang ini jika transaksi tidak memiliki struk cetak resmi (misal: ojek pangkalan lokal, warung kecil tanpa nota, kuli angkut). Wajib mengunggah surat pernyataan bermaterai atau bertandatangan.
+                            Centang jika tidak ada struk resmi (misal: ojek, warung kecil, atau kuli angkut). Anda wajib mengunggah surat pernyataan bertanda tangan dan bermaterai.
                         </span>
                     </div>
                 </label>
@@ -186,7 +186,7 @@
                 <!-- Jika Lost Receipt: Upload Surat Pernyataan -->
                 <div x-show="isLostReceipt" x-cloak class="space-y-2">
                     <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider">
-                        Upload Surat Pernyataan Kehilangan Struk (Bermaterai) <span class="text-rose-500">*</span>
+                        Unggah Surat Pernyataan Kehilangan Struk (Bertanda Tangan &amp; Bermaterai) <span class="text-rose-500">*</span>
                     </label>
                     <input type="file" name="lost_receipt_statement_file" id="lost-receipt-input" accept="image/*,.pdf" capture="environment"
                         class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#050A1E] file:text-white hover:file:bg-slate-800 cursor-pointer">

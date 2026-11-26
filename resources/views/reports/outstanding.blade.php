@@ -44,19 +44,19 @@
             </div>
 
             <div class="bg-slate-50 p-3 sm:p-3.5 rounded-xl border border-slate-200">
-                <span class="text-xs text-amber-900 uppercase font-bold font-sans block">Menunggu Refund Sisa (Need Settlement)</span>
+                <span class="text-xs text-amber-900 uppercase font-bold font-sans block">Penyelesaian Kas</span>
                 <span class="text-base sm:text-lg font-bold text-amber-800 block mt-1">
                     {{ $outstandingCAs->where('status', 'NEED_SETTLEMENT')->count() }} Proyek
                 </span>
-                <span class="text-xs text-slate-400 block mt-0.5 font-sans">Proyek tuntas, wajib transfer sisa kas</span>
+                <span class="text-xs text-slate-400 block mt-0.5 font-sans">Proyek selesai, menunggu pengembalian sisa kas</span>
             </div>
 
             <div class="bg-slate-50 p-3 sm:p-3.5 rounded-xl border border-slate-200">
-                <span class="text-xs text-rose-800 uppercase font-bold font-sans block">Status Lewat Waktu (OVERDUE)</span>
+                <span class="text-xs text-rose-800 uppercase font-bold font-sans block">Lewat Jatuh Tempo</span>
                 <span class="text-base sm:text-lg font-bold text-rose-600 block mt-1">
                     {{ $outstandingCAs->filter->is_overdue->count() }} CA
                 </span>
-                <span class="text-xs text-slate-400 block mt-0.5 font-sans">Melebihi durasi batas 2 bulan</span>
+                <span class="text-xs text-slate-400 block mt-0.5 font-sans">Melebihi batas waktu 2 bulan</span>
             </div>
         </div>
 

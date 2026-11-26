@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Pengajuan Digembok')
-@section('page_title', 'Akses Pengajuan Digembok')
+@section('title', 'Pengajuan Belum Tersedia')
+@section('page_title', 'Pengajuan Baru Belum Tersedia')
 
 @section('content')
 <div class="max-w-2xl mx-auto py-8">
@@ -11,9 +11,9 @@
             <i data-lucide="lock" class="w-8 h-8"></i>
         </div>
 
-        <h1 class="text-xl sm:text-2xl font-head font-bold text-[#050A1E] tracking-tight">Pengajuan Baru Digembok Sistem</h1>
+        <h1 class="text-xl sm:text-2xl font-head font-bold text-[#050A1E] tracking-tight">Belum Bisa Mengajukan Cash Advance Baru</h1>
         <p class="text-bodygrey text-xs sm:text-sm mt-2 max-w-lg mx-auto leading-relaxed">
-            Sesuai <strong>Prinsip Tata Kelola PT Technodrives</strong>: setiap karyawan tidak dapat membuat pengajuan Cash Advance baru sebelum CA sebelumnya tuntas dan berstatus <strong>CLOSED</strong>.
+            Anda belum bisa mengajukan Cash Advance baru. Selesaikan Cash Advance sebelumnya sampai berstatus <strong>Selesai</strong>, lalu ajukan kembali.
         </p>
 
         @if($lockingCA)
@@ -29,8 +29,8 @@
                         {{ $lockingCA->status === 'REJECTED' ? 'badge-rejected' : '' }}
                     ">
                         @if($lockingCA->status === 'ACTIVE') Aktif (Berjalan) @endif
-                        @if($lockingCA->status === 'PENDING_APPROVAL') Menunggu Approval @endif
-                        @if($lockingCA->status === 'NEED_SETTLEMENT') Wajib Settlement @endif
+                        @if($lockingCA->status === 'PENDING_APPROVAL') Menunggu Persetujuan @endif
+                        @if($lockingCA->status === 'NEED_SETTLEMENT') Penyelesaian Kas @endif
                         @if($lockingCA->status === 'PENDING_VERIFICATION') Verifikasi Akhir @endif
                         @if($lockingCA->status === 'CLOSED') Selesai @endif
                         @if($lockingCA->status === 'REJECTED') Ditolak @endif
@@ -50,7 +50,7 @@
                     <div>
                         <span class="text-bodygrey block text-xs font-head font-bold uppercase">Sisa Waktu:</span>
                         <span class="font-head font-bold {{ $lockingCA->is_overdue ? 'text-[#FF3C00]' : 'text-[#050A1E]' }} text-sm">
-                            {{ $lockingCA->is_overdue ? 'OVERDUE' : ($lockingCA->days_remaining . ' Hari Tersisa') }}
+                            {{ $lockingCA->is_overdue ? 'Lewat Jatuh Tempo' : ($lockingCA->days_remaining . ' Hari Tersisa') }}
                         </span>
                     </div>
                 </div>
@@ -73,7 +73,7 @@
 
         <!-- Direktur override notice -->
         <div class="mt-6 pt-5 border-t border-slate-100 text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-            <span class="font-bold text-slate-600">Catatan Pengecualian:</span> Gembok pengajuan hanya dapat dibuka oleh <strong>Direktur</strong> bila terdapat kondisi darurat proyek baru yang telah disetujui, dengan alasan tertulis yang tercatat permanen di Audit Log.
+            <span class="font-bold text-slate-600">Catatan Pengecualian:</span> Izin pengajuan baru sebelum proyek lama selesai hanya dapat diberikan oleh <strong>Direktur</strong> untuk kondisi darurat dengan alasan tertulis.
         </div>
     </div>
 </div>

@@ -120,7 +120,7 @@
                     <li class="nav-item">
                         <a href="{{ route('soft-deletes.index') }}" class="nav-link {{ request()->routeIs('soft-deletes.*') ? 'active' : '' }}">
                             <i class="nav-icon bi bi-archive"></i>
-                            <p>Arsip Soft Delete</p>
+                            <p>Arsip Data</p>
                         </a>
                     </li>
                 @endif

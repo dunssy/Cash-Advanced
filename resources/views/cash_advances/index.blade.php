@@ -46,10 +46,10 @@
                     <option value="">Semua Status</option>
                     <option value="PENDING_APPROVAL" {{ request('status') === 'PENDING_APPROVAL' ? 'selected' : '' }}>Menunggu Persetujuan</option>
                     <option value="ACTIVE" {{ request('status') === 'ACTIVE' ? 'selected' : '' }}>Aktif (Berjalan)</option>
-                    <option value="NEED_SETTLEMENT" {{ request('status') === 'NEED_SETTLEMENT' ? 'selected' : '' }}>Butuh Settlement</option>
-                    <option value="PENDING_VERIFICATION" {{ request('status') === 'PENDING_VERIFICATION' ? 'selected' : '' }}>Verifikasi Finance</option>
-                    <option value="CLOSED" {{ request('status') === 'CLOSED' ? 'selected' : '' }}>Ditutup (CLOSED)</option>
-                    <option value="OVERDUE" {{ request('status') === 'OVERDUE' ? 'selected' : '' }}>OVERDUE</option>
+                    <option value="NEED_SETTLEMENT" {{ request('status') === 'NEED_SETTLEMENT' ? 'selected' : '' }}>Penyelesaian Kas</option>
+                    <option value="PENDING_VERIFICATION" {{ request('status') === 'PENDING_VERIFICATION' ? 'selected' : '' }}>Verifikasi Akhir</option>
+                    <option value="CLOSED" {{ request('status') === 'CLOSED' ? 'selected' : '' }}>Selesai</option>
+                    <option value="OVERDUE" {{ request('status') === 'OVERDUE' ? 'selected' : '' }}>Lewat Jatuh Tempo</option>
                 </select>
             </div>
 
@@ -96,11 +96,11 @@
                                 {{ $ca->status === 'CLOSED' ? 'badge-closed' : '' }}
                             ">
                                 @if($ca->status === 'PENDING_APPROVAL')
-                                    {{ $ca->approved_by ? 'Disetujui • Menunggu Pencairan' : 'Menunggu Approval' }}
+                                    {{ $ca->approved_by ? 'Disetujui • Menunggu Pencairan' : 'Menunggu Persetujuan' }}
                                 @endif
                                 @if($ca->status === 'REJECTED') Ditolak @endif
                                 @if($ca->status === 'ACTIVE') Aktif @endif
-                                @if($ca->status === 'NEED_SETTLEMENT') Wajib Settlement @endif
+                                @if($ca->status === 'NEED_SETTLEMENT') Penyelesaian Kas @endif
                                 @if($ca->status === 'PENDING_VERIFICATION') Verifikasi Akhir @endif
                                 @if($ca->status === 'CLOSED') Selesai @endif
                             </span>
@@ -134,7 +134,7 @@
                         <div>
                             @if($ca->status === 'ACTIVE' || $ca->status === 'NEED_SETTLEMENT')
                                 @if($ca->is_overdue)
-                                    <span class="badge-retail bg-rose-100 text-rose-800 border-rose-300 font-bold text-xs">OVERDUE</span>
+                                    <span class="badge-retail bg-rose-100 text-rose-800 border-rose-300 font-bold text-xs">Lewat Jatuh Tempo</span>
                                 @else
                                     <span class="text-xs text-slate-600">Durasi: <strong class="text-slate-900 font-mono">{{ $ca->days_remaining }} hari</strong></span>
                                 @endif
@@ -152,7 +152,7 @@
                                 <button type="button"
                                     @click="showDeleteCaModal = true; deleteCaId = {{ $ca->id }}; deleteCaNumber = {{ \Illuminate\Support\Js::from($ca->ca_number) }}; deleteCaProject = {{ \Illuminate\Support\Js::from($ca->project_name) }}"
                                     class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-600 hover:text-white text-xs font-head font-bold transition"
-                                    title="Hapus Cash Advance (Soft Delete)">
+                                    title="Hapus Cash Advance">
                                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                                     <span>Hapus</span>
                                 </button>
@@ -230,7 +230,7 @@
                             <td class="text-center font-head whitespace-nowrap">
                                 @if($ca->status === 'ACTIVE' || $ca->status === 'NEED_SETTLEMENT')
                                     @if($ca->is_overdue)
-                                        <span class="badge-retail badge-rejected">OVERDUE</span>
+                                        <span class="badge-retail badge-rejected">Lewat Jatuh Tempo</span>
                                     @else
                                         <span class="text-[#050A1E] font-semibold text-xs">{{ $ca->days_remaining }} hr</span>
                                     @endif
@@ -250,11 +250,11 @@
                                     {{ $ca->status === 'CLOSED' ? 'badge-closed' : '' }}
                                 ">
                                     @if($ca->status === 'PENDING_APPROVAL')
-                                        {{ $ca->approved_by ? 'Disetujui • Menunggu Pencairan' : 'Menunggu Approval' }}
+                                        {{ $ca->approved_by ? 'Disetujui • Menunggu Pencairan' : 'Menunggu Persetujuan' }}
                                     @endif
                                     @if($ca->status === 'REJECTED') Ditolak @endif
                                     @if($ca->status === 'ACTIVE') Aktif @endif
-                                    @if($ca->status === 'NEED_SETTLEMENT') Wajib Settlement @endif
+                                    @if($ca->status === 'NEED_SETTLEMENT') Penyelesaian Kas @endif
                                     @if($ca->status === 'PENDING_VERIFICATION') Verifikasi Akhir @endif
                                     @if($ca->status === 'CLOSED') Selesai @endif
                                 </span>
@@ -269,7 +269,7 @@
                                         <button type="button"
                                             @click="showDeleteCaModal = true; deleteCaId = {{ $ca->id }}; deleteCaNumber = {{ \Illuminate\Support\Js::from($ca->ca_number) }}; deleteCaProject = {{ \Illuminate\Support\Js::from($ca->project_name) }}"
                                             class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-full border border-rose-200 transition"
-                                            title="Hapus Cash Advance (Soft Delete)">
+                                            title="Hapus Cash Advance">
                                             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                                         </button>
                                     @endif
@@ -311,10 +311,10 @@
             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
             x-transition:leave-end="opacity-0 scale-95 translate-y-2"
             class="card-commerce max-w-md w-full p-6 shadow-2xl">
-            <h3 class="text-base font-bold text-rose-700 mb-1">Hapus Cash Advance (Soft Delete)</h3>
+            <h3 class="text-base font-bold text-rose-700 mb-1">Hapus Cash Advance</h3>
             <p class="text-xs font-mono text-slate-600 mb-2" x-text="deleteCaNumber + ' — ' + deleteCaProject"></p>
             <p class="text-xs text-slate-500 mb-4 leading-relaxed">
-                Data akan disembunyikan dari daftar operasional frontend, namun <strong>tetap tersimpan aman di backend</strong> (tidak hilang permanen) dan dapat dipulihkan melalui menu Arsip Soft Delete.
+                Data ini akan dipindahkan ke Arsip, bukan dihapus permanen. Jika diperlukan, data dapat dipulihkan dari menu Arsip.
             </p>
 
             <form :action="'/cash-advances/' + deleteCaId" method="POST" class="space-y-4">

@@ -41,7 +41,7 @@
             <div class="mb-5 pb-3 border-b border-slate-100 flex items-center justify-between">
                 <div>
                     <h2 class="text-base font-heading font-bold text-navy">Masuk ke Akun</h2>
-                    <p class="text-xs text-bodygrey mt-0.5">Silakan masuk dengan kredensial terdaftar.</p>
+                    <p class="text-xs text-bodygrey mt-0.5">Masuk dengan email kantor dan kata sandi Anda.</p>
                 </div>
                 <div class="w-8 h-8 rounded-full bg-surface border border-cardborder flex items-center justify-center text-brand">
                     <i data-lucide="shield-check" class="w-4 h-4"></i>
@@ -104,8 +104,8 @@
 
             {{-- lupakan password --}}
             <div class="mt-4 text-center">
-                <a href="javascript:void(0)" onclick="alert('Silakan hubungi IT Administrator atau Super Admin untuk reset password akun Anda.')" class="text-xs text-brand hover:text-brand-dark transition font-medium">
-                    Lupa Password?
+                <a href="javascript:void(0)" onclick="alert('Tidak bisa masuk? Hubungi tim IT untuk bantuan mengatur ulang kata sandi.')" class="text-xs text-brand hover:text-brand-dark transition font-medium">
+                    Tidak bisa masuk?
                 </a>
             </div>
         </div>

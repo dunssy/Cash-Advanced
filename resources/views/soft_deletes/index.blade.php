@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Arsip Soft Delete Keuangan & Transaksi')
-@section('page_title', 'Arsip Soft Delete (Data Terhapus)')
+@section('title', 'Arsip Keuangan & Transaksi')
+@section('page_title', 'Arsip Data')
 
 @section('content')
 <div class="space-y-4" x-data="{ activeTab: '{{ in_array($tab, ['all', 'cash_advances', 'expenses', 'top_ups'], true) ? $tab : 'all' }}' }">
@@ -13,9 +13,9 @@
                 <i data-lucide="archive" class="w-5 h-5 text-[#FF3C00]"></i>
             </div>
             <div>
-                <h2 class="text-sm font-head font-bold text-white mb-0.5">Arsip Data Transaksi & Sektor Keuangan (Soft Delete)</h2>
+                <h2 class="text-sm font-head font-bold text-white mb-0.5">Arsip Data</h2>
                 <p class="text-xs text-slate-300 leading-relaxed mb-0">
-                    Seluruh data Cash Advance, Transaksi Pengeluaran, dan Top-Up yang dihapus dari frontend tetap tersimpan utuh di basis data backend beserta jejak pelaku dan alasannya, serta dapat dipulihkan kapan saja.
+                    Data Cash Advance, transaksi pengeluaran, dan Top-Up yang dihapus dari daftar operasional tetap tersimpan di arsip beserta jejak pelaku dan alasannya, dan bisa dipulihkan kapan saja.
                 </p>
             </div>
         </div>
@@ -104,7 +104,7 @@
                         <th class="py-2.5 px-4">Pemohon</th>
                         <th class="py-2.5 px-4 text-right">Nominal</th>
                         <th class="py-2.5 px-4 text-center">Status Terakhir</th>
-                        <th class="py-2.5 px-4">Info Soft Delete</th>
+                        <th class="py-2.5 px-4">Info Penghapusan</th>
                         <th class="py-2.5 px-4 text-center">Aksi</th>
                     </tr>
                 </thead>
@@ -144,7 +144,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="py-8 text-center text-slate-400">Tidak ada data Cash Advance yang berstatus soft delete.</td>
+                            <td colspan="6" class="py-8 text-center text-slate-400">Belum ada data Cash Advance di arsip.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -169,7 +169,7 @@
                         <th class="py-2.5 px-4">Keterangan & Vendor</th>
                         <th class="py-2.5 px-4 text-right">Nominal</th>
                         <th class="py-2.5 px-4 text-center">Status Verifikasi</th>
-                        <th class="py-2.5 px-4">Info Soft Delete</th>
+                        <th class="py-2.5 px-4">Info Penghapusan</th>
                         <th class="py-2.5 px-4 text-center">Aksi</th>
                     </tr>
                 </thead>
@@ -214,7 +214,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="py-8 text-center text-slate-400">Tidak ada transaksi pengeluaran yang berstatus soft delete.</td>
+                            <td colspan="6" class="py-8 text-center text-slate-400">Belum ada transaksi pengeluaran di arsip.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -239,7 +239,7 @@
                         <th class="py-2.5 px-4">Alasan Top-Up</th>
                         <th class="py-2.5 px-4 text-right">Nominal</th>
                         <th class="py-2.5 px-4 text-center">Status Terakhir</th>
-                        <th class="py-2.5 px-4">Info Soft Delete</th>
+                        <th class="py-2.5 px-4">Info Penghapusan</th>
                         <th class="py-2.5 px-4 text-center">Aksi</th>
                     </tr>
                 </thead>
@@ -276,7 +276,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="py-8 text-center text-slate-400">Tidak ada pengajuan Top-Up yang berstatus soft delete.</td>
+                            <td colspan="6" class="py-8 text-center text-slate-400">Belum ada pengajuan Top-Up di arsip.</td>
                         </tr>
                     @endforelse
                 </tbody>
