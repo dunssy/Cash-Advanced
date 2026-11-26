@@ -130,13 +130,8 @@ class ExpenseController extends Controller
         $validated = $request->validate($rules, $messages);
 
         $isTalangan = $request->boolean('is_talangan');
-<<<<<<< HEAD
         $amount = (float) $validated['amount'];
-        $currentBalance = $cashAdvance->current_balance;
-=======
-        $amount = (int) $validated['amount'];
         $userBalance = $cashAdvance->userCurrentBalance($user->id);
->>>>>>> 4416a1cb4ead5cd08fc956c49373ebdbe21a903f
 
         // 4. KUNCI INPUT SALDO (SOP Dokumen hal 5)
         // Saldo yang diperiksa adalah saldo kas berjalan pada Cash Advance ini
