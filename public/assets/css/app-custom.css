@@ -581,6 +581,26 @@ thead.table-technodrives-head th {
         margin: 0 !important;
         box-shadow: none !important;
         border: none !important;
+        padding: 0 !important;
+    }
+
+    .table-responsive,
+    .overflow-x-auto,
+    .overflow-hidden {
+        overflow: visible !important;
+    }
+
+    table {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    table th,
+    table td {
+        white-space: normal !important;
+        word-break: break-word !important;
+        font-size: 8.5pt !important;
+        padding: 5px 6px !important;
     }
 }
 

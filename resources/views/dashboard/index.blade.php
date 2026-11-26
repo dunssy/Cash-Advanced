@@ -67,14 +67,14 @@
                     </div>
 
                     <div class="col-lg-7">
-                        <div class="p-3 border rounded-3 bg-light d-flex align-items-center justify-content-between gap-3 shadow-xs" style="border-color: #FF3C00 !important; border-width: 2px !important;">
+                        <div class="p-3 border rounded-3 bg-light d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-between gap-3 shadow-xs" style="border-color: #FF3C00 !important; border-width: 2px !important;">
                             <div>
                                 <small class="text-uppercase fw-bold text-danger font-head d-block" style="font-size: 12px;">Sisa Saldo Kas</small>
-                                <span class="h3 fw-bold text-dark font-mono mb-0 d-block mt-0.5">
+                                <span class="h3 fw-bold text-dark font-mono mb-0 d-block mt-0.5 text-nowrap">
                                     Rp {{ number_format($myCa->current_balance, 0, ',', '.') }}
                                 </span>
                             </div>
-                            <a href="{{ route('expenses.create', $myCa) }}" class="btn-brand btn-sm px-3.5 py-2 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-sm rounded-full">
+                            <a href="{{ route('expenses.create', $myCa) }}" class="btn-brand btn-sm px-3.5 py-2 fw-semibold d-inline-flex align-items-center justify-content-center gap-1.5 shadow-sm rounded-full text-nowrap flex-shrink-0">
                                 <i class="bi bi-camera"></i>
                                 <span>Catat Struk</span>
                             </a>
@@ -86,7 +86,7 @@
                         $percentUsed = ($totalBudget > 0) ? min(100, round(($myCa->recorded_expenses_total / $totalBudget) * 100)) : 0;
                     @endphp
                     <div class="col-12 pt-2 border-top">
-                        <div class="d-flex justify-content-between small font-mono text-muted mb-1.5">
+                        <div class="d-flex flex-column flex-sm-row justify-content-between gap-1 small font-mono text-muted mb-1.5">
                             <span>Realisasi Pengeluaran:</span>
                             <strong class="text-dark">{{ $percentUsed }}% (Rp {{ number_format($myCa->recorded_expenses_total, 0, ',', '.') }} / Rp {{ number_format($totalBudget, 0, ',', '.') }})</strong>
                         </div>
@@ -98,12 +98,12 @@
             </div>
 
             @if($myCa->is_low_balance)
-                <div class="card-footer bg-danger-subtle text-danger-emphasis py-2 px-4 d-flex align-items-center justify-content-between small">
+                <div class="card-footer bg-danger-subtle text-danger-emphasis py-2 px-4 d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 small">
                     <span class="d-flex align-items-center gap-1.5">
                         <i class="bi bi-exclamation-triangle-fill"></i>
                         <span>Peringatan: Saldo CA Anda tersisa kurang dari 20%.</span>
                     </span>
-                    <a href="{{ route('cash-advances.show', $myCa) }}#topup" class="fw-bold text-danger text-decoration-none">Ajukan Top-Up</a>
+                    <a href="{{ route('cash-advances.show', $myCa) }}#topup" class="fw-bold text-danger text-decoration-none text-nowrap">Ajukan Top-Up</a>
                 </div>
             @endif
         </div>
@@ -272,14 +272,14 @@
     <!-- ADMIN PANEL FOR SUPER ADMIN -->
     @if(auth()->user()->isSuperAdmin())
         <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px;">
-            <div class="card-body p-4 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
+            <div class="card-body p-4 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between w-100 gap-3">
                 <div>
                     <h5 class="fw-bold text-dark font-head mb-1">Konfigurasi & Pengguna Sistem</h5>
                     <p class="text-muted small mb-0">Super Admin bertugas mengelola user master, relasi departemen, dan parameter global sistem.</p>
                 </div>
-                <div class="d-flex align-items-center gap-2">
-                    <a href="{{ route('admin.users.index') }}" class="btn-brand btn-sm px-3.5 py-2 fw-semibold shadow-xs rounded-full">Kelola User</a>
-                    <a href="{{ route('admin.settings.index') }}" class="btn-secondary btn-sm px-3.5 py-2 fw-semibold shadow-xs rounded-full">Pengaturan Global</a>
+                <div class="d-flex flex-wrap flex-sm-nowrap align-items-center gap-2 ms-sm-auto flex-shrink-0">
+                    <a href="{{ route('admin.users.index') }}" class="btn-brand btn-sm px-3.5 py-2 fw-semibold shadow-xs rounded-full flex-fill flex-sm-grow-0 d-inline-flex align-items-center justify-content-center text-center text-nowrap">Kelola User</a>
+                    <a href="{{ route('admin.settings.index') }}" class="btn-secondary btn-sm px-3.5 py-2 fw-semibold shadow-xs rounded-full flex-fill flex-sm-grow-0 d-inline-flex align-items-center justify-content-center text-center text-nowrap">Pengaturan Global</a>
                 </div>
             </div>
         </div>

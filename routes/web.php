@@ -45,11 +45,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/cash-advances/{cashAdvance}/close', [CashAdvanceController::class, 'close'])->name('cash-advances.close');
     Route::post('/cash-advances/{cashAdvance}/unlock-gembok', [CashAdvanceController::class, 'unlockGembok'])->name('cash-advances.unlock-gembok');
 
-    // RAB Items Management & Fund Distribution (Multi-Karyawan per Proyek)
-    Route::post('/cash-advances/{cashAdvance}/items', [CashAdvanceController::class, 'storeItems'])->name('cash-advances.items.store');
-    Route::delete('/cash-advances/{cashAdvance}/items/{item}', [CashAdvanceController::class, 'destroyItem'])->name('cash-advances.items.destroy');
-    Route::post('/cash-advances/{cashAdvance}/distributions', [CashAdvanceController::class, 'distributeFunds'])->name('cash-advances.distributions.store');
-
     // Expense Tracking
     Route::get('/cash-advances/{cashAdvance}/expenses/create', [ExpenseController::class, 'create'])->name('expenses.create');
     Route::post('/cash-advances/{cashAdvance}/expenses', [ExpenseController::class, 'store'])->name('expenses.store');

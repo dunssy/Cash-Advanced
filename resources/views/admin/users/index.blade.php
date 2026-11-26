@@ -6,17 +6,8 @@
 @section('content')
 <div class="space-y-6">
 
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-            <div class="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                <i data-lucide="shield-alert" class="w-4 h-4 text-rose-600"></i>
-                <span>Super Admin IT Panel (Dokumen Hal 2-3)</span>
-            </div>
-            <h1 class="text-xl sm:text-2xl font-bold text-retail-ink tracking-tight">Manajemen Pengguna & Relasi Atasan</h1>
-            <p class="text-xs text-slate-500 mt-0.5">Mengatur akun karyawan (~25 orang), hak akses peran (role), dan hierarki atasan langsung.</p>
-        </div>
-
+    <!-- Action Button -->
+    <div class="flex items-center justify-start">
         <a href="{{ route('admin.users.create') }}" class="btn-brand rounded-full">
             <i data-lucide="user-plus" class="w-4 h-4"></i>
             <span>Tambah User Baru</span>

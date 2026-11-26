@@ -5,19 +5,9 @@
 
 @section('content')
 <div class="max-w-4xl mx-auto space-y-6">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-slate-200">
-        <div>
-            <div class="inline-flex items-center space-x-2 text-xs font-head font-bold uppercase tracking-wider text-slate-400 mb-1">
-                <i data-lucide="user-cog" class="w-3.5 h-3.5 text-[#FF3C00]"></i>
-                <span>Pengaturan Akun</span>
-            </div>
-            <h1 class="text-xl sm:text-2xl font-bold font-head text-[#050A1E] tracking-tight">Profil & Biodata Pengguna</h1>
-            <p class="text-xs text-slate-500 font-body mt-0.5">
-                Kelola informasi biodata personal, foto profil kerja, tag divisi, dan rekening operasional Anda.
-            </p>
-        </div>
-        <a href="{{ route('dashboard') }}" class="btn-secondary btn-sm px-3.5 py-1.5 d-inline-flex align-items-center gap-1.5 fw-semibold shadow-xs rounded-full text-xs font-head transition active:scale-95 self-start sm:self-auto">
+    <!-- Tombol Kembali -->
+    <div class="flex items-center justify-start">
+        <a href="{{ route('dashboard') }}" class="btn-secondary btn-sm px-3.5 py-1.5 d-inline-flex align-items-center gap-1.5 fw-semibold shadow-xs rounded-full text-xs font-head transition active:scale-95">
             <i data-lucide="arrow-left" class="w-4 h-4 text-slate-500"></i>
             <span>Kembali ke Dashboard</span>
         </a>

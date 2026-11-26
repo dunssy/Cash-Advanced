@@ -4,40 +4,45 @@
 @section('page_title', 'Tambah Pengguna Baru')
 
 @section('content')
-<div class="max-w-2xl mx-auto">
+<div class="w-full space-y-5">
     <!-- Top Navigation -->
-    <div class="mb-4 pb-2 border-b border-slate-200">
+    <div class="pb-2 border-b border-slate-200">
         <a href="{{ route('admin.users.index') }}" class="btn-secondary btn-sm px-3.5 py-1.5 d-inline-flex align-items-center gap-1.5 fw-semibold shadow-xs rounded-full text-xs font-head transition active:scale-95">
             <i data-lucide="arrow-left" class="w-4 h-4 text-slate-500"></i>
             <span>Kembali ke Daftar User</span>
         </a>
     </div>
 
-    <div class="mb-5">
-        <h1 class="text-xl sm:text-2xl font-bold text-retail-ink tracking-tight">Tambah Pengguna Baru</h1>
-        <p class="text-xs text-slate-500 mt-1">Daftarkan akun karyawan, atasan, atau finance PT Technodrives Indonesia.</p>
-    </div>
-
-    <div class="card-commerce p-6 sm:p-7">
+    <div class="card-commerce p-6 sm:p-7 w-full">
         <form action="{{ route('admin.users.store') }}" method="POST" class="space-y-4">
             @csrf
 
-            <div>
-                <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1">Nama Lengkap <span class="text-rose-500">*</span></label>
-                <input type="text" name="name" value="{{ old('name') }}" required
-                    class="w-full input-commerce">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1">Nama Lengkap <span class="text-rose-500">*</span></label>
+                    <input type="text" name="name" value="{{ old('name') }}" required
+                        class="w-full input-commerce">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1">Email Kantor (@technodrives.co.id) <span class="text-rose-500">*</span></label>
+                    <input type="email" name="email" value="{{ old('email') }}" required
+                        class="w-full input-commerce font-mono" placeholder="nama@technodrives.co.id">
+                </div>
             </div>
 
-            <div>
-                <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1">Email Kantor (@technodrives.co.id) <span class="text-rose-500">*</span></label>
-                <input type="email" name="email" value="{{ old('email') }}" required
-                    class="w-full input-commerce font-mono" placeholder="nama@technodrives.co.id">
-            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1">Password Awal <span class="text-rose-500">*</span></label>
+                    <input type="password" name="password" required minlength="6"
+                        class="w-full input-commerce" placeholder="Minimal 6 karakter">
+                </div>
 
-            <div>
-                <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1">Password Awal <span class="text-rose-500">*</span></label>
-                <input type="password" name="password" required minlength="6"
-                    class="w-full input-commerce" placeholder="Minimal 6 karakter">
+                <div>
+                    <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1">Nomor WhatsApp</label>
+                    <input type="text" name="phone" value="{{ old('phone') }}"
+                        class="w-full input-commerce font-mono" placeholder="08123456789">
+                </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -61,12 +66,6 @@
                         @endforeach
                     </select>
                 </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1">Nomor WhatsApp</label>
-                <input type="text" name="phone" value="{{ old('phone') }}"
-                    class="w-full input-commerce font-mono" placeholder="08123456789">
             </div>
 
             <!-- Tag Divisi / Departemen (Maksimal 10 Divisi dengan format Tag: [Nama Divisi]) -->

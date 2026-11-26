@@ -67,13 +67,13 @@
                     </li>
                 @endif
 
-                <!-- Group 2: Laporan Manajemen (Direktur, Finance, Atasan) -->
-                @if(auth()->user()->isFinance() || auth()->user()->isDirektur() || auth()->user()->isAtasan())
+                <!-- Group 2: Laporan (Direktur, Finance, Atasan, Karyawan) -->
+                @if(auth()->user()->isFinance() || auth()->user()->isDirektur() || auth()->user()->isAtasan() || auth()->user()->isKaryawan())
                     <li class="nav-item {{ request()->routeIs('reports.*') ? 'menu-open' : '' }}">
                         <a href="#" class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
                             <i class="nav-icon bi bi-file-earmark-bar-graph"></i>
                             <p>
-                                Laporan Manajemen
+                                {{ auth()->user()->isKaryawan() ? 'Laporan' : 'Laporan Manajemen' }}
                                 <i class="nav-arrow bi bi-chevron-right"></i>
                             </p>
                         </a>

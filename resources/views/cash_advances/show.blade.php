@@ -26,12 +26,7 @@
     verifyExpenseId: null,
     verifyExpenseDesc: '',
     verifyStatus: 'VALID',
-    activeReceiptUrl: null,
-    showAddItemModal: false,
-    showDistributeModal: false,
-    distributeReceiverId: '',
-    distributeAmount: '',
-    selectedMemberFilter: 'all'
+    activeReceiptUrl: null
 }">
 
     <!-- Top Navigation Breadcrumb & Actions (Responsive & Anti-Overlap) -->
@@ -231,41 +226,29 @@
         @if(auth()->user()->isKaryawan())
             {{-- Karyawan: TIDAK MENAMPILKAN BAR "AKSI WORKFLOW" --}}
             {{-- Bila status ACTIVE, tampilkan tombol operasional kas pemohon secara bersih dan nyaman --}}
-            @php
-                $isTeamOrOwner = ($cashAdvance->user_id === auth()->id()) 
-                    || $cashAdvance->items->where('user_id', auth()->id())->isNotEmpty() 
-                    || $cashAdvance->distributions->where('receiver_id', auth()->id())->isNotEmpty();
-            @endphp
-            @if($cashAdvance->status === 'ACTIVE' && $isTeamOrOwner)
+            @if($cashAdvance->status === 'ACTIVE' && $cashAdvance->user_id === auth()->id())
                 <div class="bg-slate-50 px-4 sm:px-6 py-3.5 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div class="flex items-center space-x-2 flex-wrap gap-2">
                         <span class="text-xs font-head font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                             <i data-lucide="wallet" class="w-3.5 h-3.5 text-[#FF3C00]"></i>
                             <span>Aksi Kas Operasional Karyawan:</span>
                         </span>
-                        @if($cashAdvance->user_id !== auth()->id())
-                            <span class="text-xs font-mono text-emerald-700 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                                Saldo Dipegang: Rp {{ number_format($cashAdvance->userCurrentBalance(auth()->id()), 0, ',', '.') }}
-                            </span>
-                        @endif
                     </div>
                     <div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 w-full sm:w-auto">
-                        <a href="{{ route('expenses.create', $cashAdvance) }}" class="btn-brand text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition">
+                        <a href="{{ route('expenses.create', $cashAdvance) }}" class="btn-brand text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition rounded-full">
                             <i data-lucide="camera" class="w-4 h-4"></i>
                             <span>Catat Pengeluaran (Upload Struk)</span>
                         </a>
 
-                        @if($cashAdvance->user_id === auth()->id())
-                            <button type="button" @click="showTopupModal = true" class="btn-secondary text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center justify-center gap-1.5 active:scale-95 transition">
-                                <i data-lucide="arrow-up-circle" class="w-4 h-4 text-[#FF3C00]"></i>
-                                <span>Ajukan Top-Up Dana</span>
-                            </button>
+                        <button type="button" @click="showTopupModal = true" class="btn-secondary text-xs py-2 px-4 w-full sm:w-auto inline-flex items-center justify-center gap-1.5 active:scale-95 transition rounded-full">
+                            <i data-lucide="arrow-up-circle" class="w-4 h-4 text-[#FF3C00]"></i>
+                            <span>Ajukan Top-Up Dana</span>
+                        </button>
 
-                            <button type="button" @click="showCompleteModal = true" class="btn-dark text-xs py-2 px-4 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500 hover:text-white transition w-full sm:w-auto inline-flex items-center justify-center gap-1.5 active:scale-95 transition">
-                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
-                                <span>Tandai Proyek Selesai</span>
-                            </button>
-                        @endif
+                        <button type="button" @click="showCompleteModal = true" class="btn-dark text-xs py-2 px-4 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500 hover:text-white transition w-full sm:w-auto inline-flex items-center justify-center gap-1.5 active:scale-95 transition rounded-full">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+                            <span>Tandai Proyek Selesai</span>
+                        </button>
                     </div>
                 </div>
             @endif
@@ -693,280 +676,6 @@
         </div>
     @endif
 
-    <!-- ==================== RAB PROYEK & KONSOLIDASI ITEM TIM ==================== -->
-    <div class="card-commerce p-5 sm:p-6 space-y-4" id="rincian-rab-tim">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
-            <div>
-                <h3 class="text-xs font-bold uppercase tracking-wider text-retail-ink flex items-center space-x-2 font-head">
-                    <i data-lucide="receipt-text" class="w-4 h-4 text-[#FF3C00]"></i>
-                    <span>Rincian Anggaran Biaya (RAB) Proyek Tim</span>
-                </h3>
-            </div>
-            <div class="flex items-center gap-2">
-                @if($cashAdvance->status !== 'CLOSED' && $cashAdvance->status !== 'REJECTED')
-                    <button type="button" @click="showAddItemModal = true" class="btn-secondary text-xs py-1.5 px-3 inline-flex items-center gap-1.5 active:scale-95 transition">
-                        <i data-lucide="plus" class="w-3.5 h-3.5 text-[#FF3C00]"></i>
-                        <span>Tambah Pos RAB</span>
-                    </button>
-                @endif
-            </div>
-        </div>
-
-        @if($cashAdvance->items->isEmpty())
-            <div class="p-6 text-center text-xs text-slate-400 italic bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                Belum ada rincian RAB yang dicatat untuk proyek ini.
-                @if($cashAdvance->status !== 'CLOSED')
-                    <button type="button" @click="showAddItemModal = true" class="text-[#FF3C00] font-bold hover:text-[#e03500] block mt-1">
-                        + Tambah Rincian RAB Sekarang
-                    </button>
-                @endif
-            </div>
-        @else
-            <div class="overflow-x-auto rounded-[15px] border border-slate-200">
-                <table class="w-full text-xs text-left table-technodrives">
-                    <thead>
-                        <tr>
-                            <th class="py-2.5 px-3">Anggota Tim</th>
-                            <th class="py-2.5 px-3">Kategori</th>
-                            <th class="py-2.5 px-3">Nama Kebutuhan</th>
-                            <th class="py-2.5 px-3 text-center">Volume</th>
-                            <th class="py-2.5 px-3 text-right">Harga Satuan</th>
-                            <th class="py-2.5 px-3 text-right">Subtotal RAB</th>
-                            <th class="py-2.5 px-3 text-right">Realisasi Struk</th>
-                            <th class="py-2.5 px-3 text-center">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        @foreach($cashAdvance->items as $it)
-                            <tr class="hover:bg-slate-50/70 transition">
-                                <td class="py-2.5 px-3 whitespace-nowrap">
-                                    <div class="flex items-center space-x-1.5">
-                                        <div class="w-6 h-6 rounded-full bg-[#050A1E] text-white flex items-center justify-center text-xs font-bold">
-                                            {{ $it->user->initials }}
-                                        </div>
-                                        <div>
-                                            <span class="font-head font-bold text-slate-800 block text-xs">{{ $it->user->name }}</span>
-                                            <span class="text-xs text-slate-400">{{ $it->user->role === 'atasan' ? 'Atasan' : 'Karyawan' }}</span>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="py-2.5 px-3 whitespace-nowrap">
-                                    <span class="badge-retail bg-slate-100 text-slate-700 text-xs py-0.5 px-2">
-                                        {{ $it->category_label }}
-                                    </span>
-                                </td>
-                                <td class="py-2.5 px-3">
-                                    <span class="font-bold text-slate-800">{{ $it->item_name }}</span>
-                                    @if($it->notes)
-                                        <span class="block text-xs text-slate-400 italic">{{ $it->notes }}</span>
-                                    @endif
-                                </td>
-                                <td class="py-2.5 px-3 text-center font-mono whitespace-nowrap">
-                                    {{ (float)$it->quantity }} {{ $it->unit }}
-                                </td>
-                                <td class="py-2.5 px-3 text-right font-mono whitespace-nowrap text-slate-600">
-                                    Rp {{ number_format($it->unit_price, 0, ',', '.') }}
-                                </td>
-                                <td class="py-2.5 px-3 text-right font-mono font-bold whitespace-nowrap text-slate-900">
-                                    Rp {{ number_format($it->subtotal, 0, ',', '.') }}
-                                </td>
-                                <td class="py-2.5 px-3 text-right font-mono font-bold whitespace-nowrap {{ $it->realized_amount > $it->subtotal ? 'text-rose-600' : 'text-emerald-700' }}">
-                                    Rp {{ number_format($it->realized_amount, 0, ',', '.') }}
-                                </td>
-                                <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                    @if($cashAdvance->status !== 'CLOSED' && ($it->user_id === auth()->id() || $cashAdvance->user_id === auth()->id() || auth()->user()->isDirektur()))
-                                        @if($it->expenses->isEmpty())
-                                            <form action="{{ route('cash-advances.items.destroy', [$cashAdvance, $it]) }}" method="POST" onsubmit="return confirm('Hapus item RAB ini?')" class="inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="p-1 text-slate-400 hover:text-rose-600 rounded transition" title="Hapus Pos RAB">
-                                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                                                </button>
-                                            </form>
-                                        @else
-                                            <span class="text-xs text-slate-400 italic">Terkait Struk</span>
-                                        @endif
-                                    @else
-                                        <span class="text-slate-300">-</span>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                    <tfoot class="bg-slate-50 font-head font-bold border-t border-slate-200">
-                        <tr>
-                            <td colspan="5" class="py-2.5 px-3 text-right uppercase text-xs text-slate-600">Total Akumulasi RAB:</td>
-                            <td class="py-2.5 px-3 text-right font-mono text-xs text-[#FF3C00]">
-                                Rp {{ number_format($cashAdvance->items->sum('subtotal'), 0, ',', '.') }}
-                            </td>
-                            <td class="py-2.5 px-3 text-right font-mono text-xs text-slate-800">
-                                Rp {{ number_format($cashAdvance->recorded_expenses_total, 0, ',', '.') }}
-                            </td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-        @endif
-    </div>
-
-    <!-- ==================== PEMBAGIAN KAS KE KARYAWAN (DISTRIBUSI DANA) ==================== -->
-    @if($cashAdvance->status === 'ACTIVE' || $cashAdvance->status === 'NEED_SETTLEMENT' || $cashAdvance->status === 'PENDING_VERIFICATION' || $cashAdvance->status === 'CLOSED')
-        <div class="card-commerce p-5 sm:p-6 space-y-4" id="distribusi-dana-karyawan">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
-                <div>
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-retail-ink flex items-center space-x-2 font-head">
-                        <i data-lucide="split" class="w-4 h-4 text-emerald-600"></i>
-                        <span>Pembagian Kas ke Anggota Tim Proyek (Distribusi Dana)</span>
-                    </h3>
-                </div>
-                @if($cashAdvance->status === 'ACTIVE' && ($cashAdvance->user_id === auth()->id() || auth()->user()->isDirektur() || auth()->user()->isFinance()))
-                    <button type="button" @click="showDistributeModal = true" class="btn-brand text-xs py-1.5 px-3.5 inline-flex items-center gap-1.5 active:scale-95 transition shadow-xs">
-                        <i data-lucide="send" class="w-3.5 h-3.5"></i>
-                        <span>+ Bagi Dana ke Karyawan</span>
-                    </button>
-                @endif
-            </div>
-
-            <!-- Ringkasan Kas Atasan -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                    <span class="text-xs font-head font-bold text-slate-500 uppercase tracking-wide block">Total CA Dicairkan</span>
-                    <span class="text-base font-head font-extrabold text-slate-900 font-mono mt-0.5 block">
-                        Rp {{ number_format($cashAdvance->approved_amount ?? $cashAdvance->requested_amount, 0, ',', '.') }}
-                    </span>
-                </div>
-                <div class="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200">
-                    <span class="text-xs font-head font-bold text-emerald-800 uppercase tracking-wide block">Telah Dibagikan ke Tim</span>
-                    <span class="text-base font-head font-extrabold text-emerald-800 font-mono mt-0.5 block">
-                        Rp {{ number_format($cashAdvance->distributed_total, 0, ',', '.') }}
-                    </span>
-                </div>
-                <div class="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200">
-                    <span class="text-xs font-head font-bold text-amber-900 uppercase tracking-wide block">Sisa Kas di Atasan</span>
-                    <span class="text-base font-head font-extrabold text-amber-900 font-mono mt-0.5 block">
-                        Rp {{ number_format($cashAdvance->undistributed_amount, 0, ',', '.') }}
-                    </span>
-                </div>
-            </div>
-
-            <!-- Tabel Status Saldo per Anggota Tim -->
-            <div class="overflow-x-auto rounded-[15px] border border-slate-200">
-                <table class="w-full text-xs text-left table-technodrives">
-                    <thead>
-                        <tr>
-                            <th class="py-2.5 px-3">Anggota Tim</th>
-                            <th class="py-2.5 px-3 text-right">Total RAB Diajukan</th>
-                            <th class="py-2.5 px-3 text-right">Dana Diterima</th>
-                            <th class="py-2.5 px-3 text-right">Pengeluaran Riil</th>
-                            <th class="py-2.5 px-3 text-right">Sisa Saldo Kas</th>
-                            <th class="py-2.5 px-3 text-center">Status Pembagian</th>
-                            <th class="py-2.5 px-3 text-center">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        @foreach($teamMembers ?? [] as $member)
-                            @php
-                                $memberRab = (float) $cashAdvance->items->where('user_id', $member->id)->sum('subtotal');
-                                $memberReceived = $cashAdvance->userDistributionTotal($member->id);
-                                $memberSpent = $cashAdvance->userExpensesTotal($member->id);
-                                $memberBal = $cashAdvance->userCurrentBalance($member->id);
-                                $isPic = ($member->id === $cashAdvance->user_id);
-                            @endphp
-                            <tr class="hover:bg-slate-50/70 transition">
-                                <td class="py-2.5 px-3">
-                                    <div class="flex items-center space-x-2">
-                                        <div class="w-7 h-7 rounded-full bg-[#050A1E] text-white flex items-center justify-center text-xs font-bold">
-                                            {{ $member->initials }}
-                                        </div>
-                                        <div>
-                                            <span class="font-head font-bold text-slate-900 block text-xs">
-                                                {{ $member->name }}
-                                                @if($member->id === auth()->id()) <span class="text-[#FF3C00]">(Saya)</span> @endif
-                                            </span>
-                                            <span class="text-xs text-slate-400">
-                                                {{ $isPic ? 'PIC Proyek' : ($member->department ?: 'Pelaksana') }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="py-2.5 px-3 text-right font-mono text-slate-600">
-                                    Rp {{ number_format($memberRab, 0, ',', '.') }}
-                                </td>
-                                <td class="py-2.5 px-3 text-right font-mono font-bold text-emerald-700">
-                                    @if($isPic)
-                                        Rp {{ number_format($cashAdvance->undistributed_amount, 0, ',', '.') }} (Kas PIC)
-                                    @else
-                                        Rp {{ number_format($memberReceived, 0, ',', '.') }}
-                                    @endif
-                                </td>
-                                <td class="py-2.5 px-3 text-right font-mono text-slate-800">
-                                    Rp {{ number_format($memberSpent, 0, ',', '.') }}
-                                </td>
-                                <td class="py-2.5 px-3 text-right font-mono font-extrabold {{ $memberBal > 0 ? 'text-[#FF3C00]' : 'text-slate-800' }}">
-                                    Rp {{ number_format($memberBal, 0, ',', '.') }}
-                                </td>
-                                <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                    @if($isPic)
-                                        <span class="badge-retail bg-blue-50 text-blue-800 border-blue-200 text-xs">Pemegang Kas Induk</span>
-                                    @elseif($memberReceived >= $memberRab && $memberRab > 0)
-                                        <span class="badge-retail bg-emerald-50 text-emerald-800 border-emerald-200 text-xs">Lunas Disalurkan</span>
-                                    @elseif($memberReceived > 0)
-                                        <span class="badge-retail bg-amber-50 text-amber-800 border-amber-200 text-xs">Disalurkan Sebagian</span>
-                                    @else
-                                        <span class="badge-retail bg-rose-50 text-rose-700 border-rose-200 text-xs">Belum Dibagikan</span>
-                                    @endif
-                                </td>
-                                <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                    @if(!$isPic && $cashAdvance->status === 'ACTIVE' && ($cashAdvance->user_id === auth()->id() || auth()->user()->isDirektur()))
-                                        <button type="button" @click="showDistributeModal = true; distributeReceiverId = '{{ $member->id }}'; distributeAmount = '{{ (int)max(0, $memberRab - $memberReceived) }}'" class="btn-secondary py-1 px-2.5 text-xs inline-flex items-center gap-1">
-                                            <i data-lucide="hand-coins" class="w-3.5 h-3.5 text-[#FF3C00]"></i>
-                                            <span>Bagi Kas</span>
-                                        </button>
-                                    @else
-                                        <span class="text-slate-300">-</span>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Riwayat Serah Terima / Transfer Kas -->
-            @if($cashAdvance->distributions->isNotEmpty())
-                <div class="pt-2">
-                    <span class="text-xs font-head font-bold uppercase tracking-wider text-slate-500 block mb-2">
-                        Riwayat Bukti Serah Terima Kas Internal:
-                    </span>
-                    <div class="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden">
-                        @foreach($cashAdvance->distributions as $d)
-                            <div class="p-3 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
-                                <div class="space-y-0.5">
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-mono font-bold text-emerald-800">Rp {{ number_format($d->amount, 0, ',', '.') }}</span>
-                                        <span class="text-slate-400">&bull;</span>
-                                        <span class="font-head font-bold text-slate-800">{{ $d->giver->name }} &rarr; {{ $d->receiver->name }}</span>
-                                    </div>
-                                    <span class="text-xs text-slate-400 font-mono block">
-                                        Diserahkan: {{ $d->distributed_at ? $d->distributed_at->format('d/m/Y H:i') : '-' }}
-                                        @if($d->notes) &bull; "{{ $d->notes }}" @endif
-                                    </span>
-                                </div>
-                                @if($d->transfer_proof)
-                                    <a href="{{ $d->transfer_proof_url }}" target="_blank" class="text-xs text-[#FF3C00] font-bold hover:text-[#e03500] inline-flex items-center gap-1 self-start sm:self-auto">
-                                        <i data-lucide="paperclip" class="w-3.5 h-3.5"></i>
-                                        <span>Bukti Serah Terima</span>
-                                    </a>
-                                @endif
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
-        </div>
-    @endif
-
     <!-- EXPENSES LIST SECTION (Design.md: Card commerce, 1px border #DDDDDD) -->
     <div class="card-commerce p-5 sm:p-6 space-y-4" id="daftar-pengeluaran-struk">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
@@ -976,36 +685,12 @@
                     <span>Daftar Pengeluaran & Verifikasi Struk</span>
                 </h3>
             </div>
-            <!-- Filter Anggota Tim -->
-            <div class="flex items-center gap-2">
-                <label class="text-xs font-head font-bold uppercase text-slate-500 whitespace-nowrap">Filter Anggota:</label>
-                <select x-model="selectedMemberFilter" class="input-commerce text-xs py-1.5 px-3 font-head font-medium text-slate-800">
-                    <option value="all">Semua Anggota Tim ({{ $cashAdvance->expenses->count() }} Struk)</option>
-                    @foreach($teamMembers ?? [] as $tm)
-                        <option value="{{ $tm->id }}">{{ $tm->name }} ({{ $cashAdvance->expenses->where('user_id', $tm->id)->count() }} Struk)</option>
-                    @endforeach
-                </select>
-            </div>
         </div>
 
         <!-- Mobile Card List View (md:hidden - Tidak perlu geser horizontal) -->
         <div class="md:hidden divide-y divide-slate-100 rounded-xl border border-slate-200 overflow-hidden">
             @forelse($cashAdvance->expenses as $exp)
-                <div x-show="selectedMemberFilter === 'all' || selectedMemberFilter == '{{ $exp->user_id }}'" class="p-4 space-y-3 {{ $exp->verification_status === 'VOID' ? 'opacity-40 bg-slate-50 line-through' : 'bg-white' }}">
-                    <!-- Baris Info Pemohon & RAB -->
-                    <div class="flex items-center gap-1.5 flex-wrap">
-                        <span class="inline-flex items-center gap-1 text-xs font-head font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
-                            <i data-lucide="user" class="w-3 h-3 text-[#FF3C00]"></i>
-                            <span>{{ $exp->user->name }}</span>
-                        </span>
-                        @if($exp->item)
-                            <span class="inline-flex items-center gap-1 text-xs font-head font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 truncate max-w-[200px]" title="Pos RAB: {{ $exp->item->item_name }}">
-                                <i data-lucide="tag" class="w-2.5 h-2.5"></i>
-                                <span>{{ $exp->item->item_name }}</span>
-                            </span>
-                        @endif
-                    </div>
-
+                <div class="p-4 space-y-3 {{ $exp->verification_status === 'VOID' ? 'opacity-40 bg-slate-50 line-through' : 'bg-white' }}">
                     <!-- Baris 1: Tanggal, Kategori & Status Verifikasi -->
                     <div class="flex items-start justify-between gap-2">
                         <div>
@@ -1123,12 +808,11 @@
                                 </a>
                             @endif
 
-                            @if(auth()->user()->canVerifyAndCloseCA($cashAdvance) && $exp->verification_status !== 'VOID')
+                            @if(auth()->user()->canVerifyAndCloseCA($cashAdvance) && in_array($exp->verification_status, ['PENDING', 'NEEDS_REVISION']))
                                 <button @click="showVerifyModal = true; verifyExpenseId = {{ $exp->id }}; verifyExpenseDesc = {{ \Illuminate\Support\Js::from($exp->description) }}" 
-                                        class="btn-cyan py-2 px-3.5 text-xs shadow-sm flex items-center gap-1.5 font-bold"
+                                        class="btn-cyan p-2 rounded-lg shadow-sm inline-flex items-center justify-center"
                                         title="Verifikasi Transaksi">
-                                    <i data-lucide="check-circle" class="w-4 h-4"></i>
-                                    <span>Verifikasi</span>
+                                    <i data-lucide="check" class="w-4 h-4"></i>
                                 </button>
                             @endif
 
@@ -1156,7 +840,6 @@
                 <thead>
                     <tr>
                         <th class="py-2.5 px-3">Tanggal</th>
-                        <th class="py-2.5 px-3">Pemohon Struk</th>
                         <th class="py-2.5 px-3">Keterangan, Vendor & Kategori</th>
                         <th class="py-2.5 px-3 text-right">Nominal</th>
                         <th class="py-2.5 px-3 text-center">Struk</th>
@@ -1166,7 +849,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse($cashAdvance->expenses as $exp)
-                        <tr x-show="selectedMemberFilter === 'all' || selectedMemberFilter == '{{ $exp->user_id }}'" class="hover:bg-slate-50/70 transition {{ $exp->verification_status === 'VOID' ? 'opacity-40 bg-slate-50 line-through' : '' }}">
+                        <tr class="hover:bg-slate-50/70 transition {{ $exp->verification_status === 'VOID' ? 'opacity-40 bg-slate-50 line-through' : '' }}">
                             <!-- Tanggal -->
                             <td class="py-2.5 px-3 whitespace-nowrap">
                                 <span class="font-mono font-bold text-slate-900 block">{{ $exp->transaction_date->format('d/m/Y') }}</span>
@@ -1177,16 +860,6 @@
                                 @else
                                     <span class="text-xs text-emerald-700 font-semibold">Tepat Waktu</span>
                                 @endif
-                            </td>
-
-                            <!-- Pemohon Struk -->
-                            <td class="py-2.5 px-3 whitespace-nowrap">
-                                <div class="flex items-center space-x-1.5">
-                                    <div class="w-6 h-6 rounded-full bg-[#050A1E] text-white flex items-center justify-center text-xs font-bold">
-                                        {{ $exp->user->initials }}
-                                    </div>
-                                    <span class="font-head font-bold text-slate-800 text-xs">{{ $exp->user->name }}</span>
-                                </div>
                             </td>
 
                             <!-- Keterangan, Vendor & Kategori -->
@@ -1294,12 +967,11 @@
                                     @endif
 
                                     <!-- Verifikasi Finance / Direktur -->
-                                    @if(auth()->user()->canVerifyAndCloseCA($cashAdvance) && $exp->verification_status !== 'VOID')
+                                    @if(auth()->user()->canVerifyAndCloseCA($cashAdvance) && in_array($exp->verification_status, ['PENDING', 'NEEDS_REVISION']))
                                         <button @click="showVerifyModal = true; verifyExpenseId = {{ $exp->id }}; verifyExpenseDesc = {{ \Illuminate\Support\Js::from($exp->description) }}" 
-                                                class="btn-cyan py-1.5 px-3 text-xs shadow-sm flex items-center gap-1.5"
+                                                class="btn-cyan p-1.5 rounded-lg shadow-sm inline-flex items-center justify-center"
                                                 title="Verifikasi Transaksi">
-                                            <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
-                                            <span>Verifikasi</span>
+                                            <i data-lucide="check" class="w-4 h-4"></i>
                                         </button>
                                     @endif
 
@@ -1751,155 +1423,6 @@
                 <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
                     <button type="button" @click="showTopupRejectModal = false" class="btn-secondary py-1.5 px-3 text-xs">Batal</button>
                     <button type="submit" class="btn-danger text-xs py-1.5 px-3.5">Konfirmasi Tolak Top-Up</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal 13: Tambah Pos RAB Baru -->
-    <div x-show="showAddItemModal" x-cloak 
-        x-transition:enter="transition ease-out duration-200"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        x-transition:leave="transition ease-in duration-150"
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
-        class="fixed inset-0 bg-[#050A1E]/75 z-[1060] flex items-center justify-center p-4">
-        <div x-show="showAddItemModal"
-            x-transition:enter="transition ease-out duration-200 transform"
-            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
-            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-            x-transition:leave="transition ease-in duration-150 transform"
-            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
-            class="card-commerce max-w-lg w-full p-6 shadow-2xl">
-            <h3 class="text-base font-bold text-slate-900 mb-1 font-head flex items-center gap-2">
-                <i data-lucide="receipt-text" class="w-4 h-4 text-[#FF3C00]"></i>
-                <span>Tambah Pos Rincian RAB</span>
-            </h3>
-            <p class="text-xs text-slate-500 mb-4">{{ $cashAdvance->ca_number }} &bull; {{ $cashAdvance->project_name }}</p>
-
-            <form action="{{ route('cash-advances.items.store', $cashAdvance) }}" method="POST" class="space-y-4">
-                @csrf
-
-                @if(auth()->user()->isAtasan() && $subordinates->isNotEmpty())
-                    <div>
-                        <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Pilih Anggota Tim:</label>
-                        <select name="user_id" class="w-full input-commerce text-xs">
-                            <option value="{{ auth()->id() }}">{{ auth()->user()->name }} (Saya)</option>
-                            @foreach($subordinates as $sub)
-                                <option value="{{ $sub->id }}">{{ $sub->name }} ({{ $sub->department ?: 'Karyawan' }})</option>
-                            @endforeach
-                        </select>
-                    </div>
-                @else
-                    <input type="hidden" name="user_id" value="{{ auth()->id() }}">
-                @endif
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Kategori <span class="text-rose-500">*</span></label>
-                        <select name="category" required class="w-full input-commerce text-xs">
-                            <option value="material">Material & Perlengkapan</option>
-                            <option value="transport">Transportasi & Bensin</option>
-                            <option value="sewa_alat">Sewa Alat</option>
-                            <option value="konsumsi">Konsumsi & Penginapan Tim</option>
-                            <option value="lainnya">Lain-lain Operasional</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Qty & Satuan <span class="text-rose-500">*</span></label>
-                        <div class="flex items-center gap-1">
-                            <input type="number" name="quantity" required min="0.01" step="any" value="1" class="w-20 input-commerce text-xs text-center font-mono">
-                            <input type="text" name="unit" required value="unit" class="w-full input-commerce text-xs text-center" placeholder="unit, hari, pcs">
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Nama Kebutuhan <span class="text-rose-500">*</span></label>
-                    <input type="text" name="item_name" required class="w-full input-commerce text-xs" placeholder="Contoh: Penginapan Teknisi 4 Malam">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Estimasi Harga Satuan (Rp) <span class="text-rose-500">*</span></label>
-                    <input type="number" name="unit_price" required min="0" step="1000" class="w-full input-commerce text-xs font-mono font-bold" placeholder="Contoh: 350000">
-                </div>
-
-                <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
-                    <button type="button" @click="showAddItemModal = false" class="btn-secondary py-1.5 px-3 text-xs">Batal</button>
-                    <button type="submit" class="btn-primary text-xs py-1.5 px-4">Simpan Pos RAB</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal 14: Bagi Dana ke Karyawan (Atasan / Direktur) -->
-    <div x-show="showDistributeModal" x-cloak 
-        x-transition:enter="transition ease-out duration-200"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        x-transition:leave="transition ease-in duration-150"
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
-        class="fixed inset-0 bg-[#050A1E]/75 z-[1060] flex items-center justify-center p-4">
-        <div x-show="showDistributeModal"
-            x-transition:enter="transition ease-out duration-200 transform"
-            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
-            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-            x-transition:leave="transition ease-in duration-150 transform"
-            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
-            class="card-commerce max-w-md w-full p-6 shadow-2xl">
-            <h3 class="text-base font-bold text-slate-900 mb-1 font-head flex items-center gap-2">
-                <i data-lucide="hand-coins" class="w-4 h-4 text-emerald-600"></i>
-                <span>Bagi Dana Kas ke Karyawan</span>
-            </h3>
-            <p class="text-xs text-slate-500 mb-4">
-                Sisa kas di Atasan yang tersedia untuk disalurkan: <strong class="font-mono text-emerald-700">Rp {{ number_format($cashAdvance->undistributed_amount, 0, ',', '.') }}</strong>
-            </p>
-
-            <form action="{{ route('cash-advances.distributions.store', $cashAdvance) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
-                @csrf
-
-                <div>
-                    <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Pilih Karyawan Penerima <span class="text-rose-500">*</span></label>
-                    <select name="receiver_id" x-model="distributeReceiverId" required class="w-full input-commerce text-xs">
-                        <option value="" disabled selected>-- Pilih Karyawan Anggota Tim --</option>
-                        @foreach($teamMembers->where('id', '!=', $cashAdvance->user_id) as $tm)
-                            <option value="{{ $tm->id }}">
-                                {{ $tm->name }} ({{ $tm->department ?: 'Karyawan' }}) - Sisa RAB: Rp {{ number_format(max(0, $cashAdvance->items->where('user_id', $tm->id)->sum('subtotal') - $cashAdvance->userDistributionTotal($tm->id)), 0, ',', '.') }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Nominal yang Diserahkan (Rp) <span class="text-rose-500">*</span></label>
-                    <input type="number" name="amount" x-model="distributeAmount" required min="1000" max="{{ (int)$cashAdvance->undistributed_amount }}" step="1"
-                        class="w-full input-commerce text-xs font-mono font-bold text-slate-900" placeholder="Contoh: 3500000">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Tanggal Serah Terima <span class="text-rose-500">*</span></label>
-                    <input type="date" name="distributed_at" value="{{ date('Y-m-d') }}" max="{{ date('Y-m-d') }}" required class="w-full input-commerce text-xs font-mono">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Bukti Serah Terima (Opsional)</label>
-                    <input type="file" name="transfer_proof" accept="image/*,.pdf" class="w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-head file:bg-slate-100 file:text-slate-800 hover:file:bg-slate-200">
-                    <p class="text-xs text-slate-400 mt-0.5">Format: JPG, PNG, atau PDF (Maks. 10MB)</p>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-head font-bold text-slate-800 uppercase mb-1">Catatan Serah Terima (Opsional)</label>
-                    <textarea name="notes" rows="2" class="w-full input-commerce text-xs" placeholder="Contoh: Transfer termin 1 via BCA atau tunai di kantor..."></textarea>
-                </div>
-
-                <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
-                    <button type="button" @click="showDistributeModal = false" class="btn-secondary py-1.5 px-3 text-xs">Batal</button>
-                    <button type="submit" class="btn-brand text-xs py-1.5 px-4">Salurkan Dana ke Karyawan</button>
                 </div>
             </form>
         </div>

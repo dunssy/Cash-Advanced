@@ -9,10 +9,10 @@
     <!-- Toolbar Filter Bulan/Tahun & Tombol Aksi Dokumen -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 no-print">
         <!-- Form Filter Bulan & Tahun (Tanpa Background) -->
-        <form action="{{ route('reports.rekap-bulanan') }}" method="GET" class="flex flex-wrap items-center gap-3">
-            <div class="flex items-center space-x-2">
-                <label for="filter_month" class="text-xs font-head font-bold text-[#050A1E] uppercase tracking-wider mb-0">Bulan:</label>
-                <select id="filter_month" name="month" onchange="this.form.submit()" class="input-commerce text-xs py-1.5 px-3 font-sans bg-white cursor-pointer hover:border-slate-400 focus:border-[#FF3C00] shadow-2xs">
+        <form action="{{ route('reports.rekap-bulanan') }}" method="GET" class="grid grid-cols-2 sm:flex sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+            <div class="flex items-center gap-2">
+                <label for="filter_month" class="text-xs font-head font-bold text-[#050A1E] uppercase tracking-wider mb-0 whitespace-nowrap">Bulan:</label>
+                <select id="filter_month" name="month" onchange="this.form.submit()" class="w-full sm:w-auto input-commerce text-xs py-1.5 px-3 font-sans bg-white cursor-pointer hover:border-slate-400 focus:border-[#FF3C00] shadow-2xs">
                     @for($m = 1; $m <= 12; $m++)
                         <option value="{{ $m }}" {{ (int)$month === $m ? 'selected' : '' }}>
                             {{ \Carbon\Carbon::create(null, $m, 1)->translatedFormat('F') }}
@@ -21,9 +21,9 @@
                 </select>
             </div>
 
-            <div class="flex items-center space-x-2">
-                <label for="filter_year" class="text-xs font-head font-bold text-[#050A1E] uppercase tracking-wider mb-0">Tahun:</label>
-                <select id="filter_year" name="year" onchange="this.form.submit()" class="input-commerce text-xs py-1.5 px-3 font-mono bg-white cursor-pointer hover:border-slate-400 focus:border-[#FF3C00] shadow-2xs">
+            <div class="flex items-center gap-2">
+                <label for="filter_year" class="text-xs font-head font-bold text-[#050A1E] uppercase tracking-wider mb-0 whitespace-nowrap">Tahun:</label>
+                <select id="filter_year" name="year" onchange="this.form.submit()" class="w-full sm:w-auto input-commerce text-xs py-1.5 px-3 font-mono bg-white cursor-pointer hover:border-slate-400 focus:border-[#FF3C00] shadow-2xs">
                     @for($y = date('Y'); $y >= date('Y') - 3; $y--)
                         <option value="{{ $y }}" {{ (int)$year === $y ? 'selected' : '' }}>{{ $y }}</option>
                     @endfor
@@ -32,57 +32,57 @@
         </form>
 
         <!-- Tombol Aksi Dokumen (Ekspor Excel & Cetak Dokumen) -->
-        <div class="flex items-center space-x-2 flex-shrink-0">
-            <a href="{{ route('reports.rekap-bulanan', ['month' => $month, 'year' => $year, 'export' => 'csv']) }}" class="btn-primary text-xs py-2 px-3.5 shadow-xs">
-                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+        <div class="grid grid-cols-2 sm:flex sm:items-center gap-2.5 flex-shrink-0 w-full sm:w-auto">
+            <a href="{{ route('reports.rekap-bulanan', ['month' => $month, 'year' => $year, 'export' => 'csv']) }}" class="btn-primary text-xs py-2 px-3.5 shadow-xs justify-center w-full sm:w-auto">
+                <i class="bi bi-file-earmark-spreadsheet"></i>
                 <span>Ekspor Excel</span>
             </a>
-            <button onclick="window.print()" class="btn-dark text-xs py-2 px-3.5 shadow-xs">
-                <i data-lucide="printer" class="w-4 h-4"></i>
+            <button onclick="window.print()" class="btn-dark text-xs py-2 px-3.5 shadow-xs justify-center w-full sm:w-auto">
+                <i class="bi bi-printer"></i>
                 <span>Cetak Dokumen</span>
             </button>
         </div>
     </div>
 
     <!-- Report Paper Card -->
-    <div class="card-commerce p-6 sm:p-8 print-full">
+    <div class="card-commerce p-4 sm:p-8 print-full">
         <!-- Header -->
-        <div class="border-b-2 border-slate-900 pb-4 mb-6 flex items-start justify-between">
+        <div class="border-b-2 border-slate-900 pb-4 mb-5 flex flex-col sm:flex-row print:flex-row sm:items-start sm:justify-between gap-2.5">
             <div>
-                <h2 class="text-lg sm:text-xl font-bold text-retail-darkInk tracking-tight">PT TECHNODRIVES INDONESIA</h2>
+                <h2 class="text-base sm:text-xl font-bold text-retail-darkInk tracking-tight">PT TECHNODRIVES INDONESIA</h2>
                 <p class="text-xs text-slate-600">Departemen Finance, Accounting & Perpajakan</p>
                 <h3 class="text-xs sm:text-sm font-bold uppercase text-slate-800 mt-2">REKAPITULASI BULANAN CASH ADVANCE & BIAYA FISKAL</h3>
             </div>
-            <div class="text-right text-xs font-mono">
+            <div class="text-left sm:text-right print:text-right text-xs font-mono border-t border-slate-200 sm:border-t-0 pt-2 sm:pt-0">
                 <span class="font-bold text-retail-ink block text-sm">Periode: {{ \Carbon\Carbon::create(null, (int)$month, 1)->translatedFormat('F') }} {{ $year }}</span>
                 <span class="text-xs text-slate-400 block mt-0.5">Total Dokumen: {{ $cas->count() }} CA</span>
             </div>
         </div>
 
         <!-- Metric Summary -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 font-mono">
-            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                <span class="text-xs text-slate-500 uppercase font-bold font-sans block">Total Dana Dicairkan</span>
-                <span class="text-sm sm:text-base font-bold text-slate-900 block mt-1">Rp {{ number_format($totalDana, 0, ',', '.') }}</span>
-                <span class="text-xs text-slate-400 block mt-0.5">CA: {{ number_format($totalCAInitial, 0, ',', '.') }}</span>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 mb-6 font-mono">
+            <div class="bg-slate-50 p-3 sm:p-3.5 rounded-xl border border-slate-200">
+                <span class="text-[11px] sm:text-xs text-slate-500 uppercase font-bold font-sans block">Total Dana Dicairkan</span>
+                <span class="text-xs sm:text-base font-bold text-slate-900 block mt-1">Rp {{ number_format($totalDana, 0, ',', '.') }}</span>
+                <span class="text-[11px] sm:text-xs text-slate-400 block mt-0.5">CA: {{ number_format($totalCAInitial, 0, ',', '.') }}</span>
             </div>
 
-            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                <span class="text-xs text-slate-500 uppercase font-bold font-sans block">Biaya Valid (Pajak)</span>
-                <span class="text-sm sm:text-base font-bold text-emerald-700 block mt-1">Rp {{ number_format($totalValidExpense, 0, ',', '.') }}</span>
-                <span class="text-xs text-slate-400 block mt-0.5">Struk lengkap & sah</span>
+            <div class="bg-slate-50 p-3 sm:p-3.5 rounded-xl border border-slate-200">
+                <span class="text-[11px] sm:text-xs text-slate-500 uppercase font-bold font-sans block">Biaya Valid (Pajak)</span>
+                <span class="text-xs sm:text-base font-bold text-emerald-700 block mt-1">Rp {{ number_format($totalValidExpense, 0, ',', '.') }}</span>
+                <span class="text-[11px] sm:text-xs text-slate-400 block mt-0.5">Struk lengkap & sah</span>
             </div>
 
-            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                <span class="text-xs text-slate-500 uppercase font-bold font-sans block">Total Sisa Dana Di-Refund</span>
-                <span class="text-sm sm:text-base font-bold text-purple-700 block mt-1">Rp {{ number_format($totalRefund, 0, ',', '.') }}</span>
-                <span class="text-xs text-slate-400 block mt-0.5">Masuk rekening kantor</span>
+            <div class="bg-slate-50 p-3 sm:p-3.5 rounded-xl border border-slate-200">
+                <span class="text-[11px] sm:text-xs text-slate-500 uppercase font-bold font-sans block">Total Sisa Dana Di-Refund</span>
+                <span class="text-xs sm:text-base font-bold text-purple-700 block mt-1">Rp {{ number_format($totalRefund, 0, ',', '.') }}</span>
+                <span class="text-[11px] sm:text-xs text-slate-400 block mt-0.5">Masuk rekening kantor</span>
             </div>
 
-            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                <span class="text-xs text-slate-500 uppercase font-bold font-sans block">Belum Selesai</span>
-                <span class="text-sm sm:text-base font-bold text-amber-800 block mt-1">{{ $cas->whereNotIn('status', ['CLOSED', 'REJECTED'])->count() }} Dokumen</span>
-                <span class="text-xs text-slate-400 block mt-0.5 font-sans">Sedang berjalan</span>
+            <div class="bg-slate-50 p-3 sm:p-3.5 rounded-xl border border-slate-200">
+                <span class="text-[11px] sm:text-xs text-slate-500 uppercase font-bold font-sans block">Belum Selesai</span>
+                <span class="text-xs sm:text-base font-bold text-amber-800 block mt-1">{{ $cas->whereNotIn('status', ['CLOSED', 'REJECTED'])->count() }} Dokumen</span>
+                <span class="text-[11px] sm:text-xs text-slate-400 block mt-0.5 font-sans">Sedang berjalan</span>
             </div>
         </div>
 
@@ -91,7 +91,39 @@
             <h4 class="text-xs font-bold uppercase tracking-wider text-retail-ink mb-2">
                 Rincian Biaya Riil per Kategori (Untuk Pembukuan & Pelaporan SPT Masa)
             </h4>
-            <div class="border border-slate-200 rounded-[15px] overflow-hidden table-responsive">
+
+            <!-- Mobile Category Cards -->
+            <div class="md:hidden print:hidden border border-slate-200 rounded-[15px] overflow-hidden divide-y divide-slate-100">
+                @php
+                    $catItems = [
+                        ['label' => 'Material & Perlengkapan', 'desc' => 'Pembelian kabel, konektor, sparepart lokal proyek', 'val' => $categories['material'] ?? 0],
+                        ['label' => 'Transportasi & BBM', 'desc' => 'BBM kendaraan operasional, struk tol, tiket perjalanan tim', 'val' => $categories['transport'] ?? 0],
+                        ['label' => 'Sewa Alat & Kendaraan', 'desc' => 'Sewa scaffolding, crane kecil, pickup lokal, alat ukur', 'val' => $categories['sewa_alat'] ?? 0],
+                        ['label' => 'Konsumsi & Penginapan', 'desc' => 'Hotel teknisi lapangan, makan dinas lembur', 'val' => $categories['konsumsi'] ?? 0],
+                        ['label' => 'Lain-lain Operasional', 'desc' => 'Fotokopi berkas, perijinan kawasan industri, porter, dll', 'val' => $categories['lainnya'] ?? 0],
+                    ];
+                @endphp
+                @foreach($catItems as $ci)
+                    @php $pct = $totalValidExpense > 0 ? number_format(($ci['val'] / $totalValidExpense) * 100, 1) : 0; @endphp
+                    <div class="p-3.5 bg-white space-y-1">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="font-bold text-slate-900 text-xs">{{ $ci['label'] }}</span>
+                            <span class="font-mono font-bold text-xs text-slate-800 whitespace-nowrap">Rp {{ number_format($ci['val'], 0, ',', '.') }}</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-2 text-[11px] text-slate-500">
+                            <span>{{ $ci['desc'] }}</span>
+                            <span class="font-mono font-semibold text-slate-600 whitespace-nowrap">{{ $pct }}%</span>
+                        </div>
+                    </div>
+                @endforeach
+                <div class="p-3.5 bg-slate-50 flex items-center justify-between border-t border-retail-surface">
+                    <span class="text-xs font-bold uppercase text-retail-ink">Total Beban Riil Diakui</span>
+                    <span class="font-mono font-bold text-sm text-emerald-700">Rp {{ number_format($totalValidExpense, 0, ',', '.') }}</span>
+                </div>
+            </div>
+
+            <div class="hidden md:block print:block border border-slate-200 rounded-[15px] overflow-hidden">
+                <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs font-mono min-w-[650px] table-technodrives">
                     <thead>
                         <tr>
@@ -149,13 +181,52 @@
                         </tr>
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
 
         <!-- Daftar CA Periode Ini -->
         <div>
             <h4 class="text-xs font-bold uppercase tracking-wider text-retail-ink mb-2">Daftar CA Bulan Terpilih</h4>
-            <div class="border border-slate-200 rounded-[15px] overflow-hidden table-responsive">
+
+            <!-- Mobile CA Cards -->
+            <div class="md:hidden print:hidden border border-slate-200 rounded-[15px] overflow-hidden divide-y divide-slate-100">
+                @forelse($cas as $c)
+                    <div class="p-3.5 bg-white space-y-2">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="font-mono font-bold text-xs text-retail-ink">{{ $c->ca_number }}</span>
+                            <span class="badge-retail text-[11px]">{{ $c->status }}</span>
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-900 text-xs leading-snug">{{ $c->project_name }}</p>
+                            <p class="text-[11px] text-slate-600 mt-0.5">{{ $c->user->name }}</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-100 font-mono">
+                            <div>
+                                <span class="text-[11px] text-slate-400 font-sans block">CA Awal</span>
+                                <span class="text-slate-800 font-semibold">Rp {{ number_format($c->approved_amount ?: $c->requested_amount, 0, ',', '.') }}</span>
+                            </div>
+                            <div>
+                                <span class="text-[11px] text-slate-400 font-sans block">Top-Up</span>
+                                <span class="text-emerald-700 font-semibold">+Rp {{ number_format($c->disbursed_topups_total, 0, ',', '.') }}</span>
+                            </div>
+                            <div>
+                                <span class="text-[11px] text-slate-400 font-sans block">Biaya Valid</span>
+                                <span class="text-slate-900 font-bold">Rp {{ number_format($c->valid_expenses_total, 0, ',', '.') }}</span>
+                            </div>
+                            <div>
+                                <span class="text-[11px] text-slate-400 font-sans block">Refund Sisa</span>
+                                <span class="text-purple-700 font-semibold">Rp {{ number_format($c->settlement_refund_amount, 0, ',', '.') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="py-6 text-center text-slate-400 text-xs">Tidak ada transaksi Cash Advance pada periode bulan ini.</div>
+                @endforelse
+            </div>
+
+            <div class="hidden md:block print:block border border-slate-200 rounded-[15px] overflow-hidden">
+                <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs font-mono min-w-[700px] table-technodrives">
                     <thead>
                         <tr>
@@ -190,11 +261,12 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
 
         <!-- Footer Signs -->
-        <div class="grid grid-cols-2 gap-8 text-center text-xs pt-8 border-t border-retail-surface mt-8 font-sans">
+        <div class="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-6 sm:gap-8 text-center text-xs pt-8 border-t border-retail-surface mt-8 font-sans">
             <div>
                 <span class="text-slate-400 block text-xs uppercase font-bold">Dibuat Oleh (Finance & Pajak)</span>
                 <div class="h-16 flex items-end justify-center font-bold text-slate-900 border-b border-slate-300 pb-1">
