@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Expense extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'cash_advance_id',
@@ -34,6 +35,8 @@ class Expense extends Model
         'void_by',
         'void_at',
         'void_reason',
+        'deleted_by',
+        'delete_reason',
     ];
 
     protected function casts(): array
@@ -78,6 +81,33 @@ class Expense extends Model
     public function lostReceiptApprover()
     {
         return $this->belongsTo(User::class, 'lost_receipt_approved_by');
+    }
+
+    public function deleter()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
+    }
+
+    /**
+     * Menentukan apakah pengguna berhak menghapus (soft delete) transaksi pengeluaran ini dari frontend.
+     */
+    public function canBeSoftDeletedBy(User $user): bool
+    {
+        $ca = $this->cashAdvance;
+        if (!$ca || $ca->status === 'CLOSED') {
+            return false;
+        }
+
+        if ($user->isFinance() || $user->isDirektur() || $user->isSuperAdmin()) {
+            return $this->verification_status !== 'VALID';
+        }
+
+        if ($this->user_id === $user->id) {
+            return $ca->status === 'ACTIVE'
+                && !in_array($this->verification_status, ['VALID', 'VOID'], true);
+        }
+
+        return false;
     }
 
     public function attachments()

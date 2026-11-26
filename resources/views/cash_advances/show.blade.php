@@ -26,7 +26,14 @@
     verifyExpenseId: null,
     verifyExpenseDesc: '',
     verifyStatus: 'VALID',
-    activeReceiptUrl: null
+    activeReceiptUrl: null,
+    showDeleteCaModal: false,
+    showDeleteExpenseModal: false,
+    deleteExpenseId: null,
+    deleteExpenseDesc: '',
+    showDeleteTopupModal: false,
+    deleteTopupId: null,
+    deleteTopupAmount: ''
 }">
 
     <!-- Top Navigation Breadcrumb & Actions (Responsive & Anti-Overlap) -->
@@ -36,6 +43,12 @@
             <span>Kembali ke Daftar CA</span>
         </a>
         <div class="flex items-center gap-2">
+            @if($cashAdvance->canBeSoftDeletedBy(auth()->user()))
+                <button type="button" @click="showDeleteCaModal = true" class="btn-secondary btn-sm py-1.5 px-3.5 text-xs inline-flex items-center gap-1.5 font-head font-semibold text-rose-700 border-rose-200 hover:bg-rose-50 shadow-xs rounded-full transition active:scale-95" title="Hapus CA (Soft Delete)">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5 text-rose-600"></i>
+                    <span>Hapus CA</span>
+                </button>
+            @endif
             <a href="{{ route('reports.rincian-ca', ['ca_id' => $cashAdvance->id]) }}" class="btn-secondary btn-sm py-1.5 px-3.5 text-xs inline-flex items-center gap-1.5 font-head font-semibold shadow-xs rounded-full transition active:scale-95">
                 <i data-lucide="printer" class="w-3.5 h-3.5 text-slate-500"></i>
                 <span>Cetak Laporan</span>
@@ -668,6 +681,13 @@
                                         Cairkan Dana Top-Up
                                     </button>
                                 @endif
+
+                                <!-- Soft Delete Top-Up -->
+                                @if($tu->canBeSoftDeletedBy(auth()->user()))
+                                    <button type="button" @click="showDeleteTopupModal = true; deleteTopupId = {{ $tu->id }}; deleteTopupAmount = '{{ number_format($tu->amount, 0, ',', '.') }}'" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-200 transition" title="Hapus Top-Up (Soft Delete)">
+                                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                @endif
                             </div>
                         </div>
                     @endforeach
@@ -821,6 +841,14 @@
                                         class="p-2 text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-200 transition" 
                                         title="VOID Transaksi">
                                     <i data-lucide="ban" class="w-4 h-4"></i>
+                                </button>
+                            @endif
+
+                            @if($exp->canBeSoftDeletedBy(auth()->user()))
+                                <button type="button" @click="showDeleteExpenseModal = true; deleteExpenseId = {{ $exp->id }}; deleteExpenseDesc = {{ \Illuminate\Support\Js::from($exp->description) }}"
+                                        class="p-2 text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-200 transition"
+                                        title="Hapus Transaksi (Soft Delete)">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
                                 </button>
                             @endif
                         </div>
@@ -979,6 +1007,13 @@
                                     @if((auth()->user()->isFinance() || auth()->user()->isDirektur()) && $exp->verification_status !== 'VOID')
                                         <button @click="showVoidModal = true; voidExpenseId = {{ $exp->id }}; voidExpenseDesc = {{ \Illuminate\Support\Js::from($exp->description) }}" class="p-1.5 text-rose-600 hover:text-rose-800 transition" title="VOID Transaksi">
                                             <i data-lucide="ban" class="w-4 h-4"></i>
+                                        </button>
+                                    @endif
+
+                                    <!-- Soft Delete Expense -->
+                                    @if($exp->canBeSoftDeletedBy(auth()->user()))
+                                        <button type="button" @click="showDeleteExpenseModal = true; deleteExpenseId = {{ $exp->id }}; deleteExpenseDesc = {{ \Illuminate\Support\Js::from($exp->description) }}" class="p-1.5 text-rose-600 hover:text-rose-800 transition" title="Hapus Transaksi (Soft Delete)">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
                                         </button>
                                     @endif
                                 </div>
@@ -1423,6 +1458,120 @@
                 <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
                     <button type="button" @click="showTopupRejectModal = false" class="btn-secondary py-1.5 px-3 text-xs">Batal</button>
                     <button type="submit" class="btn-danger text-xs py-1.5 px-3.5">Konfirmasi Tolak Top-Up</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 12: Soft Delete Cash Advance -->
+    <div x-show="showDeleteCaModal" x-cloak
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-[#050A1E]/75 z-[1060] flex items-center justify-center p-4">
+        <div x-show="showDeleteCaModal"
+            x-transition:enter="transition ease-out duration-200 transform"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150 transform"
+            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+            class="card-commerce max-w-md w-full p-6 shadow-2xl">
+            <h3 class="text-base font-bold text-rose-700 mb-1">Hapus Cash Advance (Soft Delete)</h3>
+            <p class="text-xs font-mono text-slate-600 mb-2">{{ $cashAdvance->ca_number }} &mdash; {{ $cashAdvance->project_name }}</p>
+            <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+                Dokumen CA akan disembunyikan dari tampilan operasional frontend, namun <strong>tetap tersimpan aman di basis data backend</strong> (arsip Soft Delete) dan dapat dipulihkan kembali.
+            </p>
+
+            <form action="{{ route('cash-advances.destroy', $cashAdvance) }}" method="POST" class="space-y-4">
+                @csrf
+                @method('DELETE')
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 uppercase mb-1">Alasan Penghapusan <span class="text-rose-500">*</span></label>
+                    <textarea name="delete_reason" rows="3" required minlength="5" class="w-full input-commerce text-xs" placeholder="Jelaskan alasan penghapusan dokumen CA ini (minimal 5 karakter)..."></textarea>
+                </div>
+                <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+                    <button type="button" @click="showDeleteCaModal = false" class="btn-secondary py-1.5 px-3 text-xs">Batal</button>
+                    <button type="submit" class="btn-danger text-xs py-1.5 px-3.5">Konfirmasi Hapus</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 13: Soft Delete Expense -->
+    <div x-show="showDeleteExpenseModal" x-cloak
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-[#050A1E]/75 z-[1060] flex items-center justify-center p-4">
+        <div x-show="showDeleteExpenseModal"
+            x-transition:enter="transition ease-out duration-200 transform"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150 transform"
+            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+            class="card-commerce max-w-md w-full p-6 shadow-2xl">
+            <h3 class="text-base font-bold text-rose-700 mb-1">Hapus Transaksi Pengeluaran (Soft Delete)</h3>
+            <p class="text-xs text-slate-600 font-semibold mb-2" x-text="deleteExpenseDesc"></p>
+            <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+                Transaksi akan hilang dari tampilan operasional dan saldo CA otomatis disesuaikan, namun <strong>rekaman transaksi dan bukti struk tetap tersimpan di backend</strong> (tidak terhapus permanen).
+            </p>
+
+            <form :action="'/expenses/' + deleteExpenseId" method="POST" class="space-y-4">
+                @csrf
+                @method('DELETE')
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 uppercase mb-1">Alasan Penghapusan <span class="text-rose-500">*</span></label>
+                    <textarea name="delete_reason" rows="3" required minlength="5" class="w-full input-commerce text-xs" placeholder="Jelaskan alasan penghapusan transaksi (minimal 5 karakter)..."></textarea>
+                </div>
+                <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+                    <button type="button" @click="showDeleteExpenseModal = false" class="btn-secondary py-1.5 px-3 text-xs">Batal</button>
+                    <button type="submit" class="btn-danger text-xs py-1.5 px-3.5">Konfirmasi Hapus</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 14: Soft Delete Top-Up -->
+    <div x-show="showDeleteTopupModal" x-cloak
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-[#050A1E]/75 z-[1060] flex items-center justify-center p-4">
+        <div x-show="showDeleteTopupModal"
+            x-transition:enter="transition ease-out duration-200 transform"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150 transform"
+            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+            class="card-commerce max-w-md w-full p-6 shadow-2xl">
+            <h3 class="text-base font-bold text-rose-700 mb-1">Hapus Pengajuan Top-Up (Soft Delete)</h3>
+            <p class="text-xs font-mono text-slate-600 mb-2" x-text="'Top-Up Sebesar Rp ' + deleteTopupAmount"></p>
+            <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+                Pengajuan Top-Up akan disembunyikan dari daftar frontend, namun <strong>tetap tersimpan di backend</strong> dalam arsip Soft Delete.
+            </p>
+
+            <form :action="'/top-ups/' + deleteTopupId" method="POST" class="space-y-4">
+                @csrf
+                @method('DELETE')
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 uppercase mb-1">Alasan Penghapusan <span class="text-rose-500">*</span></label>
+                    <textarea name="delete_reason" rows="3" required minlength="5" class="w-full input-commerce text-xs" placeholder="Jelaskan alasan penghapusan pengajuan Top-Up (minimal 5 karakter)..."></textarea>
+                </div>
+                <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+                    <button type="button" @click="showDeleteTopupModal = false" class="btn-secondary py-1.5 px-3 text-xs">Batal</button>
+                    <button type="submit" class="btn-danger text-xs py-1.5 px-3.5">Konfirmasi Hapus</button>
                 </div>
             </form>
         </div>

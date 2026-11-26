@@ -10,6 +10,7 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SoftDeleteArchiveController;
 use App\Http\Controllers\TopUpController;
 use App\Http\Controllers\VerificationController;
 use Illuminate\Support\Facades\Route;
@@ -44,12 +45,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/cash-advances/{cashAdvance}/submit-refund', [CashAdvanceController::class, 'submitRefund'])->name('cash-advances.submit-refund');
     Route::post('/cash-advances/{cashAdvance}/close', [CashAdvanceController::class, 'close'])->name('cash-advances.close');
     Route::post('/cash-advances/{cashAdvance}/unlock-gembok', [CashAdvanceController::class, 'unlockGembok'])->name('cash-advances.unlock-gembok');
+    Route::delete('/cash-advances/{cashAdvance}', [CashAdvanceController::class, 'destroy'])->name('cash-advances.destroy');
 
     // Expense Tracking
     Route::get('/cash-advances/{cashAdvance}/expenses/create', [ExpenseController::class, 'create'])->name('expenses.create');
     Route::post('/cash-advances/{cashAdvance}/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
     Route::get('/expenses/{expense}/edit', [ExpenseController::class, 'edit'])->name('expenses.edit');
     Route::put('/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
+    Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
     Route::post('/expenses/{expense}/void', [ExpenseController::class, 'voidExpense'])->name('expenses.void');
     Route::post('/expenses/{expense}/approve-lost-receipt', [ExpenseController::class, 'approveLostReceipt'])->name('expenses.approve-lost-receipt');
 
@@ -58,6 +61,7 @@ Route::middleware('auth')->group(function () {
 
     // Top-Up Management
     Route::post('/cash-advances/{cashAdvance}/top-ups', [TopUpController::class, 'store'])->name('top-ups.store');
+    Route::delete('/top-ups/{topUp}', [TopUpController::class, 'destroy'])->name('top-ups.destroy');
     Route::post('/top-ups/{topUp}/approve-atasan', [TopUpController::class, 'approveAtasan'])->name('top-ups.approve-atasan');
     Route::post('/top-ups/{topUp}/approve-finance', [TopUpController::class, 'approveFinance'])->name('top-ups.approve-finance');
     Route::post('/top-ups/{topUp}/approve-direktur', [TopUpController::class, 'approveDirektur'])->name('top-ups.approve-direktur');
@@ -70,8 +74,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports/outstanding', [ReportController::class, 'outstanding'])->name('reports.outstanding');
     Route::get('/reports/rekap-karyawan', [ReportController::class, 'rekapKaryawan'])->name('reports.rekap-karyawan');
 
-    // Audit Trail
+    // Audit Trail & Arsip Soft Delete
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+    Route::get('/soft-deletes', [SoftDeleteArchiveController::class, 'index'])->name('soft-deletes.index');
+    Route::post('/soft-deletes/cash-advances/{id}/restore', [SoftDeleteArchiveController::class, 'restoreCashAdvance'])->name('soft-deletes.cash-advances.restore');
+    Route::post('/soft-deletes/expenses/{id}/restore', [SoftDeleteArchiveController::class, 'restoreExpense'])->name('soft-deletes.expenses.restore');
+    Route::post('/soft-deletes/top-ups/{id}/restore', [SoftDeleteArchiveController::class, 'restoreTopUp'])->name('soft-deletes.top-ups.restore');
 
     // Notifications
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');

@@ -87,6 +87,7 @@ class DashboardController extends Controller
             // Jumlah pengajuan Top-Up bawahan yang menanti persetujuan Atasan
             $stats['pending_topup_count'] = TopUp::whereIn('user_id', $subordinateIds)
                 ->where('status', 'PENDING_ATASAN')
+                ->whereHas('cashAdvance')
                 ->count();
         }
 
@@ -98,10 +99,14 @@ class DashboardController extends Controller
                 ->count();
 
             // Jumlah struk/bukti pengeluaran yang menanti proses audit & verifikasi oleh Finance
-            $stats['pending_verification_count'] = Expense::where('verification_status', 'PENDING')->count();
+            $stats['pending_verification_count'] = Expense::where('verification_status', 'PENDING')
+                ->whereHas('cashAdvance')
+                ->count();
 
             // Jumlah Top-Up yang menanti tinjauan Finance atau siap dicairkan
-            $stats['pending_topup_count'] = TopUp::whereIn('status', ['PENDING_FINANCE', 'APPROVED'])->count();
+            $stats['pending_topup_count'] = TopUp::whereIn('status', ['PENDING_FINANCE', 'APPROVED'])
+                ->whereHas('cashAdvance')
+                ->count();
 
             // Jumlah CA yang telah melampaui batas waktu penyelesaian (lewat jatuh tempo / overdue)
             $stats['overdue_count'] = CashAdvance::where('status', '!=', 'CLOSED')
@@ -129,7 +134,9 @@ class DashboardController extends Controller
                 ->count();
 
             // Pengajuan Top-Up bernominal besar / melampaui batas yang membutuhkan persetujuan Direktur
-            $stats['pending_topup_count'] = TopUp::where('status', 'PENDING_DIREKTUR')->count();
+            $stats['pending_topup_count'] = TopUp::where('status', 'PENDING_DIREKTUR')
+                ->whereHas('cashAdvance')
+                ->count();
 
             // Total CA yang berstatus jatuh tempo (Overdue) di seluruh organisasi
             $stats['overdue_count'] = CashAdvance::where('status', '!=', 'CLOSED')
@@ -142,7 +149,9 @@ class DashboardController extends Controller
             $stats['total_active_float'] = CashAdvance::where('status', 'ACTIVE')->get()->sum->current_balance;
 
             // Jumlah struk yang menanti verifikasi
-            $stats['pending_verification_count'] = Expense::where('verification_status', 'PENDING')->count();
+            $stats['pending_verification_count'] = Expense::where('verification_status', 'PENDING')
+                ->whereHas('cashAdvance')
+                ->count();
         }
 
         // 7. Pengambilan data pengajuan Cash Advance terbaru sesuai pembatasan akses data (Data Scoping)

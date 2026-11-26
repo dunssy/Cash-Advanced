@@ -3,6 +3,9 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <title>@yield('title', 'Sistem Cash Advance & Settlement') - PT Technodrives</title>
 
+{{-- fav-icon --}}
+<link rel="icon" type="image/x-icon" href="{{ asset('assets/favicon/favicon-dark.ico') }}" media="(prefers-color-scheme: dark)">
+
 <!-- Google Fonts: Poppins (headings/numbers) & Fira Sans (body/labels) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

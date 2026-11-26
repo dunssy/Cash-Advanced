@@ -52,11 +52,12 @@
                             <span class="text-xs text-slate-400 font-mono">{{ $log->ip_address ?: '127.0.0.1' }}</span>
                         </div>
                         <span class="badge-retail text-xs uppercase font-bold
-                            {{ str_contains($log->action, 'REJECT') || str_contains($log->action, 'VOID') ? 'bg-[#FF3C00] text-white' : '' }}
+                            {{ str_contains($log->action, 'REJECT') || str_contains($log->action, 'VOID') || str_contains($log->action, 'DELETE') ? 'bg-[#FF3C00] text-white' : '' }}
+                            {{ str_contains($log->action, 'RESTORE') ? 'bg-emerald-700 text-white' : '' }}
                             {{ str_contains($log->action, 'APPROVE') || str_contains($log->action, 'VALID') ? 'bg-[#050A1E] text-white' : '' }}
                             {{ str_contains($log->action, 'OVERRIDE') ? 'bg-[#FFC704] text-[#050A1E]' : '' }}
                             {{ str_contains($log->action, 'DISBURSE') ? 'bg-white border-2 border-[#FF3C00] text-[#FF3C00]' : '' }}
-                            {{ !str_contains($log->action, 'REJECT') && !str_contains($log->action, 'APPROVE') && !str_contains($log->action, 'OVERRIDE') && !str_contains($log->action, 'DISBURSE') && !str_contains($log->action, 'VOID') ? 'bg-[#F4F4F4] text-[#7A7A7A] border border-[#E1E1E1]' : '' }}
+                            {{ !str_contains($log->action, 'REJECT') && !str_contains($log->action, 'APPROVE') && !str_contains($log->action, 'OVERRIDE') && !str_contains($log->action, 'DISBURSE') && !str_contains($log->action, 'VOID') && !str_contains($log->action, 'DELETE') && !str_contains($log->action, 'RESTORE') ? 'bg-[#F4F4F4] text-[#7A7A7A] border border-[#E1E1E1]' : '' }}
                         ">
                             {{ $log->action }}
                         </span>
@@ -123,11 +124,12 @@
                             </td>
                             <td class="px-4 py-3 text-center whitespace-nowrap">
                                 <span class="badge-retail text-xs uppercase font-bold
-                                    {{ str_contains($log->action, 'REJECT') || str_contains($log->action, 'VOID') ? 'bg-[#FF3C00] text-white' : '' }}
+                                    {{ str_contains($log->action, 'REJECT') || str_contains($log->action, 'VOID') || str_contains($log->action, 'DELETE') ? 'bg-[#FF3C00] text-white' : '' }}
+                                    {{ str_contains($log->action, 'RESTORE') ? 'bg-emerald-700 text-white' : '' }}
                                     {{ str_contains($log->action, 'APPROVE') || str_contains($log->action, 'VALID') ? 'bg-[#050A1E] text-white' : '' }}
                                     {{ str_contains($log->action, 'OVERRIDE') ? 'bg-[#FFC704] text-[#050A1E]' : '' }}
                                     {{ str_contains($log->action, 'DISBURSE') ? 'bg-white border-2 border-[#FF3C00] text-[#FF3C00]' : '' }}
-                                    {{ !str_contains($log->action, 'REJECT') && !str_contains($log->action, 'APPROVE') && !str_contains($log->action, 'OVERRIDE') && !str_contains($log->action, 'DISBURSE') && !str_contains($log->action, 'VOID') ? 'bg-[#F4F4F4] text-[#7A7A7A] border border-[#E1E1E1]' : '' }}
+                                    {{ !str_contains($log->action, 'REJECT') && !str_contains($log->action, 'APPROVE') && !str_contains($log->action, 'OVERRIDE') && !str_contains($log->action, 'DISBURSE') && !str_contains($log->action, 'VOID') && !str_contains($log->action, 'DELETE') && !str_contains($log->action, 'RESTORE') ? 'bg-[#F4F4F4] text-[#7A7A7A] border border-[#E1E1E1]' : '' }}
                                 ">
                                     {{ $log->action }}
                                 </span>

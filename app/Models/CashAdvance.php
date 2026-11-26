@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Carbon\Carbon;
 
 class CashAdvance extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'ca_number',
@@ -41,6 +42,8 @@ class CashAdvance extends Model
         'settlement_notes',
         'closed_by',
         'closed_at',
+        'deleted_by',
+        'delete_reason',
     ];
 
     protected function casts(): array
@@ -89,6 +92,29 @@ class CashAdvance extends Model
     public function unlocker()
     {
         return $this->belongsTo(User::class, 'unlocked_by');
+    }
+
+    public function deleter()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
+    }
+
+    /**
+     * SOFT DELETE 
+     * Menentukan apakah pengguna berhak menghapus (soft delete) Cash Advance ini dari frontend.
+     */
+    public function canBeSoftDeletedBy(User $user): bool
+    {
+        if ($user->isFinance() || $user->isDirektur() || $user->isSuperAdmin()) {
+            return true;
+        }
+
+        if ($this->user_id === $user->id) {
+            return ($this->status === 'PENDING_APPROVAL' && $this->approved_by === null)
+                || $this->status === 'REJECTED';
+        }
+
+        return false;
     }
 
     public function topUps()

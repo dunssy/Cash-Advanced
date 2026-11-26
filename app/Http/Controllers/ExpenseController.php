@@ -512,4 +512,60 @@ class ExpenseController extends Controller
 
         return back()->with('success', 'Surat pernyataan kehilangan struk telah disetujui atasan. Transaksi siap dinilai oleh Finance.');
     }
+
+    /**
+     * Menghapus transaksi pengeluaran secara lunak (Soft Delete).
+     *
+     * Data tidak dihapus permanen dari basis data dan berkas struk tetap dipertahankan;
+     * saldo kas Cash Advance terkait otomatis terkoreksi.
+     */
+    public function destroy(Request $request, Expense $expense): RedirectResponse
+    {
+        $user = Auth::user();
+
+        if (!$expense->canBeSoftDeletedBy($user)) {
+            abort(403, 'Akses ditolak: Anda tidak berhak menghapus transaksi pengeluaran ini.');
+        }
+
+        $validated = $request->validate([
+            'delete_reason' => ['required', 'string', 'min:5', 'max:500'],
+        ], [
+            'delete_reason.required' => 'Alasan penghapusan transaksi wajib diisi.',
+            'delete_reason.min' => 'Alasan penghapusan minimal 5 karakter.',
+        ]);
+
+        $oldValues = $expense->toArray();
+
+        ExpenseHistory::create([
+            'expense_id' => $expense->id,
+            'user_id' => $user->id,
+            'changes' => [
+                'action' => 'SOFT_DELETED',
+                'delete_reason' => $validated['delete_reason'],
+                'old' => $oldValues,
+            ],
+            'created_at' => now(),
+        ]);
+
+        $expense->update([
+            'deleted_by' => $user->id,
+            'delete_reason' => $validated['delete_reason'],
+        ]);
+        $expense->delete();
+
+        AuditLog::record(
+            'EXPENSE_SOFT_DELETED',
+            $expense,
+            "Transaksi pengeluaran #{$expense->id} ({$expense->description}) sebesar Rp " . number_format($expense->amount, 0, ',', '.') . " dihapus (soft delete) oleh {$user->name}. Alasan: {$validated['delete_reason']}",
+            $oldValues,
+            [
+                'deleted_at' => $expense->deleted_at?->toDateTimeString(),
+                'deleted_by' => $user->id,
+                'delete_reason' => $validated['delete_reason'],
+            ]
+        );
+
+        return redirect()->route('cash-advances.show', $expense->cash_advance_id)
+            ->with('success', 'Transaksi pengeluaran berhasil dihapus dari tampilan (arsip data tetap tersimpan di backend dan saldo telah disesuaikan).');
+    }
 }

@@ -47,7 +47,7 @@
                     <i data-lucide="camera" class="w-4 h-4 text-[#FF3C00]"></i>
                     <span>Foto Profil & Status Akun</span>
                 </h2>
-                <span class="text-xs font-mono text-slate-400">ID Pengguna: #{{ $user->id }}</span>
+                <span class="text-xs font-mono text-slate-400"></span>
             </div>
 
             <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
@@ -86,14 +86,14 @@
                     @endif
 
                     <!-- Protected Role Badge Notice (Bukan memilih role lagi) -->
-                    <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-start space-x-3">
+                    {{-- <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-start space-x-3">
                         <div class="p-1.5 rounded-lg bg-slate-200 text-slate-600 flex-shrink-0 mt-0.5">
                             <i data-lucide="shield-check" class="w-4 h-4 text-slate-700"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
+                        </div> 
+                            <div class="flex-1 min-w-0">
                             <div class="flex items-center space-x-2 flex-wrap gap-y-1">
-                                <span class="text-xs font-bold text-[#050A1E] font-head">Hak Akses Peran:</span>
-                                <span class="badge-retail text-xs uppercase font-bold
+                                {{-- <span class="text-xs font-bold text-[#050A1E] font-head">Hak :</span> --}}
+                                {{-- <span class="badge-retail text-xs uppercase font-bold
                                     {{ $user->role === 'direktur' ? 'bg-[#FFC704] text-[#050A1E]' : '' }}
                                     {{ $user->role === 'finance' ? 'bg-[#161A2B] text-white' : '' }}
                                     {{ $user->role === 'atasan' ? 'bg-[#050A1E] text-white' : '' }}
@@ -103,14 +103,14 @@
                                     {{ strtoupper($user->role) }}
                                 </span>
                                 @if($user->manager)
-                                    <span class="text-xs text-slate-500 font-body">Atasan Langsung: <strong class="text-[#050A1E]">{{ $user->manager->name }}</strong></span>
+                                    <span class="text-xs text-slate-500 font-body">Atasan: <strong class="text-[#050A1E]">{{ $user->manager->name }}</strong></span>
                                 @endif
                             </div>
                             <p class="text-xs text-slate-400 mt-1 font-body">
                                 Peran akun ditetapkan oleh Manajemen untuk tata kelola kepatuhan (<em>Separation of Duties</em>) dan tidak dapat diubah sendiri.
                             </p>
-                        </div>
-                    </div>
+                        </div> 
+                     </div>  --}}
                 </div>
             </div>
         </div>

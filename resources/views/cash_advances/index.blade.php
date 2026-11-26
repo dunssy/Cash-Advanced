@@ -4,7 +4,12 @@
 @section('page_title', auth()->user()->isKaryawan() ? 'Cash Advance Saya' : 'Daftar Cash Advance')
 
 @section('content')
-<div class="space-y-3.5 -mt-2">
+<div class="space-y-3.5 -mt-2" x-data="{
+    showDeleteCaModal: false,
+    deleteCaId: null,
+    deleteCaNumber: '',
+    deleteCaProject: ''
+}">
 
     <!-- Print Only Header -->
     <div class="hidden print:block mb-6 border-b-2 border-[#050A1E] pb-3">
@@ -61,6 +66,12 @@
                     <i data-lucide="printer" class="w-3.5 h-3.5 text-slate-500"></i>
                     <span>Cetak Laporan</span>
                 </button>
+                @if(auth()->user()->isFinance() || auth()->user()->isDirektur() || auth()->user()->isSuperAdmin())
+                    <a href="{{ route('soft-deletes.index') }}" class="btn-secondary py-2 px-4 text-xs inline-flex items-center gap-1.5 rounded-full shadow-2xs" title="Arsip Data Terhapus">
+                        <i data-lucide="archive" class="w-3.5 h-3.5 text-[#FF3C00]"></i>
+                        <span>Arsip Terhapus</span>
+                    </a>
+                @endif
             </div>
         </form>
     </div>
@@ -70,54 +81,56 @@
         <!-- Mobile Card List View (md:hidden - Tidak perlu geser horizontal) -->
         <div class="md:hidden divide-y divide-slate-100">
             @forelse($cashAdvances as $ca)
-                <a href="{{ route('cash-advances.show', $ca) }}" class="block p-4 bg-white hover:bg-slate-50 transition space-y-3 group">
-                    <div class="flex items-center justify-between gap-2">
-                        <span class="font-head font-bold text-xs text-white bg-[#050A1E] px-2.5 py-1 rounded-md">
-                            {{ $ca->ca_number }}
-                        </span>
-                        <span class="badge-retail text-xs
-                            {{ $ca->status === 'PENDING_APPROVAL' ? ($ca->approved_by ? 'bg-sky-50 text-sky-800 border-sky-300' : 'badge-pending-approval') : '' }}
-                            {{ $ca->status === 'REJECTED' ? 'badge-rejected' : '' }}
-                            {{ $ca->status === 'ACTIVE' ? 'badge-active' : '' }}
-                            {{ $ca->status === 'NEED_SETTLEMENT' ? 'badge-need-settlement' : '' }}
-                            {{ $ca->status === 'PENDING_VERIFICATION' ? 'badge-pending-verification' : '' }}
-                            {{ $ca->status === 'CLOSED' ? 'badge-closed' : '' }}
-                        ">
-                            @if($ca->status === 'PENDING_APPROVAL')
-                                {{ $ca->approved_by ? 'Disetujui • Menunggu Pencairan' : 'Menunggu Approval' }}
-                            @endif
-                            @if($ca->status === 'REJECTED') Ditolak @endif
-                            @if($ca->status === 'ACTIVE') Aktif @endif
-                            @if($ca->status === 'NEED_SETTLEMENT') Wajib Settlement @endif
-                            @if($ca->status === 'PENDING_VERIFICATION') Verifikasi Akhir @endif
-                            @if($ca->status === 'CLOSED') Selesai @endif
-                        </span>
-                    </div>
-
-                    <div>
-                        <h3 class="font-head font-bold text-sm text-[#050A1E] leading-snug">{{ $ca->project_name }}</h3>
-                        <div class="flex items-center space-x-2 text-xs text-[#7A7A7A] mt-1 font-body">
-                            <span class="font-medium text-slate-800">{{ $ca->user->name }}</span>
-                            <span>&bull;</span>
-                            <span>{{ $ca->user->department ?: 'Staff' }}</span>
+                <div class="p-4 bg-white hover:bg-slate-50 transition space-y-3 group">
+                    <a href="{{ route('cash-advances.show', $ca) }}" class="block space-y-3">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="font-head font-bold text-xs text-white bg-[#050A1E] px-2.5 py-1 rounded-md">
+                                {{ $ca->ca_number }}
+                            </span>
+                            <span class="badge-retail text-xs
+                                {{ $ca->status === 'PENDING_APPROVAL' ? ($ca->approved_by ? 'bg-sky-50 text-sky-800 border-sky-300' : 'badge-pending-approval') : '' }}
+                                {{ $ca->status === 'REJECTED' ? 'badge-rejected' : '' }}
+                                {{ $ca->status === 'ACTIVE' ? 'badge-active' : '' }}
+                                {{ $ca->status === 'NEED_SETTLEMENT' ? 'badge-need-settlement' : '' }}
+                                {{ $ca->status === 'PENDING_VERIFICATION' ? 'badge-pending-verification' : '' }}
+                                {{ $ca->status === 'CLOSED' ? 'badge-closed' : '' }}
+                            ">
+                                @if($ca->status === 'PENDING_APPROVAL')
+                                    {{ $ca->approved_by ? 'Disetujui • Menunggu Pencairan' : 'Menunggu Approval' }}
+                                @endif
+                                @if($ca->status === 'REJECTED') Ditolak @endif
+                                @if($ca->status === 'ACTIVE') Aktif @endif
+                                @if($ca->status === 'NEED_SETTLEMENT') Wajib Settlement @endif
+                                @if($ca->status === 'PENDING_VERIFICATION') Verifikasi Akhir @endif
+                                @if($ca->status === 'CLOSED') Selesai @endif
+                            </span>
                         </div>
-                    </div>
 
-                    <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                        <span class="text-xs font-head text-[#7A7A7A] uppercase font-bold">Sisa Saldo Kas</span>
-                        <span class="font-head font-extrabold text-sm {{ $ca->status === 'CLOSED' ? 'text-emerald-700' : ($ca->current_balance > 0 ? 'text-[#FF3C00]' : 'text-slate-800') }}">
-                            @if($ca->status === 'CLOSED')
-                                <span class="inline-flex items-center gap-1">
-                                    <i data-lucide="check" class="w-3.5 h-3.5 stroke-[2.5] text-emerald-600"></i>
-                                    <span>Rp 0 (Lunas)</span>
-                                </span>
-                            @else
-                                Rp {{ number_format($ca->current_balance, 0, ',', '.') }}
-                            @endif
-                        </span>
-                    </div>
+                        <div>
+                            <h3 class="font-head font-bold text-sm text-[#050A1E] leading-snug">{{ $ca->project_name }}</h3>
+                            <div class="flex items-center space-x-2 text-xs text-[#7A7A7A] mt-1 font-body">
+                                <span class="font-medium text-slate-800">{{ $ca->user->name }}</span>
+                                <span>&bull;</span>
+                                <span>{{ $ca->user->department ?: 'Staff' }}</span>
+                            </div>
+                        </div>
 
-                    <div class="flex items-center justify-between pt-2 border-t border-slate-100 font-head">
+                        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                            <span class="text-xs font-head text-[#7A7A7A] uppercase font-bold">Sisa Saldo Kas</span>
+                            <span class="font-head font-extrabold text-sm {{ $ca->status === 'CLOSED' ? 'text-emerald-700' : ($ca->current_balance > 0 ? 'text-[#FF3C00]' : 'text-slate-800') }}">
+                                @if($ca->status === 'CLOSED')
+                                    <span class="inline-flex items-center gap-1">
+                                        <i data-lucide="check" class="w-3.5 h-3.5 stroke-[2.5] text-emerald-600"></i>
+                                        <span>Rp 0 (Lunas)</span>
+                                    </span>
+                                @else
+                                    Rp {{ number_format($ca->current_balance, 0, ',', '.') }}
+                                @endif
+                            </span>
+                        </div>
+                    </a>
+
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-100 font-head gap-2">
                         <div>
                             @if($ca->status === 'ACTIVE' || $ca->status === 'NEED_SETTLEMENT')
                                 @if($ca->is_overdue)
@@ -134,12 +147,23 @@
                                 <span class="text-slate-400 text-xs">-</span>
                             @endif
                         </div>
-                        <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#050A1E] text-white text-xs font-head font-bold shadow-sm group-hover:bg-[#FF3C00] transition">
-                            <span>Buka CA</span>
-                            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-                        </span>
+                        <div class="flex items-center gap-1.5">
+                            @if($ca->canBeSoftDeletedBy(auth()->user()))
+                                <button type="button"
+                                    @click="showDeleteCaModal = true; deleteCaId = {{ $ca->id }}; deleteCaNumber = {{ \Illuminate\Support\Js::from($ca->ca_number) }}; deleteCaProject = {{ \Illuminate\Support\Js::from($ca->project_name) }}"
+                                    class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-600 hover:text-white text-xs font-head font-bold transition"
+                                    title="Hapus Cash Advance (Soft Delete)">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                    <span>Hapus</span>
+                                </button>
+                            @endif
+                            <a href="{{ route('cash-advances.show', $ca) }}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#050A1E] text-white text-xs font-head font-bold shadow-sm group-hover:bg-[#FF3C00] transition">
+                                <span>Buka CA</span>
+                                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                            </a>
+                        </div>
                     </div>
-                </a>
+                </div>
             @empty
                 <div class="py-12 text-center text-[#7A7A7A] text-sm font-body">
                     Tidak ada data Cash Advance yang sesuai kriteria pencarian.
@@ -236,10 +260,20 @@
                                 </span>
                             </td>
                             <td class="text-center whitespace-nowrap no-print">
-                                <a href="{{ route('cash-advances.show', $ca) }}" class="btn-secondary py-1.5 px-4 text-xs inline-flex items-center space-x-1 rounded-full">
-                                    <span>Detail</span>
-                                    <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-                                </a>
+                                <div class="inline-flex items-center justify-center gap-1.5">
+                                    <a href="{{ route('cash-advances.show', $ca) }}" class="btn-secondary py-1.5 px-4 text-xs inline-flex items-center space-x-1 rounded-full">
+                                        <span>Detail</span>
+                                        <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                                    </a>
+                                    @if($ca->canBeSoftDeletedBy(auth()->user()))
+                                        <button type="button"
+                                            @click="showDeleteCaModal = true; deleteCaId = {{ $ca->id }}; deleteCaNumber = {{ \Illuminate\Support\Js::from($ca->ca_number) }}; deleteCaProject = {{ \Illuminate\Support\Js::from($ca->project_name) }}"
+                                            class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-full border border-rose-200 transition"
+                                            title="Hapus Cash Advance (Soft Delete)">
+                                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                        </button>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -258,6 +292,44 @@
                 {{ $cashAdvances->links() }}
             </div>
         @endif
+    </div>
+
+    <!-- Modal Soft Delete Cash Advance -->
+    <div x-show="showDeleteCaModal" x-cloak
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-[#050A1E]/75 z-[1060] flex items-center justify-center p-4 no-print">
+        <div x-show="showDeleteCaModal"
+            x-transition:enter="transition ease-out duration-200 transform"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150 transform"
+            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+            class="card-commerce max-w-md w-full p-6 shadow-2xl">
+            <h3 class="text-base font-bold text-rose-700 mb-1">Hapus Cash Advance (Soft Delete)</h3>
+            <p class="text-xs font-mono text-slate-600 mb-2" x-text="deleteCaNumber + ' — ' + deleteCaProject"></p>
+            <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+                Data akan disembunyikan dari daftar operasional frontend, namun <strong>tetap tersimpan aman di backend</strong> (tidak hilang permanen) dan dapat dipulihkan melalui menu Arsip Soft Delete.
+            </p>
+
+            <form :action="'/cash-advances/' + deleteCaId" method="POST" class="space-y-4">
+                @csrf
+                @method('DELETE')
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 uppercase mb-1">Alasan Penghapusan <span class="text-rose-500">*</span></label>
+                    <textarea name="delete_reason" rows="3" required minlength="5" class="w-full input-commerce text-xs" placeholder="Jelaskan alasan penghapusan dokumen CA ini (minimal 5 karakter)..."></textarea>
+                </div>
+                <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+                    <button type="button" @click="showDeleteCaModal = false" class="btn-secondary py-1.5 px-3 text-xs">Batal</button>
+                    <button type="submit" class="btn-danger text-xs py-1.5 px-3.5">Konfirmasi Hapus</button>
+                </div>
+            </form>
+        </div>
     </div>
 
 </div>

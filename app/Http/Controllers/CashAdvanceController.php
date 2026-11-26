@@ -132,11 +132,16 @@ class CashAdvanceController extends Controller
             return view('cash_advances.locked', compact('lockingCA'));
         }
 
-        // 3. Estimasi Nomor / ID CA Otomatis untuk tampilan
-        $countThisMonth = CashAdvance::whereYear('created_at', date('Y'))
+        // 3. Estimasi Nomor / ID CA Otomatis untuk tampilan (sertakan soft-deleted agar nomor tidak bentrok)
+        $countThisMonth = CashAdvance::withTrashed()
+            ->whereYear('created_at', date('Y'))
             ->whereMonth('created_at', date('m'))
             ->count() + 1;
         $previewCaNumber = sprintf('CA-%s%s-%04d', date('Y'), date('m'), $countThisMonth);
+        while (CashAdvance::withTrashed()->where('ca_number', $previewCaNumber)->exists()) {
+            $countThisMonth++;
+            $previewCaNumber = sprintf('CA-%s%s-%04d', date('Y'), date('m'), $countThisMonth);
+        }
 
         // 4. Render antarmuka pembuatan pengajuan CA baru
         return view('cash_advances.create', compact('previewCaNumber'));
@@ -180,10 +185,15 @@ class CashAdvanceController extends Controller
         ]);
 
         // 4. Penomoran Dokumen & Kode Proyek Otomatis: CA-YYYYMM-XXXX & PRJ-YYYYMM-XXXX
-        $countThisMonth = CashAdvance::whereYear('created_at', date('Y'))
+        $countThisMonth = CashAdvance::withTrashed()
+            ->whereYear('created_at', date('Y'))
             ->whereMonth('created_at', date('m'))
             ->count() + 1;
         $caNumber = sprintf('CA-%s%s-%04d', date('Y'), date('m'), $countThisMonth);
+        while (CashAdvance::withTrashed()->where('ca_number', $caNumber)->exists()) {
+            $countThisMonth++;
+            $caNumber = sprintf('CA-%s%s-%04d', date('Y'), date('m'), $countThisMonth);
+        }
         $projectCode = sprintf('PRJ-%s%s-%04d', date('Y'), date('m'), $countThisMonth);
 
         // 5. Simpan record Cash Advance baru (1 CA = 1 Karyawan)
@@ -737,6 +747,52 @@ class CashAdvanceController extends Controller
         );
 
         return back()->with('success', "Gembok pengajuan berhasil dibuka secara pengecualian untuk {$cashAdvance->user->name}. Aksi ini telah dicatat permanen dalam Audit Log.");
+    }
+
+    /**
+     * Menghapus dokumen Cash Advance secara lunak (Soft Delete).
+     *
+     * Data disembunyikan dari daftar operasional frontend, namun tetap tersimpan
+     * secara utuh di basis data backend (kolom deleted_at) untuk kebutuhan audit
+     * serta dapat dipulihkan kembali oleh tim berwenang.
+     */
+    public function destroy(Request $request, CashAdvance $cashAdvance): RedirectResponse
+    {
+        $user = Auth::user();
+
+        if (!$cashAdvance->canBeSoftDeletedBy($user)) {
+            abort(403, 'Akses ditolak: Anda tidak berhak menghapus Cash Advance ini.');
+        }
+
+        $validated = $request->validate([
+            'delete_reason' => ['required', 'string', 'min:5', 'max:500'],
+        ], [
+            'delete_reason.required' => 'Alasan penghapusan wajib diisi untuk jejak audit keuangan.',
+            'delete_reason.min' => 'Alasan penghapusan minimal 5 karakter.',
+        ]);
+
+        $oldValues = $cashAdvance->toArray();
+
+        $cashAdvance->update([
+            'deleted_by' => $user->id,
+            'delete_reason' => $validated['delete_reason'],
+        ]);
+        $cashAdvance->delete();
+
+        AuditLog::record(
+            'CA_SOFT_DELETED',
+            $cashAdvance,
+            "Cash Advance {$cashAdvance->ca_number} dihapus (soft delete) oleh {$user->name}. Alasan: {$validated['delete_reason']}",
+            $oldValues,
+            [
+                'deleted_at' => $cashAdvance->deleted_at?->toDateTimeString(),
+                'deleted_by' => $user->id,
+                'delete_reason' => $validated['delete_reason'],
+            ]
+        );
+
+        return redirect()->route('cash-advances.index')
+            ->with('success', "Cash Advance {$cashAdvance->ca_number} berhasil dihapus dari tampilan (tersimpan di arsip Soft Delete backend).");
     }
 
     /**

@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Sistem Cash Advance & Settlement PT Technodrives</title>
     
+
+    {{-- fav-icon --}}
+
+    <link rel="icon" type="image/x-icon" href="{{ asset('assets/favicon/favicon-dark.ico') }}" >
+
     <!-- Google Fonts: Poppins (Headings/Buttons/Numbers) & Fira Sans (Body/Forms) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
