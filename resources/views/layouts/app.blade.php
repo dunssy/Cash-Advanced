@@ -159,17 +159,26 @@
                     </div>
                 @endif
 
-                <!-- Group: Audit Trail (Direktur, Finance, SuperAdmin) -->
+                <!-- Group: Audit & Kontrol (Direktur, Finance, SuperAdmin) -->
                 @if(auth()->user()->isDirektur() || auth()->user()->isFinance() || auth()->user()->isSuperAdmin())
                     <div class="pt-2 border-t border-white/5">
                         <p class="px-3 text-[10px] font-head font-bold uppercase tracking-wider text-slate-400 mb-1" x-show="!sidebarCollapsed">Audit & Kontrol</p>
-                        <a href="{{ route('audit-logs.index') }}" 
-                            class="flex items-center space-x-3 px-3 py-2.5 rounded-xl transition {{ request()->routeIs('audit-logs.*') ? 'bg-[#FF3C00] text-white font-bold shadow-md shadow-[#FF3C00]/20' : 'text-slate-300 hover:text-white hover:bg-white/5' }}"
-                            :class="sidebarCollapsed ? 'justify-center' : ''"
-                            title="Audit Trail">
-                            <i data-lucide="history" class="w-4 h-4 flex-shrink-0"></i>
-                            <span x-show="!sidebarCollapsed">Audit Trail</span>
-                        </a>
+                        <div class="space-y-1">
+                            <a href="{{ route('audit-logs.index') }}" 
+                                class="flex items-center space-x-3 px-3 py-2.5 rounded-xl transition {{ request()->routeIs('audit-logs.*') ? 'bg-[#FF3C00] text-white font-bold shadow-md shadow-[#FF3C00]/20' : 'text-slate-300 hover:text-white hover:bg-white/5' }}"
+                                :class="sidebarCollapsed ? 'justify-center' : ''"
+                                title="Audit Trail">
+                                <i data-lucide="history" class="w-4 h-4 flex-shrink-0"></i>
+                                <span x-show="!sidebarCollapsed">Audit Trail</span>
+                            </a>
+                            <a href="{{ route('soft-deletes.index') }}" 
+                                class="flex items-center space-x-3 px-3 py-2.5 rounded-xl transition {{ request()->routeIs('soft-deletes.*') ? 'bg-[#FF3C00] text-white font-bold shadow-md shadow-[#FF3C00]/20' : 'text-slate-300 hover:text-white hover:bg-white/5' }}"
+                                :class="sidebarCollapsed ? 'justify-center' : ''"
+                                title="Arsip Data">
+                                <i data-lucide="archive" class="w-4 h-4 flex-shrink-0"></i>
+                                <span x-show="!sidebarCollapsed">Arsip Data</span>
+                            </a>
+                        </div>
                     </div>
                 @endif
 
@@ -500,6 +509,10 @@
                             <a href="{{ route('audit-logs.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl transition {{ request()->routeIs('audit-logs.*') ? 'bg-[#161A2B] text-[#FF3C00] font-bold shadow-sm' : 'text-slate-700 hover:bg-slate-100 hover:text-[#050A1E]' }}">
                                 <i data-lucide="history" class="w-4 h-4 text-slate-500"></i>
                                 <span>Audit Trail</span>
+                            </a>
+                            <a href="{{ route('soft-deletes.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl transition {{ request()->routeIs('soft-deletes.*') ? 'bg-[#161A2B] text-[#FF3C00] font-bold shadow-sm' : 'text-slate-700 hover:bg-slate-100 hover:text-[#050A1E]' }}">
+                                <i data-lucide="archive" class="w-4 h-4 text-slate-500"></i>
+                                <span>Arsip Data</span>
                             </a>
                         @endif
 

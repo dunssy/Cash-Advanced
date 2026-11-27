@@ -6,6 +6,12 @@
 (function(window, document) {
     'use strict';
 
+    // Guard singleton agar loader tidak terinisialisasi ganda dan bentrok
+    if (window.__appLoaderInitialized) {
+        return;
+    }
+    window.__appLoaderInitialized = true;
+
     // 1. Baca Konfigurasi dari Script Tag atau Window Config
     var currentScript = document.currentScript;
     var config = window.AppLoaderConfig || {};
@@ -99,17 +105,45 @@
 
     // 3. Render atau Pasang Loader ke DOM
     var loaderEl = document.getElementById('app-loader');
+    var dismissTimer = null;
+    var fallbackTimer = null;
+    var hideTransitionTimer = null;
+
+    function clearLoaderTimers() {
+        if (dismissTimer) {
+            clearTimeout(dismissTimer);
+            dismissTimer = null;
+        }
+        if (fallbackTimer) {
+            clearTimeout(fallbackTimer);
+            fallbackTimer = null;
+        }
+        if (hideTransitionTimer) {
+            clearTimeout(hideTransitionTimer);
+            hideTransitionTimer = null;
+        }
+    }
+
+    function deduplicateLoaderElements() {
+        var overlays = document.querySelectorAll('#app-loader, .app-loader-overlay');
+        if (overlays.length <= 1) {
+            return overlays[0] || null;
+        }
+        var primary = overlays[0];
+        for (var i = 1; i < overlays.length; i++) {
+            overlays[i].parentNode && overlays[i].parentNode.removeChild(overlays[i]);
+        }
+        return primary;
+    }
 
     function ensureLoaderElement() {
-        if (!loaderEl) {
-            loaderEl = document.getElementById('app-loader');
-        }
+        loaderEl = deduplicateLoaderElements();
         if (!loaderEl) {
             loaderEl = document.createElement('div');
             loaderEl.id = 'app-loader';
             loaderEl.className = 'app-loader-overlay';
             loaderEl.innerHTML = generateLoaderHTML();
-            
+
             if (!showOnLoad) {
                 loaderEl.classList.add('loader-hidden');
                 loaderEl.style.display = 'none';
@@ -119,7 +153,9 @@
                 document.body.insertAdjacentElement('afterbegin', loaderEl);
             } else {
                 document.addEventListener('DOMContentLoaded', function() {
-                    document.body.insertAdjacentElement('afterbegin', loaderEl);
+                    if (!document.getElementById('app-loader') && document.body) {
+                        document.body.insertAdjacentElement('afterbegin', loaderEl);
+                    }
                 });
             }
         }
@@ -131,9 +167,13 @@
 
     // 4. Logika Dismiss / Tutup Loader
     function hideLoader() {
+        clearLoaderTimers();
+        if (!loaderEl) {
+            loaderEl = document.getElementById('app-loader');
+        }
         if (!loaderEl) return;
         loaderEl.classList.add('loader-hidden');
-        setTimeout(function() {
+        hideTransitionTimer = setTimeout(function() {
             if (loaderEl && loaderEl.classList.contains('loader-hidden')) {
                 loaderEl.style.display = 'none';
             }
@@ -141,6 +181,7 @@
     }
 
     function showLoader(options) {
+        clearLoaderTimers();
         ensureLoaderElement();
         if (options) {
             loaderEl.innerHTML = generateLoaderHTML(options);
@@ -161,7 +202,15 @@
         var dismissDelay = isJustLoggedIn ? 950 : 350;
 
         function scheduleDismiss() {
-            setTimeout(function() {
+            if (fallbackTimer) {
+                clearTimeout(fallbackTimer);
+                fallbackTimer = null;
+            }
+            if (dismissTimer) {
+                return;
+            }
+            dismissTimer = setTimeout(function() {
+                dismissTimer = null;
                 hideLoader();
             }, dismissDelay);
         }
@@ -169,16 +218,24 @@
         if (document.readyState === 'complete') {
             scheduleDismiss();
         } else {
-            window.addEventListener('load', scheduleDismiss);
+            window.addEventListener('load', scheduleDismiss, { once: true });
             // Fallback timeout jika CDN / aset lambat
-            setTimeout(scheduleDismiss, 2500);
+            fallbackTimer = setTimeout(scheduleDismiss, 2500);
         }
     }
 
+    // Pastikan loader tertutup bila halaman dipulihkan dari bfcache (tombol Back browser)
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            hideLoader();
+        }
+    });
+
     // 6. Otomatisasi Listener pada Form Login & Form dengan data-show-loader="true"
-    document.addEventListener('DOMContentLoaded', function() {
+    function bindFormLoaders() {
         var loginForm = document.getElementById('login-form');
-        if (loginForm) {
+        if (loginForm && loginForm.getAttribute('data-loader-bound') !== 'true') {
+            loginForm.setAttribute('data-loader-bound', 'true');
             loginForm.addEventListener('submit', function() {
                 showLoader({
                     isJustLoggedIn: false,
@@ -189,12 +246,22 @@
         }
 
         document.querySelectorAll('form[data-show-loader="true"]').forEach(function(form) {
+            if (form.getAttribute('data-loader-bound') === 'true') {
+                return;
+            }
+            form.setAttribute('data-loader-bound', 'true');
             form.addEventListener('submit', function() {
                 var title = form.getAttribute('data-loader-title') || 'Sedang Memproses...';
                 var subtext = form.getAttribute('data-loader-subtext') || 'Mohon tunggu sebentar...';
                 showLoader({ isJustLoggedIn: false, title: title, subtext: subtext });
             });
         });
-    });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bindFormLoaders);
+    } else {
+        bindFormLoaders();
+    }
 
 })(window, document);

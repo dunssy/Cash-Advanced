@@ -107,6 +107,7 @@ class ReminderService
 
         // 3. Finance reminder: receipts pending verification > 2 business days
         $pendingExpenses = Expense::where('verification_status', 'PENDING')
+            ->whereHas('cashAdvance')
             ->where('created_at', '<=', Carbon::now()->subDays(2))
             ->get();
 

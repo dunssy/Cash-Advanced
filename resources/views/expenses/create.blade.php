@@ -196,22 +196,39 @@
             </div>
 
             <!-- 9. Upload Foto Struk Dari HP (1 sampai 5 file) -->
-            <div x-show="!isLostReceipt">
+            <div x-show="!isLostReceipt" class="space-y-3">
                 <label class="block text-xs font-bold text-retail-ink uppercase tracking-wider mb-1.5">
                     Foto Struk / Nota Pembelian (1-5 Foto / PDF) <span class="text-rose-500">*</span>
                 </label>
-                <div class="border-2 border-dashed border-cardborder hover:border-[#FF3C00] rounded-[15px] p-6 text-center transition bg-[#F4F4F4]/50">
-                    <div class="flex flex-col items-center justify-center space-y-2.5">
+
+                <input type="file" name="receipts[]" id="receipts-main-input" multiple accept="image/*,.pdf" class="hidden">
+                <input type="file" id="receipts-camera-input" accept="image/*" capture="environment" class="hidden">
+                <input type="file" id="receipts-gallery-input" multiple accept="image/*,.pdf" class="hidden">
+
+                <div class="border-2 border-dashed border-cardborder hover:border-[#FF3C00] rounded-[15px] p-5 text-center transition bg-[#F4F4F4]/50 space-y-3">
+                    <div class="flex flex-col items-center justify-center space-y-2">
                         <div class="w-12 h-12 rounded-full bg-white text-[#FF3C00] border border-cardborder flex items-center justify-center shadow-sm">
                             <i data-lucide="camera" class="w-6 h-6"></i>
                         </div>
                         <div>
                             <span class="text-sm font-head font-bold text-[#050A1E] block">Ambil Foto Langsung dari HP atau Pilih File</span>
-                            <span class="text-xs font-mono text-bodygrey block mt-0.5">JPG, PNG, atau PDF (Maks. 5 file, maks 10MB/file)</span>
+                            <span class="text-xs font-mono text-bodygrey block mt-0.5">JPG, PNG, WEBP, atau PDF (Maks. 5 file, maks 10MB/file)</span>
                         </div>
-                        <input type="file" name="receipts[]" multiple accept="image/*,application/pdf" capture="environment"
-                            class="text-xs text-bodygrey file:mr-3 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-head file:font-semibold file:bg-[#050A1E] file:text-white hover:file:bg-[#FF3B00] cursor-pointer pt-2 transition">
                     </div>
+
+                    <div class="flex flex-wrap items-center justify-center gap-2.5 pt-1">
+                        <button type="button" id="btn-open-camera" class="btn-brand py-2 px-4 text-xs inline-flex items-center gap-2 shadow-sm">
+                            <i data-lucide="camera" class="w-4 h-4"></i>
+                            <span>Ambil Foto Kamera</span>
+                        </button>
+                        <button type="button" id="btn-open-gallery" class="btn-secondary py-2 px-4 text-xs inline-flex items-center gap-2 shadow-sm">
+                            <i data-lucide="image" class="w-4 h-4 text-slate-600"></i>
+                            <span>Pilih dari Galeri / PDF</span>
+                        </button>
+                    </div>
+                    <div id="receipts-counter" class="text-xs font-mono text-slate-500">0/5 file dipilih</div>
+
+                    <div id="receipts-preview-grid" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 pt-2 text-left"></div>
                 </div>
             </div>
 
@@ -228,4 +245,95 @@
         </form>
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const mainInput = document.getElementById('receipts-main-input');
+    const cameraInput = document.getElementById('receipts-camera-input');
+    const galleryInput = document.getElementById('receipts-gallery-input');
+    const btnCamera = document.getElementById('btn-open-camera');
+    const btnGallery = document.getElementById('btn-open-gallery');
+    const previewGrid = document.getElementById('receipts-preview-grid');
+    const counterEl = document.getElementById('receipts-counter');
+
+    if (!mainInput || !btnCamera || !btnGallery) return;
+
+    const MAX_FILES = 5;
+    let selectedFiles = [];
+
+    function syncMainInput() {
+        const dt = new DataTransfer();
+        selectedFiles.forEach((file) => dt.items.add(file));
+        mainInput.files = dt.files;
+        counterEl.textContent = `${selectedFiles.length}/${MAX_FILES} file dipilih`;
+        renderPreviews();
+    }
+
+    function addFiles(fileList) {
+        const incoming = Array.from(fileList || []);
+        for (const file of incoming) {
+            if (selectedFiles.length >= MAX_FILES) {
+                alert('Maksimal 5 foto atau file struk per transaksi.');
+                break;
+            }
+            selectedFiles.push(file);
+        }
+        syncMainInput();
+    }
+
+    function renderPreviews() {
+        previewGrid.innerHTML = '';
+        if (selectedFiles.length === 0) {
+            previewGrid.classList.add('hidden');
+            return;
+        }
+        previewGrid.classList.remove('hidden');
+
+        selectedFiles.forEach((file, idx) => {
+            const card = document.createElement('div');
+            card.className = 'relative border border-cardborder rounded-xl bg-white overflow-hidden p-1.5 flex flex-col items-center shadow-2xs';
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-rose-600 text-white text-xs font-bold flex items-center justify-center shadow hover:bg-rose-700 transition z-10';
+            removeBtn.title = 'Hapus file';
+            removeBtn.textContent = '×';
+            removeBtn.addEventListener('click', function () {
+                selectedFiles.splice(idx, 1);
+                syncMainInput();
+            });
+            card.appendChild(removeBtn);
+
+            if (file.type && file.type.startsWith('image/')) {
+                const img = document.createElement('img');
+                img.className = 'w-full h-24 object-cover rounded-lg';
+                img.alt = file.name;
+                const reader = new FileReader();
+                reader.onload = function (e) { img.src = e.target.result; };
+                reader.readAsDataURL(file);
+                card.appendChild(img);
+            } else {
+                const pdfBox = document.createElement('div');
+                pdfBox.className = 'w-full h-24 rounded-lg bg-slate-100 flex flex-col items-center justify-center text-slate-500 p-2';
+                pdfBox.innerHTML = '<span class="text-xs font-bold uppercase">PDF</span>';
+                card.appendChild(pdfBox);
+            }
+
+            const nameEl = document.createElement('span');
+            nameEl.className = 'text-[11px] text-slate-600 truncate w-full text-center mt-1 px-1';
+            nameEl.textContent = file.name;
+            card.appendChild(nameEl);
+
+            previewGrid.appendChild(card);
+        });
+    }
+
+    btnCamera.addEventListener('click', function () { cameraInput.value = ''; cameraInput.click(); });
+    btnGallery.addEventListener('click', function () { galleryInput.value = ''; galleryInput.click(); });
+    cameraInput.addEventListener('change', function () { if (this.files.length > 0) addFiles(this.files); });
+    galleryInput.addEventListener('change', function () { if (this.files.length > 0) addFiles(this.files); });
+});
+</script>
+@endpush
 @endsection

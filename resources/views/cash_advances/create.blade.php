@@ -4,13 +4,21 @@
 
 @section('content')
 <div class="max-w-2xl mx-auto">
-    <div class="mb-5">
-        <a href="{{ route('cash-advances.index') }}" class="text-xs font-semibold text-bodygrey hover:text-[#050A1E] inline-flex items-center space-x-1 mb-2 font-head">
-            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
-            <span>Kembali ke Daftar CA</span>
-        </a>
-        <h1 class="text-xl sm:text-2xl font-head font-bold text-[#050A1E] tracking-tight">Form Pengajuan Cash Advance</h1>
-        <p class="text-xs text-bodygrey mt-1">Prinsip Tata Kelola: Satu CA = Satu Proyek = Satu Buku Saldo Terpisah.</p>
+    <div class="mb-5 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+        <div>
+            <a href="{{ route('cash-advances.index') }}" class="text-xs font-semibold text-bodygrey hover:text-[#050A1E] inline-flex items-center space-x-1 mb-2 font-head">
+                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                <span>Kembali ke Daftar CA</span>
+            </a>
+            <h1 class="text-xl sm:text-2xl font-head font-bold text-[#050A1E] tracking-tight">Form Pengajuan Cash Advance</h1>
+            <p class="text-xs text-bodygrey mt-1">Prinsip Tata Kelola: Satu CA = Satu Proyek = Satu Buku Saldo Terpisah.</p>
+        </div>
+        @if(isset($previewCaNumber))
+            <div class="px-3.5 py-1.5 bg-white rounded-full border border-cardborder shadow-xs inline-flex items-center gap-2 self-start sm:self-auto">
+                <span class="text-[10px] text-bodygrey uppercase font-head font-bold tracking-wider">Nomor Dokumen:</span>
+                <span class="font-mono font-bold text-[#050A1E] text-xs">{{ $previewCaNumber }}</span>
+            </div>
+        @endif
     </div>
 
     <div class="card-commerce p-6 sm:p-7 border border-cardborder rounded-2xl bg-white shadow-sm">

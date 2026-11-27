@@ -17,7 +17,7 @@
             Super Admin bertanggung jawab atas kelola pengguna master, hak akses peran, relasi departemen, dan audit integritas sistem.
         </p>
     </div>
-    <div class="flex items-center space-x-3 w-full sm:w-auto">
+    <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
         <a href="{{ route('admin.users.index') }}" class="btn-brand text-xs py-2.5 px-4 shadow-sm">
             <i data-lucide="users" class="w-3.5 h-3.5"></i>
             <span>Kelola User</span>
@@ -25,6 +25,10 @@
         <a href="{{ route('admin.settings.index') }}" class="btn-secondary text-xs py-2.5 px-4 shadow-sm">
             <i data-lucide="settings" class="w-3.5 h-3.5"></i>
             <span>Parameter Global</span>
+        </a>
+        <a href="{{ route('soft-deletes.index') }}" class="btn-secondary text-xs py-2.5 px-4 shadow-sm">
+            <i data-lucide="archive" class="w-3.5 h-3.5"></i>
+            <span>Arsip Data</span>
         </a>
     </div>
 </div>

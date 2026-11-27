@@ -53,8 +53,8 @@ class DashboardController extends Controller
 
         // 2. Status CA aktif dan status Gembok Pengajuan milik pengguna saat ini
         // Sesuai SOP PT Technodrive: Satu karyawan hanya boleh memiliki satu CA aktif sekaligus.
-        $activeCA = CashAdvance::where('user_id', $user->id)
-            ->where('status', 'ACTIVE')
+        $activeCA = CashAdvance::where('status', 'ACTIVE')
+            ->where('user_id', $user->id)
             ->first();
 
         // Cari juga pengajuan CA pengguna yang sedang dalam status PENDING_APPROVAL
@@ -112,23 +112,30 @@ class DashboardController extends Controller
             ->count();
 
             // Jumlah pengajuan Top-Up bawahan yang menanti persetujuan Atasan
-            $stats['pending_topup_count'] = TopUp::whereIn('user_id', $subordinateIds)
-                ->where('status', 'PENDING_ATASAN')
+            $stats['pending_topup_count'] = TopUp::where('status', 'PENDING_ATASAN')
+                ->whereHas('cashAdvance')
+                ->where(function ($q) use ($user, $subordinateIds) {
+                    $q->whereIn('user_id', $subordinateIds)
+                      ->orWhereHas('cashAdvance', fn($ca) => $ca->where('manager_id', $user->id));
+                })
                 ->count();
 
             // Tracking Pengeluaran & Pembelian Barang oleh Karyawan Divisi
-            $stats['division_expense_total'] = Expense::where(function ($q) use ($user, $subordinateIds) {
-                $q->whereIn('user_id', $subordinateIds)
-                  ->orWhereHas('cashAdvance', fn($ca) => $ca->where('manager_id', $user->id));
-            })->whereNotIn('verification_status', ['VOID', 'REJECTED'])->sum('amount');
+            $stats['division_expense_total'] = Expense::whereHas('cashAdvance')
+                ->where(function ($q) use ($user, $subordinateIds) {
+                    $q->whereIn('user_id', $subordinateIds)
+                      ->orWhereHas('cashAdvance', fn($ca) => $ca->where('manager_id', $user->id));
+                })->whereNotIn('verification_status', ['VOID', 'REJECTED'])->sum('amount');
 
-            $stats['division_expense_count'] = Expense::where(function ($q) use ($user, $subordinateIds) {
-                $q->whereIn('user_id', $subordinateIds)
-                  ->orWhereHas('cashAdvance', fn($ca) => $ca->where('manager_id', $user->id));
-            })->count();
+            $stats['division_expense_count'] = Expense::whereHas('cashAdvance')
+                ->where(function ($q) use ($user, $subordinateIds) {
+                    $q->whereIn('user_id', $subordinateIds)
+                      ->orWhereHas('cashAdvance', fn($ca) => $ca->where('manager_id', $user->id));
+                })->count();
 
             // 5 Transaksi Pembelian Barang Terbaru oleh Karyawan Divisi
             $recentDivisionExpenses = Expense::with(['user', 'cashAdvance', 'attachments'])
+                ->whereHas('cashAdvance')
                 ->where(function ($q) use ($user, $subordinateIds) {
                     $q->whereIn('user_id', $subordinateIds)
                       ->orWhereHas('cashAdvance', fn($ca) => $ca->where('manager_id', $user->id));
@@ -141,8 +148,8 @@ class DashboardController extends Controller
 
         // Kalkulasi metrik spesifik untuk peran Karyawan
         if ($user->isKaryawan()) {
-            $stats['karyawan_total_spent'] = Expense::where('user_id', $user->id)->whereNotIn('verification_status', ['VOID', 'REJECTED'])->sum('amount');
-            $stats['karyawan_valid_receipts'] = Expense::where('user_id', $user->id)->where('verification_status', 'VALID')->count();
+            $stats['karyawan_total_spent'] = Expense::whereHas('cashAdvance')->where('user_id', $user->id)->whereNotIn('verification_status', ['VOID', 'REJECTED'])->sum('amount');
+            $stats['karyawan_valid_receipts'] = Expense::whereHas('cashAdvance')->where('user_id', $user->id)->where('verification_status', 'VALID')->count();
             $stats['karyawan_ca_count'] = CashAdvance::where('user_id', $user->id)->count();
         }
 
@@ -154,10 +161,14 @@ class DashboardController extends Controller
                 ->count();
 
             // Jumlah struk/bukti pengeluaran yang menanti proses audit & verifikasi oleh Finance
-            $stats['pending_verification_count'] = Expense::where('verification_status', 'PENDING')->count();
+            $stats['pending_verification_count'] = Expense::where('verification_status', 'PENDING')
+                ->whereHas('cashAdvance')
+                ->count();
 
             // Jumlah Top-Up yang menanti tinjauan Finance atau siap dicairkan
-            $stats['pending_topup_count'] = TopUp::whereIn('status', ['PENDING_FINANCE', 'APPROVED'])->count();
+            $stats['pending_topup_count'] = TopUp::whereIn('status', ['PENDING_FINANCE', 'APPROVED'])
+                ->whereHas('cashAdvance')
+                ->count();
 
             // Jumlah CA yang telah melampaui batas waktu penyelesaian (lewat jatuh tempo / overdue)
             $stats['overdue_count'] = CashAdvance::where('status', '!=', 'CLOSED')
@@ -185,7 +196,9 @@ class DashboardController extends Controller
                 ->count();
 
             // Pengajuan Top-Up bernominal besar / melampaui batas yang membutuhkan persetujuan Direktur
-            $stats['pending_topup_count'] = TopUp::where('status', 'PENDING_DIREKTUR')->count();
+            $stats['pending_topup_count'] = TopUp::where('status', 'PENDING_DIREKTUR')
+                ->whereHas('cashAdvance')
+                ->count();
 
             // Total CA yang berstatus jatuh tempo (Overdue) di seluruh organisasi
             $stats['overdue_count'] = CashAdvance::where('status', '!=', 'CLOSED')
@@ -196,19 +209,28 @@ class DashboardController extends Controller
 
             // Total saldo kas mengambang (Active Float) yang sedang berjalan
             $stats['total_active_float'] = CashAdvance::where('status', 'ACTIVE')->get()->sum->current_balance;
+
+            // Jumlah struk yang menanti verifikasi
+            $stats['pending_verification_count'] = Expense::where('verification_status', 'PENDING')
+                ->whereHas('cashAdvance')
+                ->count();
         }
 
         // 7. Pengambilan data pengajuan Cash Advance terbaru sesuai pembatasan akses data (Data Scoping)
-        $recentCAsQuery = CashAdvance::with(['user', 'approver', 'disburser'])->orderByDesc('created_at');
+        // CA yang berstatus ACTIVE selalu diutamakan berada di paling atas
+        $recentCAsQuery = CashAdvance::with(['user', 'approver', 'disburser'])
+            ->orderByRaw("CASE WHEN status = 'ACTIVE' THEN 0 ELSE 1 END ASC")
+            ->orderByDesc('created_at');
 
         if ($user->isKaryawan()) {
-            // Karyawan hanya dapat melihat pengajuan miliknya sendiri
+            // Karyawan hanya melihat data miliknya sendiri
             $recentCAsQuery->where('user_id', $user->id);
         } elseif ($user->isAtasan()) {
-            // Atasan dapat melihat pengajuan miliknya dan seluruh bawahan langsungnya
+            // Atasan dapat melihat pengajuan miliknya, bawahan langsungnya, dan CA yang diarahkan padanya
             $recentCAsQuery->where(function ($q) use ($user, $subordinateIds) {
                 $q->where('user_id', $user->id)
-                  ->orWhereIn('user_id', $subordinateIds);
+                  ->orWhereIn('user_id', $subordinateIds)
+                  ->orWhere('manager_id', $user->id);
             });
         } elseif ($user->isSuperAdmin()) {
             // Super Admin melihat sampel data ringkas sistem

@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TopUp extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'cash_advance_id',
@@ -29,6 +30,8 @@ class TopUp extends Model
         'disbursed_at',
         'disbursement_ref',
         'disbursement_notes',
+        'deleted_by',
+        'delete_reason',
     ];
 
     protected function casts(): array
@@ -77,5 +80,32 @@ class TopUp extends Model
     public function rejector()
     {
         return $this->belongsTo(User::class, 'rejected_by');
+    }
+
+    public function deleter()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
+    }
+
+    /**
+     * Menentukan apakah pengguna berhak menghapus (soft delete) pengajuan Top-Up ini dari frontend.
+     */
+    public function canBeSoftDeletedBy(User $user): bool
+    {
+        $ca = $this->cashAdvance;
+        if (!$ca || $ca->status === 'CLOSED') {
+            return false;
+        }
+
+        if ($user->isFinance() || $user->isDirektur() || $user->isSuperAdmin()) {
+            return $this->status !== 'DISBURSED';
+        }
+
+        if ($this->user_id === $user->id) {
+            return $ca->status === 'ACTIVE'
+                && in_array($this->status, ['PENDING_ATASAN', 'REJECTED'], true);
+        }
+
+        return false;
     }
 }

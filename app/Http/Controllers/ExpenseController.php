@@ -172,14 +172,14 @@ class ExpenseController extends Controller
      * 2. Memastikan status CA adalah ACTIVE.
      * 3. Menampilkan view form pencatatan pengeluaran beserta info sisa saldo berjalan.
      *
-     * @param  \App\Models\CashAdvance  $cashAdvance Model Cash Advance yang sedang aktif.
-     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+    * @param  \App\Models\CashAdvance  $cashAdvance Model Cash Advance yang sedang aktif.
+    * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
     public function create(CashAdvance $cashAdvance): View|RedirectResponse
     {
         $user = Auth::user();
 
-        // 1. Otorisasi kepemilikan
+        // 1. Otorisasi kepemilikan (SOP PT Technodrives: 1 CA = 1 Karyawan)
         if ($cashAdvance->user_id !== $user->id) {
             abort(403, 'Akses ditolak: Hanya pemilik Cash Advance yang dapat mencatat pengeluaran.');
         }
@@ -209,9 +209,9 @@ class ExpenseController extends Controller
      * 9. Mencatat aktivitas ke Audit Log.
      * 10. Memeriksa ambang batas peringatan saldo menipis (< 20%) dan menerbitkan notifikasi jika terpicu.
      *
-     * @param  \Illuminate\Http\Request  $request Objek HTTP Request yang memuat data pengeluaran dan lampiran.
-     * @param  \App\Models\CashAdvance  $cashAdvance Model Cash Advance terkait.
-     * @return \Illuminate\Http\RedirectResponse
+    * @param  \Illuminate\Http\Request  $request Objek HTTP Request yang memuat data pengeluaran dan lampiran.
+    * @param  \App\Models\CashAdvance  $cashAdvance Model Cash Advance terkait.
+    * @return \Illuminate\Http\RedirectResponse
      */
     public function store(Request $request, CashAdvance $cashAdvance): RedirectResponse
     {
@@ -219,7 +219,7 @@ class ExpenseController extends Controller
 
         // 1. Otorisasi kepemilikan
         if ($cashAdvance->user_id !== $user->id) {
-            abort(403, 'Akses ditolak.');
+            abort(403, 'Akses ditolak: Hanya pemilik Cash Advance yang dapat mencatat pengeluaran.');
         }
 
         // 2. Validasi status keaktifan CA
@@ -235,7 +235,7 @@ class ExpenseController extends Controller
             'transaction_date' => ['required', 'date', 'before_or_equal:today', "after_or_equal:{$minDate}"],
             'description' => ['required', 'string', 'max:255'],
             'category' => ['required', 'in:material,transport,sewa_alat,konsumsi,lainnya'],
-            'amount' => ['required', 'numeric', 'min:1'],
+            'amount' => ['required', 'integer', 'min:1'],
             'vendor_name' => ['required', 'string', 'max:255'],
             'vendor_tax_number' => ['nullable', 'string', 'max:100'],
             'notes' => ['nullable', 'string'],
@@ -244,7 +244,7 @@ class ExpenseController extends Controller
             'is_lost_receipt' => ['nullable', 'boolean'],
             'lost_receipt_statement_file' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
             'receipts' => ['nullable', 'array', 'max:5'],
-            'receipts.*' => ['file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
+            'receipts.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
         ];
 
         $messages = [
@@ -262,11 +262,11 @@ class ExpenseController extends Controller
         $currentBalance = $cashAdvance->current_balance;
 
         // 4. KUNCI INPUT SALDO (SOP Dokumen hal 5)
-        // Pengeluaran yang membuat saldo di bawah Rp 0 dilarang sistem kecuali dinyatakan sebagai Talangan
+        // Saldo yang diperiksa adalah saldo kas berjalan pada Cash Advance ini
         if (!$isTalangan) {
             if ($amount > $currentBalance) {
                 return back()->withInput()->withErrors([
-                    'amount' => "Saldo tidak cukup! Sisa saldo saat ini: Rp " . number_format($currentBalance, 0, ',', '.') . ", sedangkan pengeluaran diajukan: Rp " . number_format($amount, 0, ',', '.') . ". Silakan ajukan Top-Up terlebih dahulu.",
+                    'amount' => "Saldo kas tidak cukup! Sisa saldo saat ini: Rp " . number_format($currentBalance, 0, ',', '.') . ", sedangkan pengeluaran diajukan: Rp " . number_format($amount, 0, ',', '.') . ". Silakan ajukan Top-Up terlebih dahulu, atau gunakan opsi Talangan Darurat bila mendesak.",
                 ]);
             }
         } else {
@@ -385,8 +385,8 @@ class ExpenseController extends Controller
      * Karyawan hanya diperbolehkan merevisi transaksi selama status verifikasinya
      * belum 'VALID' dan belum 'VOID' (misal berstatus PENDING atau NEEDS_REVISION).
      *
-     * @param  \App\Models\Expense  $expense Model transaksi pengeluaran yang ingin diedit.
-     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+    * @param  \App\Models\Expense  $expense Model transaksi pengeluaran yang ingin diedit.
+    * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
     public function edit(Expense $expense): View|RedirectResponse
     {
@@ -405,6 +405,12 @@ class ExpenseController extends Controller
 
         $cashAdvance = $expense->cashAdvance;
 
+        // 3. Validasi status keaktifan CA
+        if ($cashAdvance->status !== 'ACTIVE') {
+            return redirect()->route('cash-advances.show', $cashAdvance)
+                ->with('error', 'Transaksi hanya dapat diedit saat status Cash Advance adalah ACTIVE.');
+        }
+
         return view('expenses.edit', compact('expense', 'cashAdvance'));
     }
 
@@ -419,9 +425,9 @@ class ExpenseController extends Controller
      * 5. Mengunggah lampiran struk tambahan jika dilampirkan.
      * 6. Merekam ke Audit Log.
      *
-     * @param  \Illuminate\Http\Request  $request Objek HTTP Request yang memuat revisi data transaksi.
-     * @param  \App\Models\Expense  $expense Model transaksi pengeluaran yang direvisi.
-     * @return \Illuminate\Http\RedirectResponse
+    * @param  \Illuminate\Http\Request  $request Objek HTTP Request yang memuat revisi data transaksi.
+    * @param  \App\Models\Expense  $expense Model transaksi pengeluaran yang direvisi.
+    * @return \Illuminate\Http\RedirectResponse
      */
     public function update(Request $request, Expense $expense): RedirectResponse
     {
@@ -438,6 +444,12 @@ class ExpenseController extends Controller
         }
 
         $cashAdvance = $expense->cashAdvance;
+
+        // Validasi status keaktifan CA: Hanya transaksi pada CA ACTIVE yang boleh diperbarui
+        if ($cashAdvance->status !== 'ACTIVE') {
+            return back()->with('error', 'Pengeluaran hanya dapat diperbarui saat status Cash Advance adalah ACTIVE.');
+        }
+
         $minDate = $cashAdvance->disbursed_at ? $cashAdvance->disbursed_at->format('Y-m-d') : '2020-01-01';
 
         // 3. Validasi masukan pembaruan
@@ -445,13 +457,27 @@ class ExpenseController extends Controller
             'transaction_date' => ['required', 'date', 'before_or_equal:today', "after_or_equal:{$minDate}"],
             'description' => ['required', 'string', 'max:255'],
             'category' => ['required', 'in:material,transport,sewa_alat,konsumsi,lainnya'],
-            'amount' => ['required', 'numeric', 'min:1'],
+            'amount' => ['required', 'integer', 'min:1'],
             'vendor_name' => ['required', 'string', 'max:255'],
             'vendor_tax_number' => ['nullable', 'string', 'max:100'],
             'notes' => ['nullable', 'string'],
             'receipts' => ['nullable', 'array', 'max:5'],
-            'receipts.*' => ['file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
+            'receipts.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
         ]);
+        $validated['amount'] = (int) $validated['amount'];
+
+        // Kunci Input Saldo pada saat update:
+        // Saldo yang tersedia untuk pengeluaran ini = saldo berjalan saat ini + nominal lama transaksi ini
+        if (!$expense->is_talangan) {
+            $availableBalance = (float) $cashAdvance->current_balance + (float) $expense->amount;
+            $newAmount = (float) $validated['amount'];
+
+            if ($newAmount > $availableBalance) {
+                return back()->withInput()->withErrors([
+                    'amount' => 'Nominal baru melebihi sisa kas yang tersedia! Sisa kas yang dapat digunakan: Rp ' . number_format($availableBalance, 0, ',', '.') . '. Silakan ajukan Top-Up terlebih dahulu jika memerlukan dana tambahan.',
+                ]);
+            }
+        }
 
         $oldValues = $expense->toArray();
 
@@ -515,9 +541,9 @@ class ExpenseController extends Controller
      * Sesuai ketentuan SOP, koreksi hanya boleh dilakukan via VOID disertai alasan jelas.
      * Dana yang di-VOID akan secara otomatis dipulihkan kembali ke saldo kas aktif sistem.
      *
-     * @param  \Illuminate\Http\Request  $request Objek HTTP Request yang memuat alasan pembatalan (void_reason).
-     * @param  \App\Models\Expense  $expense Model transaksi pengeluaran yang akan di-VOID.
-     * @return \Illuminate\Http\RedirectResponse
+    * @param  \Illuminate\Http\Request  $request Objek HTTP Request yang memuat alasan pembatalan (void_reason).
+    * @param  \App\Models\Expense  $expense Model transaksi pengeluaran yang akan di-VOID.
+    * @return \Illuminate\Http\RedirectResponse
      */
     public function voidExpense(Request $request, Expense $expense): RedirectResponse
     {
@@ -574,17 +600,31 @@ class ExpenseController extends Controller
      * transaksi tersebut wajib mendapatkan persetujuan manajerial (Atasan/Direktur)
      * sebelum dapat dinilai keabsahannya oleh tim Finance.
      *
-     * @param  \Illuminate\Http\Request  $request Objek HTTP Request.
-     * @param  \App\Models\Expense  $expense Model transaksi pengeluaran dengan struk hilang.
-     * @return \Illuminate\Http\RedirectResponse
+    * @param  \Illuminate\Http\Request  $request Objek HTTP Request.
+    * @param  \App\Models\Expense  $expense Model transaksi pengeluaran dengan struk hilang.
+    * @return \Illuminate\Http\RedirectResponse
      */
     public function approveLostReceipt(Request $request, Expense $expense): RedirectResponse
     {
         $user = Auth::user();
 
-        // 1. Otorisasi manajerial
+        // 1. Pemisahan Tugas (Separation of Duties): Dilarang menyetujui surat kehilangan milik sendiri
+        if ($expense->user_id === $user->id) {
+            abort(403, 'Akses ditolak: Anda tidak dapat menyetujui surat pernyataan kehilangan struk milik sendiri.');
+        }
+
+        // 2. Otorisasi manajerial
         if (!$user->isAtasan() && !$user->isDirektur()) {
             abort(403, 'Akses ditolak: Hanya Atasan atau Direktur yang dapat menyetujui surat pernyataan kehilangan struk.');
+        }
+
+        // 3. Verifikasi hierarki: Jika penyetuju adalah Atasan biasa, wajib atasan langsung pemohon atau manager CA
+        if ($user->isAtasan() && !$user->isDirektur()) {
+            $isDirectManager = ($expense->user && $expense->user->manager_id === $user->id)
+                || ($expense->cashAdvance && $expense->cashAdvance->manager_id === $user->id);
+            if (!$isDirectManager) {
+                abort(403, 'Akses ditolak: Hanya atasan langsung dari pemohon yang berhak menyetujui surat pernyataan kehilangan struk.');
+            }
         }
 
         // 2. Simpan persetujuan kehilangan struk
@@ -601,5 +641,61 @@ class ExpenseController extends Controller
         );
 
         return back()->with('success', 'Surat pernyataan kehilangan struk telah disetujui atasan. Transaksi siap dinilai oleh Finance.');
+    }
+
+    /**
+     * Menghapus transaksi pengeluaran secara lunak (Soft Delete).
+     *
+     * Data tidak dihapus permanen dari basis data dan berkas struk tetap dipertahankan;
+     * saldo kas Cash Advance terkait otomatis terkoreksi.
+     */
+    public function destroy(Request $request, Expense $expense): RedirectResponse
+    {
+        $user = Auth::user();
+
+        if (!$expense->canBeSoftDeletedBy($user)) {
+            abort(403, 'Akses ditolak: Anda tidak berhak menghapus transaksi pengeluaran ini.');
+        }
+
+        $validated = $request->validate([
+            'delete_reason' => ['required', 'string', 'min:5', 'max:500'],
+        ], [
+            'delete_reason.required' => 'Alasan penghapusan transaksi wajib diisi.',
+            'delete_reason.min' => 'Alasan penghapusan minimal 5 karakter.',
+        ]);
+
+        $oldValues = $expense->toArray();
+
+        ExpenseHistory::create([
+            'expense_id' => $expense->id,
+            'user_id' => $user->id,
+            'changes' => [
+                'action' => 'SOFT_DELETED',
+                'delete_reason' => $validated['delete_reason'],
+                'old' => $oldValues,
+            ],
+            'created_at' => now(),
+        ]);
+
+        $expense->update([
+            'deleted_by' => $user->id,
+            'delete_reason' => $validated['delete_reason'],
+        ]);
+        $expense->delete();
+
+        AuditLog::record(
+            'EXPENSE_SOFT_DELETED',
+            $expense,
+            "Transaksi pengeluaran #{$expense->id} ({$expense->description}) sebesar Rp " . number_format($expense->amount, 0, ',', '.') . " dihapus (soft delete) oleh {$user->name}. Alasan: {$validated['delete_reason']}",
+            $oldValues,
+            [
+                'deleted_at' => $expense->deleted_at?->toDateTimeString(),
+                'deleted_by' => $user->id,
+                'delete_reason' => $validated['delete_reason'],
+            ]
+        );
+
+        return redirect()->route('cash-advances.show', $expense->cash_advance_id)
+            ->with('success', 'Transaksi pengeluaran berhasil dihapus dari tampilan (arsip data tetap tersimpan di backend dan saldo telah disesuaikan).');
     }
 }

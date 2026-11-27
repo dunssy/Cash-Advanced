@@ -52,12 +52,15 @@ class CashAdvanceController extends Controller
         $user = Auth::user();
 
         // 1. Inisialisasi kueri dasar dengan eager loading relasi pendukung
+        // Status ACTIVE selalu diprioritaskan berada di paling atas
         $query = CashAdvance::with(['user', 'approver', 'disburser', 'expenses', 'topUps'])
+            ->orderByRaw("CASE WHEN status = 'ACTIVE' THEN 0 ELSE 1 END ASC")
             ->orderByDesc('created_at');
 
         // 2. Pembatasan cakupan data sesuai peran pengguna (Data Scoping)
+        // SOP PT Technodrives: 1 CA = 1 Proyek = 1 Karyawan = 1 Buku Saldo
         if ($user->isKaryawan()) {
-            // Karyawan hanya melihat data miliknya
+            // Karyawan hanya melihat data miliknya sendiri
             $query->where('user_id', $user->id);
         } elseif ($user->isAtasan()) {
             // Atasan melihat data pribadi dan data bawahan langsungnya / CA yang diarahkan padanya
@@ -106,10 +109,11 @@ class CashAdvanceController extends Controller
     /**
      * Menampilkan formulir pengajuan Cash Advance baru.
      *
-     * Menerapkan aturan integritas sistem:
+     * Menerapkan aturan integritas sistem (Dokumen SOP hal 1-2 & hal 7):
      * 1. Super Admin dilarang mengajukan CA (pemisahan peran sistem administrasi vs operasional kas).
      * 2. Kebijakan Gembok Pengajuan: Jika user masih memiliki CA aktif/belum CLOSED, formulir digembok
      *    dan dialihkan ke halaman peringatan gembok (locked view).
+     * 3. Satu CA = Satu Karyawan = Satu Proyek = Satu Buku Saldo Terpisah.
      *
      * @return \Illuminate\View\View
      * @throws \Symfony\Component\HttpKernel\Exception\HttpException Jika Super Admin mencoba mengakses.
@@ -124,7 +128,6 @@ class CashAdvanceController extends Controller
         }
 
         // 2. Evaluasi Gembok Pengajuan (Dokumen SOP hal 2 & hal 7)
-        // Satu karyawan hanya berhak memegang 1 CA aktif pada satu waktu hingga statusnya resmi CLOSED
         if ($user->hasActiveLock()) {
             $lockingCA = $user->getActiveLockingCA();
             return view('cash_advances.locked', compact('lockingCA'));
@@ -172,20 +175,28 @@ class CashAdvanceController extends Controller
         // Daftar kode proyek resmi yang aktif dibuat oleh Atasan
         $projectCodes = \App\Models\ProjectCode::where('is_active', true)->orderBy('code')->get();
 
+        // Estimasi Nomor / ID CA Otomatis untuk tampilan (sertakan soft-deleted agar nomor tidak bentrok)
+        $countThisMonth = CashAdvance::withTrashed()
+            ->whereYear('created_at', date('Y'))
+            ->whereMonth('created_at', date('m'))
+            ->count() + 1;
+        $previewCaNumber = sprintf('CA-%s%s-%04d', date('Y'), date('m'), $countThisMonth);
+        while (CashAdvance::withTrashed()->where('ca_number', $previewCaNumber)->exists()) {
+            $countThisMonth++;
+            $previewCaNumber = sprintf('CA-%s%s-%04d', date('Y'), date('m'), $countThisMonth);
+        }
+
         // 4. Render antarmuka pembuatan pengajuan CA baru
-        return view('cash_advances.create', compact('managers', 'divisions', 'categories', 'projectCodes'));
+        return view('cash_advances.create', compact('managers', 'divisions', 'categories', 'projectCodes', 'previewCaNumber'));
     }
 
     /**
      * Menyimpan berkas pengajuan Cash Advance baru ke dalam basis data.
      *
-     * Alur kerja:
-     * 1. Validasi server-side status gembok pengajuan pemohon.
-     * 2. Validasi kelengkapan data (proyek, tujuan, dan nominal minimal Rp 10.000).
-     * 3. Pembuatan nomor urut unik sistem: CA-YYYYMM-XXXX.
-     * 4. Penyimpanan data CA dengan status awal 'PENDING_APPROVAL'.
-     * 5. Pencatatan ke Audit Log.
-     * 6. Penerbitan notifikasi otomatis kepada pihak penyetuju (Atasan langsung atau Direktur).
+     * Prinsip Tata Kelola (Dokumen SOP hal 1 & hal 2):
+     * 1. Satu CA = Satu Proyek = Satu Karyawan = Satu Buku Saldo.
+     * 2. Karyawan mengajukan estimasi dana untuk keperluannya sendiri.
+     * 3. Evaluasi Gembok: Maksimal 1 CA aktif pada satu waktu.
      *
      * @param  \Illuminate\Http\Request  $request Objek HTTP Request yang memuat formulir pengajuan.
      * @return \Illuminate\Http\RedirectResponse
@@ -199,7 +210,7 @@ class CashAdvanceController extends Controller
             abort(403, 'Super Admin tidak dapat mengajukan Cash Advance.');
         }
 
-        // 2. Pengecekan ulang Gembok pada sisi server (Server-Side Enforcement)
+        // 2. Evaluasi Gembok Pengajuan
         if ($user->hasActiveLock()) {
             return back()->with('error', 'Pengajuan ditolak sistem: Anda masih memiliki Cash Advance aktif yang belum berstatus CLOSED.');
         }
@@ -251,7 +262,7 @@ class CashAdvanceController extends Controller
         if ($user->isKaryawan()) {
             $department = $projectCodeObj?->department ?: (!empty($user->departments) ? $user->departments[0] : ($user->department ?: null));
         } else {
-            $department = $validated['department'] ?: ($projectCodeObj?->department ?: (!empty($user->departments) ? $user->departments[0] : ($user->department ?: null)));
+            $department = ($validated['department'] ?? null) ?: ($projectCodeObj?->department ?: (!empty($user->departments) ? $user->departments[0] : ($user->department ?: null)));
         }
 
         // Gabungkan kategori proyek ke dalam keterangan / purpose jika dipilih
@@ -262,11 +273,17 @@ class CashAdvanceController extends Controller
 
         $itemsDetail = $validated['items_detail'] ?? $request->input('items_detail');
 
-        // 4. Penomoran Dokumen Otomatis: CA-YYYYMM-XXXX
-        $countThisMonth = CashAdvance::whereYear('created_at', date('Y'))
+        // 4. Penomoran Dokumen Otomatis: CA-YYYYMM-XXXX (sertakan soft-deleted agar tidak bentrok)
+        $countThisMonth = CashAdvance::withTrashed()
+            ->whereYear('created_at', date('Y'))
             ->whereMonth('created_at', date('m'))
             ->count() + 1;
         $caNumber = sprintf('CA-%s%s-%04d', date('Y'), date('m'), $countThisMonth);
+        while (CashAdvance::withTrashed()->where('ca_number', $caNumber)->exists()) {
+            $countThisMonth++;
+            $caNumber = sprintf('CA-%s%s-%04d', date('Y'), date('m'), $countThisMonth);
+        }
+        $projectCode = sprintf('PRJ-%s%s-%04d', date('Y'), date('m'), $countThisMonth);
 
         // 5. Simpan record Cash Advance baru dengan pemisahan Tujuan & Rincian Barang
         $ca = CashAdvance::create([
@@ -299,8 +316,8 @@ class CashAdvanceController extends Controller
             foreach ($direkturs as $dir) {
                 SystemNotification::send(
                     $dir->id,
-                    'Persetujuan Khusus Pengajuan CA',
-                    "Pengajuan {$ca->ca_number} ({$ca->project_name}) oleh {$user->name} ({$user->role}) memerlukan persetujuan Direktur.",
+                    'Persetujuan Pengajuan CA Baru',
+                    "Pengajuan {$ca->ca_number} ({$ca->project_name}) oleh {$ca->user->name} memerlukan persetujuan Direktur.",
                     'warning',
                     route('cash-advances.show', $ca)
                 );
@@ -315,18 +332,12 @@ class CashAdvanceController extends Controller
             );
         }
 
-        // 8. Alihkan pengguna ke halaman detail CA dengan pesan konfirmasi
         return redirect()->route('cash-advances.show', $ca)
             ->with('success', "Cash Advance {$ca->ca_number} berhasil diajukan dan sedang menunggu persetujuan.");
     }
 
     /**
      * Menampilkan rincian detail Cash Advance, riwayat transaksi, top-up, dan settlement.
-     *
-     * Melakukan otorisasi pembacaan data sebelum memuat seluruh relasi terkait secara eager:
-     * - Data atasan pemohon, penyetuju, pencair dana, dan penutup CA.
-     * - Seluruh riwayat Top-Up dan persetujuannya.
-     * - Seluruh rincian transaksi pengeluaran beserta berkas struk fisik dan jejak audit perubahannya.
      *
      * @param  \App\Models\CashAdvance  $cashAdvance Model Cash Advance yang diminta.
      * @return \Illuminate\View\View
@@ -339,6 +350,7 @@ class CashAdvanceController extends Controller
         // 2. Eager loading seluruh relasi data terkait
         $cashAdvance->load([
             'user.manager',
+            'manager',
             'approver',
             'disburser',
             'closer',
@@ -832,6 +844,52 @@ class CashAdvanceController extends Controller
     }
 
     /**
+     * Menghapus dokumen Cash Advance secara lunak (Soft Delete).
+     *
+     * Data disembunyikan dari daftar operasional frontend, namun tetap tersimpan
+     * secara utuh di basis data backend (kolom deleted_at) untuk kebutuhan audit
+     * serta dapat dipulihkan kembali oleh tim berwenang.
+     */
+    public function destroy(Request $request, CashAdvance $cashAdvance): RedirectResponse
+    {
+        $user = Auth::user();
+
+        if (!$cashAdvance->canBeSoftDeletedBy($user)) {
+            abort(403, 'Akses ditolak: Anda tidak berhak menghapus Cash Advance ini.');
+        }
+
+        $validated = $request->validate([
+            'delete_reason' => ['required', 'string', 'min:5', 'max:500'],
+        ], [
+            'delete_reason.required' => 'Alasan penghapusan wajib diisi untuk jejak audit keuangan.',
+            'delete_reason.min' => 'Alasan penghapusan minimal 5 karakter.',
+        ]);
+
+        $oldValues = $cashAdvance->toArray();
+
+        $cashAdvance->update([
+            'deleted_by' => $user->id,
+            'delete_reason' => $validated['delete_reason'],
+        ]);
+        $cashAdvance->delete();
+
+        AuditLog::record(
+            'CA_SOFT_DELETED',
+            $cashAdvance,
+            "Cash Advance {$cashAdvance->ca_number} dihapus (soft delete) oleh {$user->name}. Alasan: {$validated['delete_reason']}",
+            $oldValues,
+            [
+                'deleted_at' => $cashAdvance->deleted_at?->toDateTimeString(),
+                'deleted_by' => $user->id,
+                'delete_reason' => $validated['delete_reason'],
+            ]
+        );
+
+        return redirect()->route('cash-advances.index')
+            ->with('success', "Cash Advance {$cashAdvance->ca_number} berhasil dihapus dari tampilan (tersimpan di arsip Soft Delete backend).");
+    }
+
+    /**
      * Memeriksa otorisasi hak akses melihat (view permission) dokumen Cash Advance.
      *
      * Aturan Hak Akses Dokumen:
@@ -864,8 +922,8 @@ class CashAdvanceController extends Controller
             return;
         }
 
-        // 4. Atasan berhak melihat dokumen bawahan langsungnya
-        if ($user->isAtasan() && $ca->user->manager_id === $user->id) {
+        // 4. Atasan berhak melihat dokumen bawahan langsungnya atau CA yang diarahkan padanya
+        if ($user->isAtasan() && ($ca->manager_id === $user->id || ($ca->user && $ca->user->manager_id === $user->id))) {
             return;
         }
 

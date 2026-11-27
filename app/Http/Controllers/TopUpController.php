@@ -61,6 +61,15 @@ class TopUpController extends Controller
             return back()->with('error', 'Top-Up hanya dapat diajukan untuk Cash Advance yang berstatus ACTIVE.');
         }
 
+        // Cegah pengajuan ganda / bypass eskalasi bertingkat (hanya boleh 1 Top-Up pending dalam satu waktu)
+        $hasPendingTopup = $cashAdvance->topUps()
+            ->whereIn('status', ['PENDING_ATASAN', 'PENDING_FINANCE', 'PENDING_DIREKTUR', 'APPROVED'])
+            ->exists();
+
+        if ($hasPendingTopup) {
+            return back()->with('error', 'Pengajuan ditolak: Masih terdapat pengajuan Top-Up sebelumnya yang sedang dalam proses persetujuan atau pencairan.');
+        }
+
         // 3. Validasi input nominal dan alasan kebutuhan
         $validated = $request->validate([
             'amount' => ['required', 'numeric', 'min:50000'],
@@ -147,6 +156,15 @@ class TopUpController extends Controller
         // 2. Otorisasi peran
         if (!$user->isAtasan() && !$user->isDirektur()) {
             abort(403, 'Akses ditolak: Hanya Atasan atau Direktur yang dapat menyetujui tahap ini.');
+        }
+
+        // Verifikasi hierarki manajerial: Jika Atasan, wajib merupakan atasan langsung pemohon atau manager CA
+        if ($user->isAtasan() && !$user->isDirektur()) {
+            $isDirectManager = ($topUp->user && $topUp->user->manager_id === $user->id)
+                || ($topUp->cashAdvance && $topUp->cashAdvance->manager_id === $user->id);
+            if (!$isDirectManager) {
+                abort(403, 'Akses ditolak: Anda bukan atasan langsung dari pemohon Top-Up ini.');
+            }
         }
 
         // 3. Validasi status transisi
@@ -316,7 +334,21 @@ class TopUpController extends Controller
 
         // 1. Pemisahan tugas
         if ($topUp->user_id === $user->id) {
-            abort(403, 'Akses ditolak.');
+            abort(403, 'Akses ditolak: Anda tidak dapat menolak pengajuan milik sendiri.');
+        }
+
+        // Otorisasi penolakan sesuai tahapan
+        $canReject = false;
+        if ($user->isDirektur()) {
+            $canReject = true;
+        } elseif ($user->isFinance() && in_array($topUp->status, ['PENDING_FINANCE', 'APPROVED'])) {
+            $canReject = true;
+        } elseif ($user->isAtasan() && $topUp->status === 'PENDING_ATASAN' && (($topUp->user && $topUp->user->manager_id === $user->id) || ($topUp->cashAdvance && $topUp->cashAdvance->manager_id === $user->id))) {
+            $canReject = true;
+        }
+
+        if (!$canReject) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki wewenang untuk menolak pengajuan Top-Up ini.');
         }
 
         // 2. Validasi alasan penolakan
@@ -416,5 +448,47 @@ class TopUpController extends Controller
         );
 
         return back()->with('success', "Pencairan Top-Up berhasil dicatat. Saldo CA telah bertambah sebesar Rp " . number_format($topUp->amount, 0, ',', '.') . ".");
+    }
+
+    /**
+     * Menghapus pengajuan Top-Up secara lunak (Soft Delete).
+     */
+    public function destroy(Request $request, TopUp $topUp): RedirectResponse
+    {
+        $user = Auth::user();
+
+        if (!$topUp->canBeSoftDeletedBy($user)) {
+            abort(403, 'Akses ditolak: Anda tidak berhak menghapus pengajuan Top-Up ini.');
+        }
+
+        $validated = $request->validate([
+            'delete_reason' => ['required', 'string', 'min:5', 'max:500'],
+        ], [
+            'delete_reason.required' => 'Alasan penghapusan Top-Up wajib diisi.',
+            'delete_reason.min' => 'Alasan penghapusan minimal 5 karakter.',
+        ]);
+
+        $oldValues = $topUp->toArray();
+
+        $topUp->update([
+            'deleted_by' => $user->id,
+            'delete_reason' => $validated['delete_reason'],
+        ]);
+        $topUp->delete();
+
+        AuditLog::record(
+            'TOPUP_SOFT_DELETED',
+            $topUp,
+            "Pengajuan Top-Up #{$topUp->id} sebesar Rp " . number_format($topUp->amount, 0, ',', '.') . " dihapus (soft delete) oleh {$user->name}. Alasan: {$validated['delete_reason']}",
+            $oldValues,
+            [
+                'deleted_at' => $topUp->deleted_at?->toDateTimeString(),
+                'deleted_by' => $user->id,
+                'delete_reason' => $validated['delete_reason'],
+            ]
+        );
+
+        return redirect()->route('cash-advances.show', $topUp->cash_advance_id)
+            ->with('success', 'Pengajuan Top-Up berhasil dihapus dari tampilan (data tetap tersimpan di arsip Soft Delete backend).');
     }
 }

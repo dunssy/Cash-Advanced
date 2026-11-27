@@ -3,7 +3,12 @@
 @section('title', 'Daftar Cash Advance')
 
 @section('content')
-<div class="space-y-6">
+<div class="space-y-6" x-data="{
+    showDeleteCaModal: false,
+    deleteCaId: null,
+    deleteCaNumber: '',
+    deleteCaProject: ''
+}">
 
     <!-- Print Only Header -->
     <div class="hidden print:block mb-6 border-b-2 border-[#050A1E] pb-3">
@@ -154,10 +159,20 @@
                                 <span class="text-slate-400 text-xs">-</span>
                             @endif
                         </div>
-                        <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#050A1E] text-white text-xs font-head font-bold shadow-sm group-hover:bg-[#FF3C00] transition">
-                            <span>Buka CA</span>
-                            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-                        </span>
+                        <div class="flex items-center gap-2">
+                            @if($ca->canBeSoftDeletedBy(auth()->user()))
+                                <button type="button"
+                                    @click.prevent.stop="showDeleteCaModal = true; deleteCaId = {{ $ca->id }}; deleteCaNumber = {{ \Illuminate\Support\Js::from($ca->ca_number) }}; deleteCaProject = {{ \Illuminate\Support\Js::from($ca->project_name) }}"
+                                    class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-200 transition"
+                                    title="Hapus Cash Advance">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                </button>
+                            @endif
+                            <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#050A1E] text-white text-xs font-head font-bold shadow-sm group-hover:bg-[#FF3C00] transition">
+                                <span>Buka CA</span>
+                                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                            </span>
+                        </div>
                     </div>
                 </a>
             @empty
@@ -256,10 +271,20 @@
                                 </span>
                             </td>
                             <td class="text-center whitespace-nowrap no-print">
-                                <a href="{{ route('cash-advances.show', $ca) }}" class="btn-secondary py-1.5 px-4 text-xs inline-flex items-center space-x-1">
-                                    <span>Detail</span>
-                                    <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-                                </a>
+                                <div class="inline-flex items-center justify-center gap-1.5">
+                                    <a href="{{ route('cash-advances.show', $ca) }}" class="btn-secondary py-1.5 px-4 text-xs inline-flex items-center space-x-1">
+                                        <span>Detail</span>
+                                        <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                                    </a>
+                                    @if($ca->canBeSoftDeletedBy(auth()->user()))
+                                        <button type="button"
+                                            @click="showDeleteCaModal = true; deleteCaId = {{ $ca->id }}; deleteCaNumber = {{ \Illuminate\Support\Js::from($ca->ca_number) }}; deleteCaProject = {{ \Illuminate\Support\Js::from($ca->project_name) }}"
+                                            class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-200 transition"
+                                            title="Hapus Cash Advance">
+                                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                        </button>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -278,6 +303,44 @@
                 {{ $cashAdvances->links() }}
             </div>
         @endif
+    </div>
+
+    <!-- Modal Soft Delete Cash Advance -->
+    <div x-show="showDeleteCaModal" x-cloak
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-[#050A1E]/75 z-50 flex items-center justify-center p-4 no-print">
+        <div x-show="showDeleteCaModal"
+            x-transition:enter="transition ease-out duration-200 transform"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150 transform"
+            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+            class="card-commerce max-w-md w-full p-6 shadow-2xl">
+            <h3 class="text-base font-bold text-rose-700 mb-1">Hapus Cash Advance</h3>
+            <p class="text-xs font-mono text-slate-600 mb-2" x-text="deleteCaNumber + ' — ' + deleteCaProject"></p>
+            <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+                Data ini akan dipindahkan ke Arsip, bukan dihapus permanen. Jika diperlukan, data dapat dipulihkan dari menu Arsip Data.
+            </p>
+
+            <form :action="'/cash-advances/' + deleteCaId" method="POST" class="space-y-4">
+                @csrf
+                @method('DELETE')
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 uppercase mb-1">Alasan Penghapusan <span class="text-rose-500">*</span></label>
+                    <textarea name="delete_reason" rows="3" required minlength="5" class="w-full input-commerce text-xs" placeholder="Jelaskan alasan penghapusan dokumen CA ini (minimal 5 karakter)..."></textarea>
+                </div>
+                <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100">
+                    <button type="button" @click="showDeleteCaModal = false" class="btn-secondary py-1.5 px-3 text-xs">Batal</button>
+                    <button type="submit" class="btn-danger text-xs py-1.5 px-3.5">Konfirmasi Hapus</button>
+                </div>
+            </form>
+        </div>
     </div>
 
 </div>
